@@ -1,0 +1,56 @@
+# compiled output
+/xo-baby-backend/dist
+/xo-baby-backend/node_modules
+/xo-baby-backend/build
+
+# Logs
+logs
+/xo-baby-backend/*.log
+/xo-baby-backend/npm-debug.log*
+/xo-baby-backend/pnpm-debug.log*
+/xo-baby-backend/yarn-debug.log*
+/xo-baby-backend/yarn-error.log*
+/xo-baby-backend/lerna-debug.log*
+
+# OS
+/xo-baby-backend/.DS_Store
+
+# Tests
+/xo-baby-backend/coverage
+/xo-baby-backend/.nyc_output
+
+# IDEs and editors
+/xo-baby-backend/.idea
+/xo-baby-backend/.project
+/xo-baby-backend/.classpath
+/xo-baby-backend/.c9/
+/xo-baby-backend/*.launch
+/xo-baby-backend/.settings/
+/xo-baby-backend/*.sublime-workspace
+
+# IDE - VSCode
+/xo-baby-backend/.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv environment variable files
+/xo-baby-backend/.env
+/xo-baby-backend/.env.development.local
+/xo-baby-backend/.env.test.local
+/xo-baby-backend/.env.production.local
+/xo-baby-backend/.env.local
+
+# temp directory
+/xo-baby-backend/.temp
+/xo-baby-backend/.tmp
+
+# Runtime data
+/xo-baby-backend/pids
+/xo-baby-backend/*.pid
+/xo-baby-backend/*.seed
+/xo-baby-backend/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+/xo-baby-backend/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
