@@ -6,9 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../types/navigation'; 
 import { useUserStore } from '../../store/userStore';
-
-
-
 export default function HomeScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'HomeScreen'>>();
 
@@ -19,8 +16,6 @@ export default function HomeScreen() {
       clearUser();                  
       navigation.replace('Welcome');
     };  
-
-
 
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>

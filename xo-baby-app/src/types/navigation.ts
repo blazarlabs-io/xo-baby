@@ -1,5 +1,11 @@
 import { UserRole } from "../constants/roles";
 
+type Anomaly = {
+  id: number;
+  name: string;
+  description: string;
+};
+
 export type AuthStackParamList = {
   Welcome: undefined;
   RoleSelection: undefined;
@@ -12,5 +18,43 @@ export type AuthStackParamList = {
   SignupEmailConfirmedScreen: undefined;
   SignupCheckEmailScreen: undefined
   EmailVerification: undefined;
-  HomeScreen: undefined;
 };
+
+export type AppStackParamList = {
+  HomeScreen: undefined;  
+  AddKid: undefined;
+  AddKidName: undefined;
+  KidProfile: { kidId: string };
+  AddKidLastName: { firstName: string };
+  AddKidGender: { firstName: string, lastName: string };
+  AddKidBirthday: { firstName: string, lastName: string, gender: string };
+  AddKidBloodType: { firstName: string, lastName: string, gender: string, birthday: string };
+  AddKidEthnicity: { firstName: string, lastName: string, gender: string, birthday: string, bloodtype: string };
+  AddKidLocation: { 
+    firstName: string, 
+    lastName: string, 
+    gender: string, 
+    birthday: string, 
+    bloodtype: string, 
+    ethnicity: string 
+  };
+  AddKidAnomalies: { 
+    firstName: string, 
+    lastName: string, 
+    gender: string, 
+    birthday: string, 
+    bloodtype: string, 
+    ethnicity: string,
+    location: string
+  };
+  AddKidAvatar: { 
+    firstName: string, 
+    lastName: string, 
+    gender: string, 
+    birthday: string, 
+    bloodtype: string, 
+    ethnicity: string,
+    location: string,
+    anomalies: Anomaly[]
+  };
+}
