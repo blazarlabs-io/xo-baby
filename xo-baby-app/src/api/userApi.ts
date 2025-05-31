@@ -8,6 +8,6 @@ interface CreateUserPayload {
 }
 
 export const createUser = async (data: CreateUserPayload) => {
-  const response = await api.post('/users', data);
+  const response = await api.post('/users/create', data);
   return response.data;
 };

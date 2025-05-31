@@ -10,7 +10,6 @@ import SignupConfirmPasswordScreen from '../screens/auth/signup/SignupConfirmPas
 import SignupCheckEmailScreen from '../screens/auth/signup/SignupCheckEmailScreen';
 import SignupEmailConfirmedScreen from '../screens/auth/signup/SignupEmailConfirmedScreen';
 import WelcomeScreen from '../screens/onboarding/WelcomeScreen';
-import HomeScreen from '../screens/onboarding/HomeScreen';
 import type { AuthStackParamList } from '../types/navigation';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -28,7 +27,6 @@ export default function AuthStack() {
       <Stack.Screen name="SignupConfirmPasswordScreen" component={SignupConfirmPasswordScreen} />
       <Stack.Screen name="SignupEmailConfirmedScreen" component={SignupEmailConfirmedScreen} />
       <Stack.Screen name="SignupCheckEmailScreen" component={SignupCheckEmailScreen} />
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
     </Stack.Navigator>
   );
 }

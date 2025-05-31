@@ -7,13 +7,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../types/navigation'; 
 
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 
-import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 
-import { GOOGLE_WEB_CLIENT_ID } from '@env';
-import { discovery } from 'expo-auth-session/providers/google';
 
 WebBrowser.maybeCompleteAuthSession();
 
