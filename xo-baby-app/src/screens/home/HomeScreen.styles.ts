@@ -36,4 +36,28 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   link: { color: '#1e90ff' },
+  addKidText: {
+    fontSize: 16,
+    letterSpacing: 0.2,
+    fontWeight: "500",
+    fontFamily: "Roboto-Medium",
+    color: "#31cece",
+    textAlign: "left"
+  },
+  addNewKidButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginTop: 28,
+    borderWidth: 1,
+    borderColor: '#31CECE',
+    borderRadius: 32, 
+    borderStyle: 'dashed',
+    width: '100%',
+    height: 48,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    gap: 8
+  },
 });
