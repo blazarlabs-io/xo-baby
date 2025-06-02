@@ -13,6 +13,21 @@ export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
 
   const user = useUserStore((state) => state.user);
+
+  useEffect(() => {
+  if (kids.length === 0) {
+    useUserStore.getState().addKid({
+      id: 'mock-kid-1',
+      parentId: user?.uid || 'parent-1',
+      name: 'Test Kid',
+      birthDate: '2020-01-01',
+      vitals: {
+        heartRate: 90,
+        oximetry: 98,
+      },
+    });
+  }
+}, []);
  
 
   const kids = useUserStore((state) => state.kids);
@@ -27,8 +42,11 @@ export default function HomeScreen() {
         ) : (
         <>
             <KidSlider kids={kids} />
-            <TouchableOpacity onPress={() => navigation.navigate('AddKidName')}>
-                <Text >+ Add Kid</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('AddKidName')} style={styles.addNewKidButton}>
+							<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+								<Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
+								<Text style={styles.addKidText}>Add first Kid</Text>
+							</View>
             </TouchableOpacity>
         </>
         )}
@@ -36,4 +54,3 @@ export default function HomeScreen() {
     );
 
 }
-
