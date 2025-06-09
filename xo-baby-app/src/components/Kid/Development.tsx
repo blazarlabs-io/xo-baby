@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AppStackParamList } from '../../types/navigation';
 import { LineChart } from 'react-native-chart-kit';
 
 interface DevelopmentItem {
@@ -16,15 +18,24 @@ interface DevelopmentItem {
 
 interface DevelopmentProps {
   lastUpdated: string;
+  kidID: string;
   data: DevelopmentItem[];
 }
 
-const Development: React.FC<DevelopmentProps> = ({ lastUpdated, data }) => {
+const Development: React.FC<DevelopmentProps> = ({ lastUpdated, data, kidID }) => {
+
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  
+  const goDetail = () => {
+    navigation.navigate('Development', { kidId: kidID }); 
+  }
+
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Development</Text>
-        <Text style={styles.seeAll}>See All</Text>
+        <Text style={styles.seeAll} onPress={goDetail}>See All</Text>
       </View>
       <View style={styles.cardRow}>
         {data.map((item) => (

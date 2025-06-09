@@ -4,10 +4,10 @@ import { styles } from './WelcomeScreen.styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../types/navigation'; 
+import type { AppStackParamList } from '../../types/navigation'; 
 import { useUserStore } from '../../store/userStore';
 export default function HomeScreen() {
-    const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'HomeScreen'>>();
+    const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
 
     const clearUser = useUserStore((state) => state.clearUser);
     const user = useUserStore((state) => state.user);

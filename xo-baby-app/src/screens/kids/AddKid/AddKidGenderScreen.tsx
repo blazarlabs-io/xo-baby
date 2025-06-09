@@ -17,7 +17,7 @@ export default function AddKidGenderScreen() {
 
   const handleNext = () => {
    navigation.navigate('AddKidBirthday', { firstName, lastName, gender });
-
+   
   };
 
   return (

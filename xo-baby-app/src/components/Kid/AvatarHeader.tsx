@@ -1,11 +1,17 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import AvatarBacground  from '../../../assets/kids/avatar-background.svg';
 import AvatarGirl from '../../../assets/kids/avatar-girl-large.svg';
+import { useKidStore } from '../../store/kidStore';
 
-export default function AvatarHeader() {
+interface AvatarHeaderProps {
+  kidID: string
+}
 
-	const kidName = 'Camila Doe'; 
+export default function AvatarHeader({ kidID }: AvatarHeaderProps) {
+
+	const kid = useKidStore((state) =>
+    state.kids.find((k) => k.id === kidID)
+  );
 
   return (
     <View style={styles.container}>
@@ -21,7 +27,7 @@ export default function AvatarHeader() {
 						/>
 			</View>
 			<View style={styles.kidNameContainer}>
-				<Text style={styles.kidNameText}>{kidName}</Text>
+				<Text style={styles.kidNameText}>{kid?.firstName} {kid?.lastName}</Text>
 			</View>
     </View>
   );

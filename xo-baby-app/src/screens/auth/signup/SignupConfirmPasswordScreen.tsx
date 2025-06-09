@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
@@ -23,27 +23,33 @@ export default function SignupConfirmPasswordScreen() {
   const lastName = rest.join(' ');
 
   const handleConfirm = async () => {
-    try {
-      const response = await createUser({
-        firstName,
-        lastName,
-        email,
-        password,
-      });
+    if (passwordConfirm.trim() === password) {
+      Keyboard.dismiss();
+      try {
+        const response = await createUser({
+          firstName,
+          lastName,
+          email,
+          password,
+        });
 
-      // get JWT token
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const idToken = await userCredential.user.getIdToken();
+        // get JWT token
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const idToken = await userCredential.user.getIdToken();
 
-      setUser({
-        uid: response.uid,
-        email: response.email,
-        token: idToken
-      });
+        setUser({
+          uid: response.uid,
+          email: response.email,
+          token: idToken
+        });
 
-    } catch (err) {
-      console.error('User creation failed:', err);
+      } catch (err) {
+        console.error('User creation failed:', err);
+      }
+    } else {
+      console.error("Password dont match")
     }
+    
   };
 
   return (
@@ -69,6 +75,8 @@ export default function SignupConfirmPasswordScreen() {
         secureTextEntry
         value={passwordConfirm}
         onChangeText={setPasswordConfirm}
+        onSubmitEditing={handleConfirm}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

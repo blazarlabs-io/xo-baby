@@ -6,15 +6,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../../types/navigation'; 
 import { styles } from './AddKidAnomaliesScreen.styles';
+import { Anomaly } from '../../../types/types';
 
 
 export default function AddKidAnomaliesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'AddKidAnomalies'>>();
   const route = useRoute<RouteProp<AppStackParamList, 'AddKidAnomalies'>>();
 
-  const [anomalies, setAnomalies] = useState([
-		{ id: 1, name: 'Anomaly 1', description: 'Description of Anomaly 1' },
-		{ id: 2, name: 'Anomaly 2', description: 'Description of Anomaly 2' },
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([
 	]);
 
 	const [modalVisible, setModalVisible] = useState(false);

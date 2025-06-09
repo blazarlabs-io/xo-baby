@@ -21,4 +21,19 @@ export class KidService {
     await docRef.set(kidData);
     return { id: docRef.id, ...kidData };
   }
+
+  async getKidsByUserToken(token: string) {
+    const decoded = await this.firebase.getAuth().verifyIdToken(token);
+    const uid = decoded.uid;
+
+    const snapshot = await this.firebase
+      .getFirestore()
+      .collection('kids')
+      .where('parentId', '==', uid)
+      .get();
+
+    const kids = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return kids;
+  }
+
 }

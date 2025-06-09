@@ -18,6 +18,12 @@ const RoleSelectionScreen = () => {
     navigation.navigate('Welcome');
   };
 
+  const ROLE_IMAGES: Record<UserRole, any> = {
+    parent: require('../../../assets/common/parent.jpg'),
+    medical: require('../../../assets/common/medical.jpg'),
+    admin: require('../../../assets/common/admin.jpg'),
+  };
+
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
       <View style={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -36,10 +42,16 @@ const RoleSelectionScreen = () => {
                 width: 56,
                 height: 56,
                 borderRadius: 32,
-                backgroundColor: 'gray',
+                overflow: 'hidden', 
                 marginRight: 8,
               }}
-            />
+              >
+                <Image
+                  source={ROLE_IMAGES[key as UserRole]}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+            </View>
             <Text style={styles.roleText}>{label}</Text>
           </View>
           

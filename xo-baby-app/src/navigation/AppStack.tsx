@@ -10,6 +10,8 @@ import AddKidEthnicityScreen from '../screens/kids/AddKid/AddKidEthnicityScreen'
 import AddKidLocationScreen from '../screens/kids/AddKid/AddKidLocationScreen';
 import AddKidAnomaliesScreen from '../screens/kids/AddKid/AddKidAnomaliesScreen';
 import AddKidAvatarScreen from '../screens/kids/AddKid/AddKidAvatarScreen';
+import RealTimeDataScreen from '../screens/kids/RealTimeDataScreen';
+import DevelopmentScreen from '../screens/kids/DevelopmentScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +30,8 @@ export default function AppStack() {
       <Stack.Screen name="AddKidLocation" component={AddKidLocationScreen} />
       <Stack.Screen name="AddKidAnomalies" component={AddKidAnomaliesScreen} />
       <Stack.Screen name="AddKidAvatar" component={AddKidAvatarScreen} />
+      <Stack.Screen name="RealTimeData" component={RealTimeDataScreen} />
+      <Stack.Screen name="Development" component={DevelopmentScreen} />
     </Stack.Navigator>
   );
 }

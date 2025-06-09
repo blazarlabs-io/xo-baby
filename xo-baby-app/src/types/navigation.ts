@@ -1,10 +1,5 @@
 import { UserRole } from "../constants/roles";
-
-type Anomaly = {
-  id: number;
-  name: string;
-  description: string;
-};
+import { Anomaly } from "./types";
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -57,4 +52,6 @@ export type AppStackParamList = {
     location: string,
     anomalies: Anomaly[]
   };
+  RealTimeData: { kidId: string };
+  Development: { kidId: string };
 }

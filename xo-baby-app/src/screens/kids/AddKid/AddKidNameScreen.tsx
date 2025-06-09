@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,21 +11,12 @@ export default function AddKidNameScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'AddKidName'>>();
 
   const handleNext = () => {
-   navigation.navigate('AddKidLastName', { firstName });
+   
+   if (firstName.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('AddKidLastName', { firstName });
+    }
   };
-
-  // const handleNext = () => {
-  //  navigation.navigate('AddKidAnomalies', { 
-  //    firstName, 
-  //    lastName:'', 
-  //    gender:'', 
-  //    birthday:'', 
-  //    bloodtype:'', 
-  //    ethnicity:'', 
-  //    location:'' 
-  //  });
-
-  // };
 
   return (
      <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
@@ -57,6 +48,8 @@ export default function AddKidNameScreen() {
         autoCapitalize="none"
         value={firstName}
         onChangeText={setFirstName}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
