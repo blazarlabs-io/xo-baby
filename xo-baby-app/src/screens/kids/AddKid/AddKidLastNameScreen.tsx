@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,8 +15,11 @@ export default function AddKidLastNameScreen() {
   const { firstName } = route.params;
 
   const handleNext = () => {
-   navigation.navigate('AddKidGender', { firstName, lastName });
-
+   
+    if (lastName.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('AddKidGender', { firstName, lastName });
+    }
   };
 
   return (
@@ -49,6 +52,8 @@ export default function AddKidLastNameScreen() {
         autoCapitalize="none"
         value={lastName}
         onChangeText={setLastName}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

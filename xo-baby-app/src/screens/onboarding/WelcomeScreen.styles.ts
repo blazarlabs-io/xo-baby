@@ -24,9 +24,31 @@ export const styles = StyleSheet.create({
     borderColor: '#DCE3E3',
     marginVertical: 5,
     width: '100%',
-    alignItems: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center',
+    position: 'relative',
   },
-  socialText: { fontSize: 15 },
+
+  socialButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    position: 'relative',
+  },
+
+  socialIcon: {
+    width: 15,
+    height: 15,
+    position: 'absolute',
+    left: 5,
+  },
+
+  socialText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   signupText: { marginTop: 15, color: '#444' },
   signupLink: { color: '#1e90ff' },
   termsText: {

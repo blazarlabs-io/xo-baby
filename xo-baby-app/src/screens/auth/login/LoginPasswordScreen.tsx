@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,6 +7,7 @@ import { AuthStackParamList } from '../../../types/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../config/firebase';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useUserStore } from '../../../store/userStore';
 
 export default function LoginPasswordScreen() {
   const [password, setPassword] = useState('');
@@ -14,16 +15,27 @@ export default function LoginPasswordScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'LoginPassword'>>();
   const { email } = route.params;
 
-  const handleLogin = async () => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    console.log('User logged in:', user.email);
+  const setUser = useUserStore((state) => state.setUser);
 
-  } catch (error: any) {
-    console.error('Login error:', error.message);
-    alert(error.message);
-  }
+  const handleLogin = async () => {
+    if (email.trim()) {
+      Keyboard.dismiss();
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log('User logged in:', user.email);
+
+        setUser({
+          uid: user.uid,
+          email: user.email ?? '',
+          token: await user.getIdToken(),
+        });
+
+      } catch (error: any) {
+        console.error('Login error:', error.message);
+        alert(error.message);
+      }
+    }
 };
 
   return (
@@ -47,6 +59,8 @@ export default function LoginPasswordScreen() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        onSubmitEditing={handleLogin}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

@@ -1,47 +1,41 @@
+// components/Kid/KidProfileCard.tsx
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
-import { AppStackParamList } from '../../types/navigation';
-import { useKidStore } from '../../store/kidStore';
-import AvatarHeader from '../../components/Kid/AvatarHeader';
-import ProgressPoint from '../../components/ProgressPoint';
-import RealTimeDataWidget from '../../components/Kid/RealTimeDataWidget';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import UpcomingTasks from '../../components/Kid/UpcomingTasks';
-import Notes from '../../components/Kid/Notes';
-import { ScrollView, TouchableOpacity } from 'react-native'
+import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Development from '../../components/Kid/Development';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppStackParamList } from '../../types/navigation';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useKidStore } from '../../store/kidStore';
+import AvatarHeader from './AvatarHeader';
+import ProgressPoint from '../ProgressPoint';
+import RealTimeDataWidget from './RealTimeDataWidget';
+import Development from './Development';
+import UpcomingTasks from './UpcomingTasks';
+import Notes from './Notes';
 
-type KidProfileRouteProp = RouteProp<AppStackParamList, 'KidProfile'>;
-
-export default function KidProfileScreen() {
+export default function KidProfileCard({ kidId }: { kidId: string }) {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
-  const route = useRoute<KidProfileRouteProp>();
-  const { kidId } = route.params;
-
-  const kid = useKidStore((state) =>
-    state.kids.find((k) => k.id === kidId)
-  );
-  console.log('store Kid:', kid, 'params Kid:', kidId);
-
-  if (!kid) return <Text>Kid not found</Text>;
+  
+    const kid = useKidStore((state) =>
+      state.kids.find((k) => k.id === kidId)
+    );
+    console.log('store Kid:', kid, 'params Kid:', kidId);
+  
+    if (!kid) return <Text>Kid not found</Text>;
 
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
     <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, }}>
+      {/* <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, }}>
         <Image
           source={require('../../../assets/home-parent/baby.png')} 
           style={{ width: 24, height: 24 }}
         />
-        <View>My Kids</View>
+        <View><Text>My Kids</Text></View>
       </View>
       <View style={{marginTop: 16}}>
-        <ProgressPoint activeCount={1} maxCount={3} />
-      </View>
+        <ProgressPoint activeCount={1} maxCount={1} />
+      </View> */}
       <AvatarHeader kidID={kidId} />
       <RealTimeDataWidget heartRate={125} temperature={36} respiration={52} oxygen={98} deviceName='XO-PRO-Axs83E' kidID={kidId} />
       <Development
@@ -165,3 +159,4 @@ const styles = StyleSheet.create({
     textAlign: "left"
   },
 });
+

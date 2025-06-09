@@ -6,10 +6,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../../types/navigation'; 
 
+import { useKidStore } from '../../../store/kidStore';
+import { createKid } from '../../../api/kidApi';
+import { useUserStore } from '../../../store/userStore';
+
 
 export default function AddKidAvatarScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'AddKidAvatar'>>();
   const route = useRoute<RouteProp<AppStackParamList, 'AddKidAvatar'>>();
+
+  const { user } = useUserStore();
+  const addKid = useKidStore((state) => state.addKid);
 
   const { 
     firstName, 
@@ -21,6 +28,29 @@ export default function AddKidAvatarScreen() {
     location,
     anomalies
   } = route.params;
+
+  const handleCreateKid = async () => {
+    try {
+      const newKid = await createKid({
+        firstName,
+        lastName,
+        birthDate: birthday,
+        gender,
+        bloodType: bloodtype,
+        ethnicity,
+        location,
+        congenitalAnomalies: anomalies,
+        avatarUrl: '', 
+        parentId: user?.uid || '8l4p3sgjJ0g6NYLErsB4HBeW70a2',
+      });
+
+      addKid(newKid);
+      navigation.navigate('KidProfile', {kidId: newKid.id}); 
+    } catch (error) {
+      console.error('Failed to create kid:', error);
+      // show error to user
+    }
+  };
 
 
   return (
@@ -74,7 +104,7 @@ export default function AddKidAvatarScreen() {
       
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
-        <TouchableOpacity style={styles.button} >
+        <TouchableOpacity style={styles.button} onPress={handleCreateKid}>
           <Text style={styles.buttonText}>Next</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.goBack()}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,7 +11,10 @@ export default function LoginEmailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'LoginEmail'>>();
 
   const handleNext = () => {
-    navigation.navigate('LoginPassword', { email });
+    if (email.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('LoginPassword', { email });
+    }
   };
 
   return (
@@ -37,6 +40,8 @@ export default function LoginEmailScreen() {
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

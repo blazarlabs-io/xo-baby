@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
@@ -15,7 +15,11 @@ export default function SignupEmailScreen() {
   const { name } = route.params;
 
   const handleNext = () => {
-    navigation.navigate('SignupPasswordScreen', { name, email });
+    
+    if (email.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('SignupPasswordScreen', { name, email });
+    }
   };
 
   return (
@@ -42,6 +46,8 @@ export default function SignupEmailScreen() {
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

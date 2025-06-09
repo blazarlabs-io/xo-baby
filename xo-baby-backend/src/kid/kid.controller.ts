@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Get, Headers, UnauthorizedException  } from '@nestjs/common';
 import { KidService } from './kid.service';
 import { CreateKidDto } from './dto/create-kid.dto';
 
@@ -10,6 +10,17 @@ export class KidController {
   async createKid(@Body() dto: CreateKidDto) {
     return this.kidService.createKid(dto);
   }
+
+  @Get('my-kids')
+  async getKidsByUser(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+    const idToken = authHeader.replace('Bearer ', '');
+    return this.kidService.getKidsByUserToken(idToken);
+  }
+
+
 }
 
 

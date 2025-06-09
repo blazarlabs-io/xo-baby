@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AppStackParamList } from '../../types/navigation';
+import { useKidStore } from '../../store/kidStore';
 
 interface RealTimeDataProps {
   heartRate: number;
@@ -8,6 +11,7 @@ interface RealTimeDataProps {
   respiration: number;
   oxygen: number;
   deviceName: string;
+  kidID: string;
 }
 
 const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
@@ -16,12 +20,20 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   respiration,
   oxygen,
   deviceName,
+  kidID
 }) => {
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+
+  const goDetail = () => {
+    navigation.navigate('RealTimeData', { kidId: kidID }); 
+  }
+
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Real-time Data</Text>
-        <Text style={styles.seeAll}>See All</Text>
+        <Text style={styles.seeAll} onPress={goDetail}>See All</Text>
       </View>
       <View style={styles.dataContainer}>
         <View style={styles.dataItem}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
@@ -16,7 +16,11 @@ export default function SignupPasswordScreen() {
   const { name, email } = route.params;
 
   const handleNext = () => {
-    navigation.navigate('SignupConfirmPasswordScreen', { name, email, password });
+    
+    if (email.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('SignupConfirmPasswordScreen', { name, email, password });
+    }
   };
 
   return (
@@ -42,6 +46,8 @@ export default function SignupPasswordScreen() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>

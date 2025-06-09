@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,7 +11,11 @@ export default function SignupNameScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'SignupNameScreen'>>();
 
   const handleNext = () => {
-    navigation.navigate('SignupEmailScreen', { name });
+    
+    if (name.trim()) {
+      Keyboard.dismiss();
+      navigation.navigate('SignupEmailScreen', { name });
+    }
   };
 
   return (
@@ -37,6 +41,8 @@ export default function SignupNameScreen() {
         autoCapitalize="none"
         value={name}
         onChangeText={setName}
+        onSubmitEditing={handleNext}
+        returnKeyType="done"
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
