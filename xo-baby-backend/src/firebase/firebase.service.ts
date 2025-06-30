@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class FirebaseService {
@@ -28,4 +28,14 @@ export class FirebaseService {
   getAuth() {
     return this.auth;
   }
+
+  async verifyIdToken(idToken: string) {
+    try {
+      const decoded = await this.auth.verifyIdToken(idToken);
+      return decoded;
+    } catch (err) {
+      throw new UnauthorizedException('Invalid Firebase ID token');
+    }
+  }
+
 }

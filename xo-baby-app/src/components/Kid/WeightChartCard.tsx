@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, Dimensions, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, Dimensions, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { styles } from './WeightChartCard.styles';
+import { getWeightRecords, createWeightRecord, CreateMeasurementRecordPayload, MeasurementRecord } from '@/api/measurementsApi';
+import { useUserStore } from '@/store/userStore';
 
 const chartHeight = 195;
 
@@ -12,11 +14,6 @@ const rangeOptions: Record <RangeKey, { label: string; months: number }> = {
 };
 
 type RangeKey = '3m' | '6m' | '9m';
-
-type WeightRecord = {
-  date: string;
-  value: number;
-};
 
 type HeightChartCardProps = {
   kidID: string;
@@ -29,19 +26,39 @@ function getMonthYearString(date: Date) {
 }
 
 export default function HeightChartCard({ kidID }: HeightChartCardProps) {
+
+  // retrieve token from user store
+  const user = useUserStore((state) => state.user)
+  const token = user?.token
+
   const [modalVisible, setModalVisible] = useState(false);
   const [newDate, setNewDate] = useState('');
   const [newWeight, setNewWeight] = useState('');
   const [selectedRange, setSelectedRange] = useState<RangeKey>('3m');
-  const [weightRecords, setWeightRecords] = useState<WeightRecord[]>([
-  { date: '2025-04-01', value: 4.2 },
-  { date: '2025-05-01', value: 5.0 },
-  { date: '2025-06-01', value: 5.5 },
-])
+  const [loading, setLoading] = useState(false)
+  const [weightRecords, setWeightRecords] = useState<MeasurementRecord[]>([])
 
   const now = new Date();
   const monthsBack = rangeOptions[selectedRange].months;
   const fromDate = new Date(now.getFullYear(), now.getMonth() - monthsBack + 1, 1);
+
+  // Fetch Weight Records 
+  useEffect(() => {
+    const loadWeight = async () => {
+      if (!token) return
+      setLoading(true)
+      try {
+        const kidId = kidID
+        const fetched = await getWeightRecords(token, kidId )
+        setWeightRecords(fetched)
+      } catch (err) {
+        console.error('Error loading Weight:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadWeight()
+  }, [token, kidID])
 
   const filtered = useMemo(() => {
     const byMonth = new Map();
@@ -82,18 +99,30 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
     legend: ['Progress']
   };
 
-  const handleAddRecord = () => {
-    if (newDate.trim() !== '' && newWeight.trim() !== '') {
-      const parsedDate = new Date(newDate);
-      if (!isNaN(parsedDate.getTime())) {
-        setWeightRecords(prev => [...prev, {
-          date: parsedDate.toISOString(),
-          value: parseFloat(newWeight)
-        }]);
-        setNewDate('');
-        setNewWeight('');
-        setModalVisible(false);
-      }
+  // Handle creating a new weight record
+  const handleAddRecord = async () => {
+    if (!newDate.trim() || !newWeight.trim() || !token) return;
+    setLoading(true);
+    try {
+      const payload: CreateMeasurementRecordPayload = {
+        date: newDate,
+        value: parseFloat(newWeight),
+      };
+
+      // Call backend to create and return the new record
+      const created: MeasurementRecord = await createWeightRecord(token, kidID, payload);
+
+      // Prepend to local state
+      setWeightRecords(prev => [created, ...prev]);
+
+      // Reset form and close modal
+      setModalVisible(false);
+      setNewDate('');
+      setNewWeight('');
+    } catch (error) {
+      console.error('Failed to create weight record', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -144,14 +173,18 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
           bezier
           style={styles.chart}
         />
-        <Text style={styles.progressText}>Weight chart over time</Text>
+        <Text style={styles.progressText}>Weight increase of 2.2% this month</Text>
         <Text style={styles.progressNote}>Showing <Text style={styles.progressHighlight}>average per month</Text>.</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#31CECE" />
+        ) : (
         <TouchableOpacity style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Image source={require('../../../assets/development/chart-line.png')} style={{ width: 20, height: 20 }} />
             <Text style={styles.addNewRecordText}>New Record</Text>
           </View>
         </TouchableOpacity>
+        )}
       </View>
 
       <Modal
@@ -171,7 +204,7 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
             </View>
             <Text style={styles.modalTitle}>Date</Text>
             <TextInput
-              placeholder="2024-06-01"
+              placeholder="2025-06-01"
               style={styles.modalInput}
               value={newDate}
               onChangeText={setNewDate}

@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { Svg, Circle } from 'react-native-svg';
 
 export default function VitalStatsDisplay() {
-  const o2Saturation = 90;
-  const breaths = 56;
-  const movement = 32;
+  const o2Saturation = 0;
+  const breaths = 0;
+  const movement = 0;
   const circleRadius = 68;
   const strokeWidth = 16;
   const center = 82;
@@ -48,7 +48,7 @@ export default function VitalStatsDisplay() {
         <View style={styles.statBox}>
           <View style={styles.statTopRow}>
             <Image source={require('../../../assets/home-parent/lungs.png')} style={styles.statIcon} />
-            <Text style={styles.statValue}>56</Text>
+            <Text style={styles.statValue}>{breaths}</Text>
           </View>
           <Text style={styles.statLabel}>Breaths per min</Text>
         </View>
@@ -56,7 +56,7 @@ export default function VitalStatsDisplay() {
         <View style={styles.statBox}>
           <View style={styles.statTopRow}>
             <Image source={require('../../../assets/home-parent/runer.png')} style={styles.statIcon} />
-            <Text style={styles.statValue}>32</Text>
+            <Text style={styles.statValue}>{movement}</Text>
           </View>
           <Text style={styles.statLabel}>Movement Rate</Text>
         </View>

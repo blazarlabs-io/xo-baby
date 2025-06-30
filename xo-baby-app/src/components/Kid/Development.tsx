@@ -5,10 +5,10 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
 import { LineChart } from 'react-native-chart-kit';
 
-interface DevelopmentItem {
+export interface DevelopmentItem {
   id: string;
   label: string;
-  value: string;
+  value: number | string;
   unit: string;
   color: string;
   icon: ReturnType<typeof require>;
@@ -22,10 +22,11 @@ interface DevelopmentProps {
   data: DevelopmentItem[];
 }
 
-const Development: React.FC<DevelopmentProps> = ({ lastUpdated, data, kidID }) => {
+const Development: React.FC<DevelopmentProps> = (props) => {
 
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
-  
+  const { lastUpdated, kidID, data } = props;
+ 
   const goDetail = () => {
     navigation.navigate('Development', { kidId: kidID }); 
   }
