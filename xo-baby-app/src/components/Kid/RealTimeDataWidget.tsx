@@ -6,11 +6,11 @@ import type { AppStackParamList } from '../../types/navigation';
 import { useKidStore } from '../../store/kidStore';
 
 interface RealTimeDataProps {
-  heartRate: number;
-  temperature: number;
-  respiration: number;
-  oxygen: number;
-  deviceName: string;
+  heartRate?: number;
+  temperature?: number;
+  respiration?: number;
+  oxygen?: number;
+  deviceName?: string;
   kidID: string;
 }
 
@@ -28,6 +28,8 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
     navigation.navigate('RealTimeData', { kidId: kidID }); 
   }
 
+  const formatValue = (value?: number | string) =>
+    value !== undefined && value !== null && value !== '' ? value : '-';
   
   return (
     <View style={styles.container}>
@@ -39,31 +41,31 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
         <View style={styles.dataItem}>
           <Image
             source={require('../../../assets/home-parent/heart.png')} width={16} height={16} />
-          <Text style={styles.dataText}>{heartRate}</Text>
+          <Text style={styles.dataText}>{formatValue(heartRate)}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.dataItem}>
           <Image
             source={require('../../../assets/home-parent/thermometer.png')} width={16} height={16} />
-          <Text style={styles.dataText}>{temperature}</Text>
+          <Text style={styles.dataText}>{formatValue(temperature)}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.dataItem}>
           <Image
             source={require('../../../assets/home-parent/lungs.png')} width={16} height={16} />
-          <Text style={styles.dataText}>{respiration}</Text>
+          <Text style={styles.dataText}>{formatValue(respiration)}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.dataItem}>
           <Image
             source={require('../../../assets/home-parent/O2.png')} width={20} height={27} />
-          <Text style={styles.dataText}>{oxygen}%</Text>
+          <Text style={styles.dataText}>{oxygen !== undefined ? `${oxygen}%` : '-'}</Text>
         </View>
       </View>
       <View style={styles.deviceNameContainer}>
         <Image
           source={require('../../../assets/home-parent/bl-device.png')} width={12} height={16} />
-        <Text style={styles.deviceName}>{deviceName}</Text>
+        <Text style={styles.deviceName}>{deviceName ? deviceName : 'No device connected'}</Text>
       </View>
     </View>
   );

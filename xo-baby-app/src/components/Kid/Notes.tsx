@@ -1,6 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AppStackParamList } from '../../types/navigation';
+
+import { useUserStore } from '@/store/userStore';
+import { getNotes, Note as NoteApi  } from '@/api/notesApi';
 
 interface Note {
   id: string;
@@ -12,36 +17,78 @@ interface Note {
 
 interface NotesProps {
   notes: Note[];
+  kidID: string;
 }
 
-const Notes: React.FC<NotesProps> = ({ notes }) => {
+const Notes: React.FC<NotesProps> = (props) => {
+  const { kidID } = props;
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+
+  // retrieve token from user store
+  const user = useUserStore((state) => state.user)
+  const token = user?.token
+
+  // state
+  const [notes, setNotes] = useState<NoteApi[]>([])
+  const [loading, setLoading] = useState(false)
+
+  // Fetch notes on mount or when token/kidId changes
+  useEffect(() => {
+    const loadNotes = async () => {
+      if (!token) return
+      setLoading(true)
+      try {
+        const kidId = kidID
+        const fetched = await getNotes(token, { kidId })
+        setNotes(fetched)
+      } catch (err) {
+        console.error('Error loading notes:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadNotes()
+  }, [token, kidID])
+
+  const goDetail = () => {
+    navigation.navigate('Notes', { kidId: kidID });
+  }
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Notes</Text>
-        <Text style={styles.seeAll}>See All</Text>
+        <Text style={styles.seeAll} onPress={goDetail}>See All</Text>
       </View>
+      { loading ? (
+        <ActivityIndicator />
+      ) : notes.length === 0 ? ( 
+        <View>
+          <Text>No notes yet</Text>
+        </View>
+       ) : (
       <FlatList
         data={notes}
         horizontal
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={[styles.noteCard, { backgroundColor: item.color }]}>
-            <TouchableOpacity style={styles.favoriteIcon}>
+          <View style={[styles.noteCard, { backgroundColor: '#FFC8F0' }]}>
+            {/* <TouchableOpacity style={styles.favoriteIcon}>
               {item.isFavorite && (
                 <MaterialCommunityIcons name="star" size={16} color="#FF8B00" />
               )}
-            </TouchableOpacity>
-            <Text style={styles.noteText} numberOfLines={5}>{item.text}</Text>
+            </TouchableOpacity> */}
+            <Text style={styles.noteText} numberOfLines={5}>{item.description}</Text>
             <Text style={styles.noteDate}>{item.date}</Text>
             <TouchableOpacity style={styles.editIcon}>
-              <MaterialCommunityIcons name="pencil" size={16} color="#fff" />
+              <Image source={require('../../../assets/home-parent/pencil.png')} alt=" pencil" width={10} height={10} />
             </TouchableOpacity>
           </View>
         )}
         ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
         showsHorizontalScrollIndicator={false}
       />
+      )}
     </View>
   );
 };
@@ -74,21 +121,29 @@ const styles = StyleSheet.create({
     textAlign: "left"
   },
   noteCard: {
-    width: 157,
+    width: 117,
+    height: 131,
     borderRadius: 16,
     padding: 20,
     position: 'relative',
     justifyContent: 'space-between',
     marginTop: 12,
+    borderStyle: "solid",
+    borderColor: "#dce3e3",
+    borderWidth: 1,
   },
   noteText: {
-    fontSize: 14,
-    color: '#000',
-    marginBottom: 8,
+    color: ' #222128',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 12,
+    fontStyle: 'normal',
   },
   noteDate: {
-    fontSize: 12,
-    color: '#555',
+    width: "100%",
+    fontSize: 10,
+    fontFamily: "Poppins-Regular",
+    color: "#8d8d8d",
+    textAlign: "left"
   },
   favoriteIcon: {
     position: 'absolute',
@@ -105,10 +160,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: '#000',
-    borderRadius: 12,
+    backgroundColor: '#222128',
+    borderRadius: 16,
     width: 24,
     height: 24,
+    padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },

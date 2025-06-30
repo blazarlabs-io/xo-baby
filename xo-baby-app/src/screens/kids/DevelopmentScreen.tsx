@@ -12,7 +12,8 @@ import { useNavigation } from '@react-navigation/native';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import WeightChartCard from '../../components/Kid/WeightChartCard';
-import HeightChartCard from '../../components/Kid/HeightChartCart';
+import HeightChartCard from '../../components/Kid/HeightChartCard';
+import HeadChartCard from '../../components/Kid/HeadSizeChartCard';
 
 type DevelopmentProp = RouteProp<AppStackParamList, 'Development'>;
 
@@ -24,7 +25,6 @@ export default function DevelopmentScreen() {
   const kid = useKidStore((state) =>
     state.kids.find((k) => k.id === kidId)
   );
-  console.log('store Kid:', kid, 'params Kid:', kidId);
 
   if (!kid) return <Text>Kid not found</Text>;
 
@@ -55,6 +55,7 @@ export default function DevelopmentScreen() {
       <View style={{gap: 16}}>
         <WeightChartCard kidID={kidId} />
         <HeightChartCard kidID={kidId} />
+        <HeadChartCard kidID={kidId} />
       </View>
 
       <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>

@@ -7,7 +7,12 @@ export const styles = StyleSheet.create({
     padding: 8,
     width: '100%',
     marginTop: 16,
-    alignSelf: 'center'
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
@@ -49,7 +54,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     alignItems: 'flex-start',
-    marginTop: 8
+    marginTop: 8,
   },
   name: {
     fontSize: 16,

@@ -28,9 +28,9 @@ export default function WelcomeScreen() {
     useEffect(() => {
       // Mock user data
       const mockUser = {
-        uid: 'mock-uid-1234',
-        email: 'mockuser@example.com',
-        token: 'mock-token-5678'
+        uid: '1mjAa3McHnTK2R5malZ2cRFlO9O2',
+        email: 'vasea@mail.com',
+        token: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3NzQ4NTAwMmYwNWJlMDI2N2VmNDU5ZjViNTEzNTMzYjVjNThjMTIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veG8tYmFieSIsImF1ZCI6InhvLWJhYnkiLCJhdXRoX3RpbWUiOjE3NTEyOTM1NTIsInVzZXJfaWQiOiIxbWpBYTNNY0huVEsyUjVtYWxaMmNSRmxPOU8yIiwic3ViIjoiMW1qQWEzTWNIblRLMlI1bWFsWjJjUkZsTzlPMiIsImlhdCI6MTc1MTI5MzU1MiwiZXhwIjoxNzUxMjk3MTUyLCJlbWFpbCI6InZhc2VhQG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInZhc2VhQG1haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.u6aG9kiTq40ew9Wz0egWqvd1o4d3fZAcl_ej6fkiOT4KPDAvj93hIpa-wwg_82vYa2XrZqbm80OjufG4RLlh9iMlY6mLp66usejWY9bZorVBn3aRVLtUgYLxAFzLHLOZB8Jb02qLNwG8a8ib6nfV8_XwBj1lO82ne-BFhsIpRUdFoheEjCWfnSGpLsxxHF3Cp_0UQ08gJGpyFydK1-W7p2RlHDk8wyLnnslKneMdwzqD3i8GnxX6mP0sejy4iKzHNOlUVD6R99UmXqaPW-cGGijj1CvX2dnvv_as6lwCdawiKK4hB7d6e3ruhJlzJEEgl4ow7bRNBdJvEfi2GtwKrg'
       };
 
       // Save mock user in store
@@ -39,7 +39,7 @@ export default function WelcomeScreen() {
       // Mock kids data
       const mockKids = [
         {
-          id: 'kid-1',
+          id: 'BZnM9iTJRdt0xVL6Infv',
           parentId: mockUser.uid,
           firstName: 'Alice',
           lastName: 'Johnson',
@@ -60,7 +60,7 @@ export default function WelcomeScreen() {
           }
         },
         {
-          id: 'kid-2',
+          id: 'fPKD2ANp3s7tfs4IyU9E',
           parentId: mockUser.uid,
           firstName: 'Leo',
           lastName: 'Johnson',

@@ -18,6 +18,7 @@ export default function HomeScreen() {
 	const setKids = useKidStore.getState().addKid;
   const user = useUserStore((state) => state.user);
 
+  // mock kid
 //   useEffect(() => {
 //   if (kids.length === 0) {
 //     useKidStore.getState().addKid({

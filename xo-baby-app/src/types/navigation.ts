@@ -54,4 +54,6 @@ export type AppStackParamList = {
   };
   RealTimeData: { kidId: string };
   Development: { kidId: string };
+  Tasks: { kidId: string };
+  Notes: { kidId: string };
 }

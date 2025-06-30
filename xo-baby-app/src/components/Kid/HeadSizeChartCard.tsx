@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, Dimensions, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, Dimensions, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import { styles } from './HeightChartCart.styles';
+import { styles } from './WeightChartCard.styles';
+
+import { getHeadCircumferenceRecords, createHeadCircumferenceRecord, CreateMeasurementRecordPayload, MeasurementRecord } from '@/api/measurementsApi';
+import { useUserStore } from '@/store/userStore';
 
 const chartHeight = 195;
 
@@ -13,12 +16,7 @@ const rangeOptions: Record <RangeKey, { label: string; months: number }> = {
 
 type RangeKey = '3m' | '6m' | '9m';
 
-type HeightRecord = {
-  date: string;
-  value: number;
-};
-
-type HeightChartCardProps = {
+type HeadChartCardProps = {
   kidID: string;
 }
 
@@ -28,24 +26,44 @@ function getMonthYearString(date: Date) {
   return `${monthLabels[date.getMonth()]} ${date.getFullYear()}`;
 }
 
-export default function HeightChartCard({ kidID }: HeightChartCardProps) {
+export default function HeadSizeChartCard({ kidID }: HeadChartCardProps) {
+
+  // retrieve token from user store
+  const user = useUserStore((state) => state.user)
+  const token = user?.token
+
   const [modalVisible, setModalVisible] = useState(false);
   const [newDate, setNewDate] = useState('');
-  const [newWeight, setNewWeight] = useState('');
+  const [newHead, setNewHead] = useState('');
   const [selectedRange, setSelectedRange] = useState<RangeKey>('3m');
-  const [weightRecords, setWeightRecords] = useState<HeightRecord[]>([
-  { date: '2025-04-01', value: 58.2 },
-  { date: '2025-05-01', value: 60.1 },
-  { date: '2025-06-01', value: 62.5 },
-])
+  const [loading, setLoading] = useState(false)
+  const [sizeRecords, setSizeRecords] = useState<MeasurementRecord[]>([])
 
   const now = new Date();
   const monthsBack = rangeOptions[selectedRange].months;
   const fromDate = new Date(now.getFullYear(), now.getMonth() - monthsBack + 1, 1);
 
+  // Fetch Weight Records 
+    useEffect(() => {
+      const loadWeight = async () => {
+        if (!token) return
+        setLoading(true)
+        try {
+          const kidId = kidID
+          const fetched = await getHeadCircumferenceRecords(token, kidId )
+          setSizeRecords(fetched)
+        } catch (err) {
+          console.error('Error loading head size:', err)
+        } finally {
+          setLoading(false)
+        }
+      }
+      loadWeight()
+    }, [token, kidID])
+
   const filtered = useMemo(() => {
     const byMonth = new Map();
-    weightRecords.forEach((record) => {
+    sizeRecords.forEach((record) => {
       const date = new Date(record.date);
       if (date >= fromDate && date <= now) {
         const key = `${date.getFullYear()}-${date.getMonth()}`;
@@ -56,7 +74,7 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
       }
     });
     return byMonth;
-  }, [weightRecords, selectedRange]);
+  }, [sizeRecords, selectedRange]);
 
   const labels = [];
   const dataset = [];
@@ -77,23 +95,35 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
   const chartData = {
     labels,
     datasets: [
-      { data: dataset, color: () => '#31CECE', strokeWidth: 3 },
+      { data: dataset, color: () => '#FF73DC', strokeWidth: 3 },
     ],
     legend: ['Progress']
   };
 
-  const handleAddRecord = () => {
-    if (newDate.trim() !== '' && newWeight.trim() !== '') {
-      const parsedDate = new Date(newDate);
-      if (!isNaN(parsedDate.getTime())) {
-        setWeightRecords(prev => [...prev, {
-          date: parsedDate.toISOString(),
-          value: parseFloat(newWeight)
-        }]);
-        setNewDate('');
-        setNewWeight('');
-        setModalVisible(false);
-      }
+  // Handle creating a new weight record
+  const handleAddRecord = async () => {
+    if (!newDate.trim() || !newHead.trim() || !token) return;
+    setLoading(true);
+    try {
+      const payload: CreateMeasurementRecordPayload = {
+        date: newDate,
+        value: parseFloat(newHead),
+      };
+
+      // Call backend to create and return the new record
+      const created: MeasurementRecord = await createHeadCircumferenceRecord(token, kidID, payload);
+
+      // Prepend to local state
+      setSizeRecords(prev => [created, ...prev]);
+
+      // Reset form and close modal
+      setModalVisible(false);
+      setNewDate('');
+      setNewHead('');
+    } catch (error) {
+      console.error('Failed to create head size record', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,10 +131,10 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={styles.icon1}>
-            <Image source={require('../../../assets/development/ruler.png')} width={10} height={10} />
+          <View style={[styles.icon1, {backgroundColor: '#FF73DC'}]}>
+            <Image source={require('../../../assets/development/baby.png')} width={10} height={10} />
           </View>
-          <Text style={styles.header}>Weight</Text>
+          <Text style={styles.header}>Head Circum.</Text>
         </View>
         <TouchableOpacity onPress={() => {
           setSelectedRange(prev => prev === '3m' ? '6m' : prev === '6m' ? '9m' : '3m');
@@ -116,7 +146,7 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.chartContainer}>
+      <View style={[styles.chartContainer, {backgroundColor: '#FFE5F9'}]}>
         <Text style={styles.name}>Camila Doe</Text>
         <Text style={styles.dateRange}>{getMonthYearString(fromDate)} - {getMonthYearString(now)}</Text>
         <LineChart
@@ -134,7 +164,7 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
             propsForDots: {
               r: '5',
               strokeWidth: '2',
-              stroke: '#31CECE'
+              stroke: '#FF73DC'
             },
             propsForBackgroundLines: {
               stroke: '#E3E3E3'
@@ -146,12 +176,16 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
         />
         <Text style={styles.progressText}>Weight chart over time</Text>
         <Text style={styles.progressNote}>Showing <Text style={styles.progressHighlight}>average per month</Text>.</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#31CECE" />
+        ) : (
         <TouchableOpacity style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Image source={require('../../../assets/development/chart-line.png')} style={{ width: 20, height: 20 }} />
             <Text style={styles.addNewRecordText}>New Record</Text>
           </View>
         </TouchableOpacity>
+        )}
       </View>
 
       <Modal
@@ -171,21 +205,21 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
             </View>
             <Text style={styles.modalTitle}>Date</Text>
             <TextInput
-              placeholder="2024-06-01"
+              placeholder="2025-06-01"
               style={styles.modalInput}
               value={newDate}
               onChangeText={setNewDate}
             />
-            <Text style={styles.modalTitle}>Weight</Text>
+            <Text style={styles.modalTitle}>Head Circumference</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
-                placeholder="4.12"
+                placeholder="57.2"
                 style={styles.modalInput}
-                value={newWeight}
-                onChangeText={setNewWeight}
+                value={newHead}
+                onChangeText={setNewHead}
                 keyboardType="decimal-pad"
               />
-              <Text style={styles.valueUnitText}>Kg</Text>
+              <Text style={styles.valueUnitText}>cm</Text>
             </View>
             <View style={styles.modalButtonRow}>
               <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>

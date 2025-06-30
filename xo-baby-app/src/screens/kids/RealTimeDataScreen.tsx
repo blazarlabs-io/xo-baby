@@ -61,14 +61,14 @@ export default function RealTimeDataScreen() {
 						source={require('../../../assets/home-parent/bl-device.png')} 
 						style={styles.deviceIcon}
 					/>
-					<Text style={styles.deviceName}>Womby-Pro-Axs83Eg1</Text>
+					<Text style={styles.deviceName}>No device connected</Text>
 				</View>
 			</View>
 
 			<VitalStatsDisplay />
 			<HeartAndTempStats />
 
-      <View style={{ position: 'relative', width: '92%', marginTop: 80 }}>
+      <View style={{ position: 'relative', width: '92%'}}>
         
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>

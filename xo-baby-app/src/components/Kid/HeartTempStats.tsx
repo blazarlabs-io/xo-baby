@@ -5,8 +5,8 @@ import { LineChart } from 'react-native-chart-kit';
 
 export default function HeartAndTempStats() {
   const screenWidth = Dimensions.get('window').width;
-  const temperature = 36.1;
-  const heartRate = 125;
+  const temperature = 0;
+  const heartRate = 0;
 
   const data = {
     labels: [],

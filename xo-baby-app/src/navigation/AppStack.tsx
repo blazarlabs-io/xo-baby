@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/home/HomeScreen';
 import AddKidNameScreen from '../screens/kids/AddKid/AddKidNameScreen'
-import KidProfileScreen from '../screens/kids/KidProfileScreen';
 import AddKidLastNameScreen from '../screens/kids/AddKid/AddKidLastNameScreen';
 import AddKidGenderScreen from '../screens/kids/AddKid/AddKidGenderScreen';
 import AddKidBirthdayScreen from '../screens/kids/AddKid/AddKidBirthdayScreen';
@@ -12,6 +11,8 @@ import AddKidAnomaliesScreen from '../screens/kids/AddKid/AddKidAnomaliesScreen'
 import AddKidAvatarScreen from '../screens/kids/AddKid/AddKidAvatarScreen';
 import RealTimeDataScreen from '../screens/kids/RealTimeDataScreen';
 import DevelopmentScreen from '../screens/kids/DevelopmentScreen';
+import TasksScreen from '../screens/kids/TasksScreen';
+import NotesScreen from '@/screens/kids/NotesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,7 +21,6 @@ export default function AppStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="AddKid" component={AddKidNameScreen} />
-      <Stack.Screen name="KidProfile" component={KidProfileScreen} />
       <Stack.Screen name="AddKidName" component={AddKidNameScreen} />
       <Stack.Screen name="AddKidLastName" component={AddKidLastNameScreen} />
       <Stack.Screen name="AddKidGender" component={AddKidGenderScreen} />
@@ -32,6 +32,8 @@ export default function AppStack() {
       <Stack.Screen name="AddKidAvatar" component={AddKidAvatarScreen} />
       <Stack.Screen name="RealTimeData" component={RealTimeDataScreen} />
       <Stack.Screen name="Development" component={DevelopmentScreen} />
+      <Stack.Screen name="Tasks" component={TasksScreen} />
+      <Stack.Screen name="Notes" component={NotesScreen} />
     </Stack.Navigator>
   );
 }
