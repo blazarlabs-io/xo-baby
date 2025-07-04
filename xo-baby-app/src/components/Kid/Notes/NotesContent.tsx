@@ -4,7 +4,7 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
+  Pressable,
   Modal,
   KeyboardAvoidingView,
   TextInput,
@@ -101,9 +101,9 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
                 <Text style={styles.itemDescription}>
                   {note.description}
                 </Text>
-                <TouchableOpacity>
+                <Pressable>
                   <Text style={styles.itemDetailBtn}>Details</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
               <View style={styles.itemTimeContainer}>
                 <Text style={styles.itemTime}>{note.date}</Text>
@@ -126,7 +126,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
           style={styles.modalContainer}
         >
           <View style={styles.modalContent}>
-            <TouchableOpacity
+            <Pressable
               style={styles.modalClose}
               onPress={() => setModalVisible(false)}
             >
@@ -134,7 +134,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
                 source={require('../../../../assets/common/x.png')}
                 style={{ width: 24, height: 24 }}
               />
-            </TouchableOpacity>
+            </Pressable>
 
             <View style={{ gap: 8, flexDirection: 'row' }}>
               <Image
@@ -179,14 +179,14 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
             </Picker>
 
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setModalVisible(false)}
                 style={styles.cancelButton}
               >
                 <Text style={styles.buttonTextCancel}>Cancel</Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
+              <Pressable
                 onPress={handleAddNote}
                 style={styles.addButton}
               >
@@ -195,7 +195,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
                 ) : (
                   <Text style={styles.buttonTextAdd}>Add Note</Text>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image,  StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image,  StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -31,7 +31,7 @@ const RoleSelectionScreen = () => {
       </View>
       <Text style={styles.title}>Who are you?</Text>
       {Object.entries(ROLE_LABELS).map(([key, label]) => (
-        <TouchableOpacity
+        <Pressable
           key={key}
           style={styles.roleButton}
           onPress={() => handleSelectRole(key as UserRole)}
@@ -55,7 +55,7 @@ const RoleSelectionScreen = () => {
             <Text style={styles.roleText}>{label}</Text>
           </View>
           
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </LinearGradient>
   );

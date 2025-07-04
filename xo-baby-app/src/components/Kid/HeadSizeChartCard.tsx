@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, Dimensions, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Dimensions, Image, Pressable, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { styles } from './WeightChartCard.styles';
 
@@ -136,14 +136,14 @@ export default function HeadSizeChartCard({ kidID }: HeadChartCardProps) {
           </View>
           <Text style={styles.header}>Head Circum.</Text>
         </View>
-        <TouchableOpacity onPress={() => {
+        <Pressable onPress={() => {
           setSelectedRange(prev => prev === '3m' ? '6m' : prev === '6m' ? '9m' : '3m');
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
             <Text style={styles.subHeader}>{rangeOptions[selectedRange].label}</Text>
             <Image source={require('../../../assets/development/chevron-down.png')} width={16} height={16} />
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View style={[styles.chartContainer, {backgroundColor: '#FFE5F9'}]}>
@@ -179,12 +179,12 @@ export default function HeadSizeChartCard({ kidID }: HeadChartCardProps) {
         {loading ? (
           <ActivityIndicator size="small" color="#31CECE" />
         ) : (
-        <TouchableOpacity style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
+        <Pressable style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Image source={require('../../../assets/development/chart-line.png')} style={{ width: 20, height: 20 }} />
             <Text style={styles.addNewRecordText}>New Record</Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
         )}
       </View>
 
@@ -196,9 +196,9 @@ export default function HeadSizeChartCard({ kidID }: HeadChartCardProps) {
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setModalVisible(false)}>
+            <Pressable style={styles.modalClose} onPress={() => setModalVisible(false)}>
               <Image source={require('../../../assets/common/x.png')} style={{ width: 24, height: 24 }} />
-            </TouchableOpacity>
+            </Pressable>
             <View style={{ gap: 8, flexDirection: 'row' }}>
               <Image source={require('../../../assets/development/chart-line.png')} width={24} height={24} />
               <Text>New Record</Text>
@@ -222,12 +222,12 @@ export default function HeadSizeChartCard({ kidID }: HeadChartCardProps) {
               <Text style={styles.valueUnitText}>cm</Text>
             </View>
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+              <Pressable onPress={() => setModalVisible(false)} style={styles.cancelButton}>
                 <Text style={styles.buttonTextCancel}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleAddRecord} style={styles.addButton}>
+              </Pressable>
+              <Pressable onPress={handleAddRecord} style={styles.addButton}>
                 <Text style={styles.buttonTextAdd}>Add</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>

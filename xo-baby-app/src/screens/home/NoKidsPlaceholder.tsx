@@ -1,4 +1,4 @@
-import { View, Image, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Image, Text, Pressable, StyleSheet } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function NoKidsPlaceholder({ onAdd }: { onAdd: () => void }) {
@@ -11,12 +11,12 @@ export default function NoKidsPlaceholder({ onAdd }: { onAdd: () => void }) {
       <Image source={require('../../../assets/home-parent/kid1.png')} style={styles.image} />
       <Text style={styles.title}>Keep your first child safe with Womby</Text>
       <Text style={styles.subTitle}>Please add your first kid</Text>
-      <TouchableOpacity onPress={onAdd} style={styles.button}>
+      <Pressable onPress={onAdd} style={styles.button}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
           <Text style={styles.addKidText}>Add first Kid</Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </LinearGradient>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from './TaskTabs.styles';
-import { View, Text, Image, TouchableOpacity, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Image, Pressable, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { useUserStore } from '@/store/userStore';
 import { createTask, getTasks, Task as ApiTask } from '@/api/taskApi';
 
@@ -81,9 +81,9 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
           <View>
             <Text style={styles.itemTitle}>{task.name}</Text>
             <Text style={styles.itemDescription}>{task.description}</Text>
-            <TouchableOpacity>
+            <Pressable>
               <Text style={styles.itemDetailBtn}>Details</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
           <View style={styles.itemTimeContainer}>
             <Text style={styles.itemTime}>{task.time}</Text>
@@ -99,9 +99,9 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setModalVisible(false)}>
+            <Pressable style={styles.modalClose} onPress={() => setModalVisible(false)}>
               <Image source={require('../../../../assets/common/x.png')} style={{ width: 24, height: 24 }} />
-            </TouchableOpacity>
+            </Pressable>
             <View style={{ gap: 8, flexDirection: 'row' }}>
               <Image source={require('../../../../assets/home-parent/calendar.png')} width={24} height={24} />
               <Text>New Tasks</Text>
@@ -142,12 +142,12 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
               />
             </View>
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+              <Pressable onPress={() => setModalVisible(false)} style={styles.cancelButton}>
                 <Text style={styles.buttonTextCancel}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleAddTask} style={styles.addButton}>
+              </Pressable>
+              <Pressable onPress={handleAddTask} style={styles.addButton}>
                 {loading ? <ActivityIndicator /> : <Text style={styles.buttonTextAdd}>Add</Text>}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>

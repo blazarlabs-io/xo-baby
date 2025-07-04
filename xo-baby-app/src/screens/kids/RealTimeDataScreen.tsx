@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { AppStackParamList } from '../../types/navigation';
@@ -70,9 +70,9 @@ export default function RealTimeDataScreen() {
 
       <View style={{ position: 'relative', width: '92%'}}>
         
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
      
     </View>

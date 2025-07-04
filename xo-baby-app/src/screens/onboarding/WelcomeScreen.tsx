@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
 import { styles } from './WelcomeScreen.styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../types/navigation'; 
 import { useKidStore } from '../../store/kidStore';
 import { useUserStore } from '../../store/userStore';
+import type { UserRole } from '@/constants/roles';
 
 import * as WebBrowser from 'expo-web-browser';
 
@@ -30,7 +31,8 @@ export default function WelcomeScreen() {
       const mockUser = {
         uid: '1mjAa3McHnTK2R5malZ2cRFlO9O2',
         email: 'vasea@mail.com',
-        token: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3NzQ4NTAwMmYwNWJlMDI2N2VmNDU5ZjViNTEzNTMzYjVjNThjMTIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veG8tYmFieSIsImF1ZCI6InhvLWJhYnkiLCJhdXRoX3RpbWUiOjE3NTEyOTM1NTIsInVzZXJfaWQiOiIxbWpBYTNNY0huVEsyUjVtYWxaMmNSRmxPOU8yIiwic3ViIjoiMW1qQWEzTWNIblRLMlI1bWFsWjJjUkZsTzlPMiIsImlhdCI6MTc1MTI5MzU1MiwiZXhwIjoxNzUxMjk3MTUyLCJlbWFpbCI6InZhc2VhQG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInZhc2VhQG1haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.u6aG9kiTq40ew9Wz0egWqvd1o4d3fZAcl_ej6fkiOT4KPDAvj93hIpa-wwg_82vYa2XrZqbm80OjufG4RLlh9iMlY6mLp66usejWY9bZorVBn3aRVLtUgYLxAFzLHLOZB8Jb02qLNwG8a8ib6nfV8_XwBj1lO82ne-BFhsIpRUdFoheEjCWfnSGpLsxxHF3Cp_0UQ08gJGpyFydK1-W7p2RlHDk8wyLnnslKneMdwzqD3i8GnxX6mP0sejy4iKzHNOlUVD6R99UmXqaPW-cGGijj1CvX2dnvv_as6lwCdawiKK4hB7d6e3ruhJlzJEEgl4ow7bRNBdJvEfi2GtwKrg'
+        token: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3NzQ4NTAwMmYwNWJlMDI2N2VmNDU5ZjViNTEzNTMzYjVjNThjMTIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veG8tYmFieSIsImF1ZCI6InhvLWJhYnkiLCJhdXRoX3RpbWUiOjE3NTE2MjU2ODgsInVzZXJfaWQiOiIxbWpBYTNNY0huVEsyUjVtYWxaMmNSRmxPOU8yIiwic3ViIjoiMW1qQWEzTWNIblRLMlI1bWFsWjJjUkZsTzlPMiIsImlhdCI6MTc1MTYyNTY4OCwiZXhwIjoxNzUxNjI5Mjg4LCJlbWFpbCI6InZhc2VhQG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInZhc2VhQG1haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.QZFUMTFe_HOWZZ2mDsjKzRGQk9rZc8vk5RfLwh4g0auEZ9yIrzAB1HRscDHrDRpaLXzayrA2H2ir4l5PjjVjRyXVFtUOhOLp67wrz-C07pU_Ka6ULUPJ9aWuT5YmgMDguGJtaNbBUl1cleObCd3lGi7bXX-Hb2XCLwNW0dFg_ZvbpsCNRJZ0jEMF7x0xVC40oZ5H3dJfE0kBsqqvbeZk09V5hefGcVAy_AEKoDPHG_szbJF0ErTnT86vZhT-qFvN-RmVgeHiwuXJzFi_hsK2GGEWd3z_2UBZj5vxDYTy_F_JZdN0ZYY8wyvP9QRQMzWV5PMIJivYo6SPy1fT4SGl5Q',
+        role: 'parent' as UserRole
       };
 
       // Save mock user in store
@@ -120,15 +122,15 @@ export default function WelcomeScreen() {
       </View>
       <Text style={styles.title}>Get Started</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <Pressable style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <Text style={styles.forgot}>Forgot your password?</Text>
 
       <Text style={styles.or}>Or</Text>
 
-     <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
+     <Pressable style={styles.socialButton} onPress={handleGoogleLogin}>
         <View style={styles.socialButtonContent}>
           <Image
             source={require('../../../assets/common/google-icon.png')}
@@ -137,7 +139,7 @@ export default function WelcomeScreen() {
           />
           <Text style={styles.socialText}>Sign In With Google</Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
 
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text,Image, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text,Image, TextInput, StyleSheet, Pressable } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native';
@@ -67,12 +67,12 @@ export default function SignupCheckEmailScreen() {
       
 
       <View style={{ position: 'absolute', bottom: insets.bottom + 16, width: '100%', alignSelf: 'center' }}>
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleBack}>
+        </Pressable>
+        <Pressable onPress={handleBack}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       </SafeAreaView>
     </LinearGradient>

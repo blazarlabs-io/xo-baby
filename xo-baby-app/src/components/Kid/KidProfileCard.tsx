@@ -1,23 +1,22 @@
-// components/Kid/KidProfileCard.tsx
+// system imports
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { ScrollView, Text, View, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../../types/navigation';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useKidStore } from '../../store/kidStore';
+// Navigation
+import { AppStackParamList } from '../../types/navigation';
+// Components imports
 import AvatarHeader from './AvatarHeader';
 import RealTimeDataWidget from './RealTimeDataWidget';
 import Development, { DevelopmentItem } from './Development';
 import UpcomingTasks from './UpcomingTasks';
 import Notes from './Notes';
-import {
-  getWeightRecords,
-  getHeightRecords,
-  getHeadCircumferenceRecords,
-  MeasurementRecord,
-} from '@/api/measurementsApi';
+// API
+import { getWeightRecords, getHeightRecords, getHeadCircumferenceRecords } from '@/api/measurementsApi';
+// Store
 import { useUserStore } from '@/store/userStore';
+import { useKidStore } from '../../store/kidStore';
 
 export default function KidProfileCard({ kidId }: { kidId: string }) {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
@@ -31,6 +30,7 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
   const [weightData, setWeightData] = useState<number[]>([]);
   const [heightData, setHeightData] = useState<number[]>([]);
   const [headData, setHeadData] = useState<number[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
     if (!token || !kidId) return;
@@ -41,9 +41,24 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
       getHeadCircumferenceRecords(token, kidId),
     ])
       .then(([weights, heights, heads]) => {
-        setWeightData(weights.map(r => r.value));
-        setHeightData(heights.map(r => r.value));
-        setHeadData(heads.map(r => r.value));
+        // fill chart data
+        setWeightData(weights.map((r) => r.value));
+        setHeightData(heights.map((r) => r.value));
+        setHeadData(heads.map((r) => r.value));
+
+        // derive the most recent date across all three measurements
+        const allDates = [...weights, ...heights, ...heads]
+          .map((r) => new Date(r.date));
+        const maxTs = Math.max(...allDates.map((d) => d.getTime()));
+        const mostRecent = new Date(maxTs);
+        // format: e.g. "June 30, 2025"
+        setLastUpdated(
+          mostRecent.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        );
       })
       .catch(err => console.error('Error loading measurements:', err))
       .finally(() => setLoading(false));
@@ -97,55 +112,19 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
       <AvatarHeader kidID={kidId} />
       <RealTimeDataWidget kidID={kidId} />
       <Development
-        lastUpdated="June. 30, 2025"
+        lastUpdated={lastUpdated}
         kidID={kidId}
         data={developmentItems}
       />
+      <UpcomingTasks kidID={kidId} />
+      <Notes kidID={kidId}/>
 
-      <UpcomingTasks 
-        kidID={kidId}
-        // mock data, we dont use it anymore 
-        tasks = {[
-        {
-          id: '1',
-          title: 'Dinner Meal',
-          description: 'Lorem ipsum dolor sit amet...',
-          dateLabel: 'Today',
-          time: '18:00',
-        },
-        {
-          id: '2',
-          title: 'Pediatrician Appointment',
-          description: 'Lorem ipsum dolor sit amet...',
-          dateLabel: 'Oct. 23',
-          time: '14:15',
-        },
-      ]} />
-      <Notes 
-        kidID={kidId}
-        // mock data, we dont use it anymore 
-        notes={[
-        {
-          id: '1',
-          text: 'Lorem ipsum dolor sit amet, consetur adi piscing elit, sed do mod tempor labor...',
-          date: 'May 3, 2023',
-          color: '#FFC8F0',
-          isFavorite: true,
-        },
-        {
-          id: '2',
-          text: 'Lorem ipsum dolor sit amet, consetur adi piscing elit, sed do mod tempor labor asetum ...',
-          date: 'May 3, 2023',
-          color: '#C8F7F9',
-        },
-      ]}/>
-
-      <TouchableOpacity onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
+      <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
           <Text style={styles.addKidText}>Add Kid</Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
     </LinearGradient>
   );
@@ -172,7 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     marginTop: 28,
-    marginBottom: 60,
+    marginBottom: 160,
     borderWidth: 1,
     borderColor: '#31CECE',
     borderRadius: 32, 

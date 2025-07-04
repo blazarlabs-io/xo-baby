@@ -1,4 +1,4 @@
-import { View, TouchableOpacity } from "react-native";
+import { View, Pressable } from "react-native";
 
 interface Props {
   activeCount: number;
@@ -10,7 +10,7 @@ export default function CarouselDotButton({ activeCount, maxCount, onDotPress }:
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
       {Array.from({ length: maxCount }).map((_, index) => (
-        <TouchableOpacity
+        <Pressable
           key={index}
           onPress={() => onDotPress?.(index)}
           style={{

@@ -1,5 +1,5 @@
 import React, { useState} from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { AppStackParamList } from '../../types/navigation';
@@ -59,7 +59,7 @@ export default function TasksScreen() {
       <View style={{width: '100%', marginTop: 32}}>
         <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start'}}>
           <View style={{ gap: 8, display: 'flex', flexDirection: 'row' }}>
-            <TouchableOpacity 
+            <Pressable 
               style={[
                 selectedTab === 'today' ? styles.activeTabButton : styles.tabButton
               ]} 
@@ -70,9 +70,9 @@ export default function TasksScreen() {
                 styles.buttonText,
                 selectedTab === 'today' ? {color: '#fff'} : { color: '#222128' },
               ]}>Today</Text>
-            </TouchableOpacity>
+            </Pressable>
 
-            <TouchableOpacity 
+            <Pressable 
               style={[
                 selectedTab === 'calendar' ? styles.activeTabButton : styles.tabButton
               ]} 
@@ -82,14 +82,14 @@ export default function TasksScreen() {
                 style={[
                   styles.buttonText, selectedTab === 'calendar' ? { color: '#fff' } : { color: '#222128' }
                 ]}>Calendar</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Image
               source={require('../../../assets/home-parent/add.png')}
               style={{ width: 14, height: 14 }}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 
@@ -109,9 +109,9 @@ export default function TasksScreen() {
 
       <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
               
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
      
     </ScrollView>

@@ -56,4 +56,7 @@ export type AppStackParamList = {
   Development: { kidId: string };
   Tasks: { kidId: string };
   Notes: { kidId: string };
+  Devices: { kidId: string };
+  DeviceItem: { kidId: string }
+  DeviceAdd: undefined
 }

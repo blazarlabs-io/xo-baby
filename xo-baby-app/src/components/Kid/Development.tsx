@@ -48,7 +48,7 @@ const Development: React.FC<DevelopmentProps> = (props) => {
             </View>
             <LineChart
               data={{
-                labels: [],
+                labels: item.chartData.map(() => ""),
                 datasets: [
                   {
                     data: item.chartData,
@@ -70,13 +70,20 @@ const Development: React.FC<DevelopmentProps> = (props) => {
                 backgroundGradientTo: 'transparent',
                 color: () => item.chartColor,
               }}
-              style={{ marginVertical: 4, borderRadius: 12, backgroundColor: item.color, height: 62 } }
+              style={{ 
+                marginVertical: 4, 
+                borderRadius: 12, 
+                backgroundColor: item.color, 
+                height: 62,
+                paddingRight: 0,
+                paddingLeft: 0,
+              } }
             />
             <Text style={styles.value}>{item.value} <Text style={styles.unit}>{item.unit}</Text></Text>
           </View>
         ))}
       </View>
-      <Text style={styles.updatedText}>Last updated {lastUpdated}</Text>
+      <Text style={styles.updatedText}>Last updated {lastUpdated ? lastUpdated : '- -'}</Text>
     </View>
   );
 };

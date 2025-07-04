@@ -1,5 +1,5 @@
 import React, { useState} from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { AppStackParamList } from '../../types/navigation';
@@ -77,12 +77,12 @@ export default function NotesScreen() {
                 <Picker.Item label={category} value={category} key={category} />
               ))}
             </Picker>
-          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Image
               source={require('../../../assets/home-parent/add.png')}
               style={{ width: 14, height: 14 }}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 
@@ -95,9 +95,9 @@ export default function NotesScreen() {
 
       <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
               
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
      
     </ScrollView>

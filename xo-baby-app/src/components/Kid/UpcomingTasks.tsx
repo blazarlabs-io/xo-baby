@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
@@ -73,9 +73,9 @@ const UpcomingTasks: React.FC<UpcomingTasksProps> = ({  kidID }) => {
               <View style={styles.cardHeader}>
                 <Text style={styles.title}>{item.name}</Text>
                 <Text style={styles.description}>{item.description}</Text>
-                <TouchableOpacity>
+                <Pressable>
                   <Text style={styles.details}>Details</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
               <View style={styles.dateBox}>
                 <Text style={styles.dateLabel}>{item.date}</Text>
