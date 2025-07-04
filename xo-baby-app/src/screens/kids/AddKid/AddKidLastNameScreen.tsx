@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,9 +25,9 @@ export default function AddKidLastNameScreen() {
   return (
      <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
       <View style={{ height: 24, flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Image source={require('../../../../assets/common/chevron-left.png')} width={24} height={24} />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.headerText}><Text>Add Kid</Text></View>
       </View>
       <View style={{marginTop: 24, justifyContent: 'center', alignItems: 'center'}}>
@@ -57,12 +57,12 @@ export default function AddKidLastNameScreen() {
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        </Pressable>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </LinearGradient>
   );

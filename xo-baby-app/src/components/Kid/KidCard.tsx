@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Kid } from '../../store/kidStore';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ export default function KidCard({ kid }: Props) {
 
   if (!kid?.vitals) {
     return (
-      <TouchableOpacity
+      <Pressable
         style={styles.card}
         onPress={() => navigation.navigate('KidProfile', { kidId: kid.id })}
       >
@@ -23,20 +23,20 @@ export default function KidCard({ kid }: Props) {
           <Text style={styles.name}>{kid.firstName}</Text>
           <Text style={styles.label}>No vital data available</Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.card}
       onPress={() => navigation.navigate('KidProfile', { kidId: kid.id })}
     >
       <Text style={styles.name}>{kid.firstName}</Text>
       <Text style={styles.label}>HR: {kid.vitals.heartRate} bpm</Text>
       <Text style={styles.label}>SpO2: {kid.vitals.oximetry}%</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

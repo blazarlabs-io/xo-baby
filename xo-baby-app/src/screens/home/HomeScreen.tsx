@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { styles } from './HomeScreen.styles';
+import { View, Text, Image, Pressable } from 'react-native';
+import { styles } from './styles/HomeScreen.styles';
 import api from '../../api/axios'
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -57,12 +57,12 @@ export default function HomeScreen() {
         {kids.length === 0 ? (
 				<>
 					<NoKidsPlaceholder onAdd={() => navigation.navigate('AddKidName')} />
-					<TouchableOpacity onPress={() => navigation.navigate('AddKidName')} style={styles.addNewKidButton}>
+					<Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.addNewKidButton}>
 						<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
 							<Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
 							<Text style={styles.addKidText}>Add first Kid</Text>
 						</View>
-					</TouchableOpacity>
+					</Pressable>
 				</>
         ) : (
         <>

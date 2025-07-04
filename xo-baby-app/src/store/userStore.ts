@@ -2,10 +2,14 @@ import { create } from 'zustand'
 // import { persist } from 'zustand/middleware';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface User {
+// Role
+import { UserRole } from '../constants/roles'
+
+export interface User {
   uid: string;
   email: string;
   token: string;
+  role: UserRole
 }
 
 
@@ -17,7 +21,6 @@ interface UserStore {
 
 export const useUserStore = create<UserStore>((set) => ({
   user: null,
-
   setUser: (user) => set({ user }),
   clearUser: () => set({ user: null }),
 }));

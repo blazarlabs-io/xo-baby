@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Modal, KeyboardAvoidingView, Platform  } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image, Modal, KeyboardAvoidingView, Platform  } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -61,9 +61,9 @@ export default function AddKidAnomaliesScreen() {
   return (
      <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
       <View style={{ height: 24, flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Image source={require('../../../../assets/common/chevron-left.png')} width={24} height={24} />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.headerText}><Text>Add Kid</Text></View>
       </View>
       <View style={{marginTop: 24, justifyContent: 'center', alignItems: 'center'}}>
@@ -87,27 +87,27 @@ export default function AddKidAnomaliesScreen() {
 					{anomalies.map((item) => (
 						<View key={item.id} style={styles.listItem}>
 							<Text style={{ fontSize: 18, fontWeight: 'bold' }}>{item.name}</Text>
-							<TouchableOpacity onPress={() => onRemoveItem(item.id)}>
+							<Pressable onPress={() => onRemoveItem(item.id)}>
 								<Image source={require('../../../../assets/common/x.png')} style={{ width: 24, height: 24 }} />
-							</TouchableOpacity>
+							</Pressable>
 						</View>
 					))}
 				</View>
-				<TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addItemButton}>
+				<Pressable onPress={() => setModalVisible(true)} style={styles.addItemButton}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
 						<Text style={styles.addItemText}>+ Add New</Text>
 					</View>
-				</TouchableOpacity>
+				</Pressable>
 			</View>
       
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        </Pressable>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
 			<Modal
@@ -118,9 +118,9 @@ export default function AddKidAnomaliesScreen() {
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setModalVisible(false)}>
+            <Pressable style={styles.modalClose} onPress={() => setModalVisible(false)}>
               <Image source={require('../../../../assets/common/x.png')} style={{ width: 24, height: 24 }} />
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.modalTitle}>Anomaly name</Text>
             <TextInput
               placeholder="Anomaly name"
@@ -137,12 +137,12 @@ export default function AddKidAnomaliesScreen() {
               onChangeText={setNewDescription}
             />
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+              <Pressable onPress={() => setModalVisible(false)} style={styles.cancelButton}>
 								<Text style={styles.buttonTextCancel}>Cancel</Text>
-							</TouchableOpacity>
-              <TouchableOpacity onPress={handleAddAnomaly} style={styles.addButton}>
+							</Pressable>
+              <Pressable onPress={handleAddAnomaly} style={styles.addButton}>
                 <Text style={styles.buttonTextAdd}>Add</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>

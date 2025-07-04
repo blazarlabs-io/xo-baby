@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
@@ -80,12 +80,12 @@ export default function SignupConfirmPasswordScreen() {
       />
 
       <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
-        <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+        <Pressable style={styles.button} onPress={handleConfirm}>
           <Text style={styles.buttonText}>Next</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        </Pressable>
+        <Pressable onPress={() => navigation.goBack()}>
           <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </LinearGradient>
   );

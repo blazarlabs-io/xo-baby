@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
@@ -7,16 +7,7 @@ import type { AppStackParamList } from '../../types/navigation';
 import { useUserStore } from '@/store/userStore';
 import { getNotes, Note as NoteApi  } from '@/api/notesApi';
 
-interface Note {
-  id: string;
-  text: string;
-  date: string;
-  color: string;
-  isFavorite?: boolean;
-}
-
 interface NotesProps {
-  notes: Note[];
   kidID: string;
 }
 
@@ -73,16 +64,16 @@ const Notes: React.FC<NotesProps> = (props) => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={[styles.noteCard, { backgroundColor: '#FFC8F0' }]}>
-            {/* <TouchableOpacity style={styles.favoriteIcon}>
+            {/* <Pressable style={styles.favoriteIcon}>
               {item.isFavorite && (
                 <MaterialCommunityIcons name="star" size={16} color="#FF8B00" />
               )}
-            </TouchableOpacity> */}
+            </Pressable> */}
             <Text style={styles.noteText} numberOfLines={5}>{item.description}</Text>
             <Text style={styles.noteDate}>{item.date}</Text>
-            <TouchableOpacity style={styles.editIcon}>
+            <Pressable style={styles.editIcon}>
               <Image source={require('../../../assets/home-parent/pencil.png')} alt=" pencil" width={10} height={10} />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
         ItemSeparatorComponent={() => <View style={{ width: 12 }} />}

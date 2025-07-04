@@ -9,17 +9,18 @@ import AddKidEthnicityScreen from '../screens/kids/AddKid/AddKidEthnicityScreen'
 import AddKidLocationScreen from '../screens/kids/AddKid/AddKidLocationScreen';
 import AddKidAnomaliesScreen from '../screens/kids/AddKid/AddKidAnomaliesScreen';
 import AddKidAvatarScreen from '../screens/kids/AddKid/AddKidAvatarScreen';
-import RealTimeDataScreen from '../screens/kids/RealTimeDataScreen';
-import DevelopmentScreen from '../screens/kids/DevelopmentScreen';
-import TasksScreen from '../screens/kids/TasksScreen';
-import NotesScreen from '@/screens/kids/NotesScreen';
+
+import TabNavigator from './TabNavigator';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={HomeScreen} />
+      {/* Tab-based root navigator */}
+      <Stack.Screen name="Tabs" component={TabNavigator} />
+
+      {/* Add-Kid flow screens */}
       <Stack.Screen name="AddKid" component={AddKidNameScreen} />
       <Stack.Screen name="AddKidName" component={AddKidNameScreen} />
       <Stack.Screen name="AddKidLastName" component={AddKidLastNameScreen} />
@@ -30,10 +31,7 @@ export default function AppStack() {
       <Stack.Screen name="AddKidLocation" component={AddKidLocationScreen} />
       <Stack.Screen name="AddKidAnomalies" component={AddKidAnomaliesScreen} />
       <Stack.Screen name="AddKidAvatar" component={AddKidAvatarScreen} />
-      <Stack.Screen name="RealTimeData" component={RealTimeDataScreen} />
-      <Stack.Screen name="Development" component={DevelopmentScreen} />
-      <Stack.Screen name="Tasks" component={TasksScreen} />
-      <Stack.Screen name="Notes" component={NotesScreen} />
+
     </Stack.Navigator>
   );
 }
