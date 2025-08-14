@@ -1,0 +1,161 @@
+pragma language_version >= 0.14.0;
+
+import CompactStandardLibrary;
+
+export { CoinInfo };
+
+export ledger round: Counter;
+export ledger nonce: Bytes<32>;
+export ledger tvl: Uint<64>;
+
+// witness localSecretKey(): Bytes<32>;
+
+// constructor() {
+//   round.increment(1);
+// }
+
+struct RoleNFT {
+  recipient: Bytes<32>,
+  role: Bytes<32>,
+  childId: Bytes<32>,
+  validUntil: Bytes<32>
+}
+
+export ledger roleNFTs: Map<Bytes<32>, RoleNFT>;
+
+constructor(initNonce: Bytes<32>) {
+  nonce = disclose(initNonce);
+  round.increment(1);
+}
+
+// create child did according to child's name, dob, gender
+export circuit createChildId(name: Bytes<32>, birthDate: Bytes<32>, gender: Bytes<32>): Bytes<32> {
+    round.increment(1);
+    nonce = evolveNonce(round, nonce);
+
+    const childId = persistentHash<Vector<5, Bytes<32>>>([
+        pad(32, "baby:child:id:"),
+        name,
+        birthDate,
+        gender,
+        nonce
+    ]);
+    return childId;
+}
+
+// // Token Minting
+// export circuit mint(): [] {
+//   round.increment(1);
+//   const newNonce = evolveNonce(round, nonce);
+//   const amount = 1000;
+//   tvl = tvl + amount as Uint<64>;
+//   mintToken(pad(32, "brick_towers_coin"), amount, newNonce, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()));
+//   nonce = newNonce;
+// }
+
+// Generate NFT ID according to the parameters
+export circuit generateNFTId(firstname: Bytes<32>, lastname: Bytes<32>, email: Bytes<32>): Bytes<32> {
+  round.increment(1);
+  const tokenId = persistentHash<Vector<4, Bytes<32>>>([
+    pad(32, "baby:nft:"),
+    firstname,
+    lastname,
+    email
+  ]);
+  return tokenId;
+}
+
+// Add Role Token to the ledger mapping nftId <=> RoleToken
+export circuit generateRoleBasedNFT(
+  nftId: Bytes<32>,
+  childId: Bytes<32>,
+  recipient: Bytes<32>,
+  role: Bytes<32>,
+  validUntil: Bytes<32>
+): [] {
+  round.increment(1);
+  const roleNFT = RoleNFT {
+    recipient: disclose(recipient),
+    role: disclose(role),
+    childId: disclose(childId),
+    validUntil: disclose(validUntil)
+  };
+  roleNFTs.insert(disclose(nftId), roleNFT);
+}
+
+// Get Role from NFT from the ledger mapping nftId <=> RoleNFT
+export circuit getRoleFromNFT(nftId: Bytes<32>): RoleNFT {
+  return roleNFTs.lookup(disclose(nftId));
+}
+
+struct CSet {
+  nftId: Bytes<32>,
+  AESkey: Bytes<32>
+}
+
+export ledger cSets: Map<Bytes<32>, CSet>;
+
+// Add cSet to the ledger mapping nftId <=> cSet
+export circuit generateCSet(nftId: Bytes<32>, AESkey: Bytes<32>): [] {
+  round.increment(1);
+  const cSet = CSet {
+    nftId: disclose(nftId),
+    AESkey: disclose(AESkey)
+  };
+  cSets.insert(disclose(nftId), cSet);
+}
+
+// Get cSet from the ledger mapping nftId <=> cSet
+export circuit getAESKeyFromCSet(nftId: Bytes<32>): CSet {
+  return cSets.lookup(disclose(nftId));
+}
+
+struct AccessPolicy{
+  nftId: Bytes<32>,
+  rights : Bytes<32>,
+  expiry : Bytes<32>
+}
+
+export ledger accessPolicies : Map<Bytes<32>, AccessPolicy>;
+
+export circuit generateAccessPolicy(nftId: Bytes<32>, rights: Bytes<32>, expiry: Bytes<32>): [] {
+  round.increment(1);
+  const accessPolicy = AccessPolicy {
+    nftId: disclose(nftId),
+    rights: disclose(rights),
+    expiry: disclose(expiry)
+  };
+  accessPolicies.insert(disclose(nftId), accessPolicy);
+}
+
+// Get access policy from the ledger mapping nftId <=> accessPolicy
+export circuit getRangeFromAccessPolicy(nftId: Bytes<32>): AccessPolicy {
+  return accessPolicies.lookup(disclose(nftId));
+}
+
+struct Datum {
+  nftId: Bytes<32>,
+  CID : Bytes<32>
+}
+
+export ledger data : Map<Bytes<32>, Datum>;
+
+export circuit generateDatum(nftId: Bytes<32>, CID: Bytes<32>): [] {
+  round.increment(1);
+  const datum = Datum {
+    nftId: disclose(nftId),
+    CID: disclose(CID)
+  };
+  data.insert(disclose(nftId), datum);
+}
+
+export circuit getDataFromDatum(nftId: Bytes<32>): Datum {
+  return data.lookup(disclose(nftId));
+}
+
+//remove roleNFT from the ledger mapping nftId <=> RoleNFT
+export circuit removeRoleNFT(nftId: Bytes<32>): [] {
+  roleNFTs.remove(disclose(nftId));
+}
+
+

@@ -1,0 +1,32 @@
+{
+  "version": { "major": 2, "minor": 0 },
+  "do_communications_commitment": true,
+  "num_inputs": 6,
+  "instructions": [
+    { "op": "constrain_bits", "var": 0, "bits": 8 },
+    { "op": "constrain_bits", "var": 1, "bits": 248 },
+    { "op": "constrain_bits", "var": 2, "bits": 8 },
+    { "op": "constrain_bits", "var": 3, "bits": 248 },
+    { "op": "constrain_bits", "var": 4, "bits": 8 },
+    { "op": "constrain_bits", "var": 5, "bits": 248 },
+    { "op": "load_imm", "imm": "01" },
+    { "op": "load_imm", "imm": "70" },
+    { "op": "load_imm", "imm": "00" },
+    { "op": "declare_pub_input", "var": 7 },
+    { "op": "declare_pub_input", "var": 6 },
+    { "op": "declare_pub_input", "var": 6 },
+    { "op": "declare_pub_input", "var": 8 },
+    { "op": "pi_skip", "guard": 6, "count": 4 },
+    { "op": "load_imm", "imm": "0E" },
+    { "op": "declare_pub_input", "var": 9 },
+    { "op": "declare_pub_input", "var": 6 },
+    { "op": "pi_skip", "guard": 6, "count": 2 },
+    { "op": "load_imm", "imm": "A1" },
+    { "op": "declare_pub_input", "var": 10 },
+    { "op": "pi_skip", "guard": 6, "count": 1 },
+    { "op": "load_imm", "imm": "626162793A6E66743A" },
+    { "op": "persistent_hash", "alignment": [{ "tag": "atom", "value": { "length": 32, "tag": "bytes" } }, { "tag": "atom", "value": { "length": 32, "tag": "bytes" } }, { "tag": "atom", "value": { "length": 32, "tag": "bytes" } }, { "tag": "atom", "value": { "length": 32, "tag": "bytes" } }], "inputs": [8, 11, 0, 1, 2, 3, 4, 5] },
+    { "op": "output", "var": 12 },
+    { "op": "output", "var": 13 }
+  ]
+}
