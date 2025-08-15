@@ -1,4 +1,4 @@
-import api from './axios';
+import api from "./axios";
 
 interface CreateKidPayload {
   firstName: string;
@@ -11,17 +11,19 @@ interface CreateKidPayload {
   congenitalAnomalies?: { name: string; description?: string }[];
   avatarUrl?: string;
   parentId: string;
+  adminId?: string;
+  doctorId?: string;
 }
 
 // POST
 export const createKid = async (data: CreateKidPayload) => {
-  const response = await api.post('/kid/create', data);
+  const response = await api.post("/kid/create", data);
   return response.data;
 };
 
 // GET
 export const getMyKids = async (token: string) => {
-  const response = await api.get('/kid/my-kids', {
+  const response = await api.get("/kid/my-kids", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -57,3 +59,55 @@ export const updateKidWeight = async (
   return response.data;
 };
 
+// GET decrypted kid data from IPFS
+export const getDecryptedKidData = async (
+  kidId: string,
+  aesKey: string,
+  token: string
+) => {
+  const response = await api.get(`/kid/${kidId}/decrypted`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "x-aes-key": aesKey,
+    },
+  });
+  return response.data;
+};
+
+// GET kid details with IPFS information
+export const getKidDetails = async (kidId: string, token: string) => {
+  const response = await api.get(`/kid/${kidId}/details`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+// POST height update
+export const updateKidHeight = async (
+  kidId: string,
+  data: { date: string; height: number },
+  token: string
+) => {
+  const response = await api.post(
+    `/kid/${kidId}/height`,
+    { date: data.date, height: data.height },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+// GET height history
+export const getHeightHistory = async (kidId: string, token: string) => {
+  const response = await api.get(`/kid/${kidId}/height-history`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data as { date: string; value: number }[];
+};

@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { View, ActivityIndicator } from 'react-native';
-import AuthStack from './AuthStack';
-import AppStack from './AppStack';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
-export default function RootNavigator() {
+interface AuthGuardProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}
+
+export const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  fallback = (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color="#31CECE" />
+      <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>
+        Checking authentication...
+      </Text>
+    </View>
+  )
+}) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { user, setUser, clearUser } = useUserStore();
 
   useEffect(() => {
@@ -21,9 +34,11 @@ export default function RootNavigator() {
           token: '', // Will be set when needed
           role: 'parent' // Default role
         });
+        setIsAuthenticated(true);
       } else {
         // No user or email not verified
         clearUser();
+        setIsAuthenticated(false);
       }
       setIsLoading(false);
     });
@@ -32,16 +47,15 @@ export default function RootNavigator() {
   }, [setUser, clearUser]);
 
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#E2F3F3' }}>
-        <ActivityIndicator size="large" color="#31CECE" />
-      </View>
-    );
+    return <>{fallback}</>;
   }
 
-  return (
-    <NavigationContainer>
-      {user ? <AppStack /> : <AuthStack />}
-    </NavigationContainer>
-  );
-}
+  if (!isAuthenticated) {
+    // Redirect to welcome screen or show login prompt
+    return null; // This will be handled by navigation
+  }
+
+  return <>{children}</>;
+};
+
+export default AuthGuard;

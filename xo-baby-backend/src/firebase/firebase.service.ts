@@ -37,5 +37,4 @@ export class FirebaseService {
       throw new UnauthorizedException('Invalid Firebase ID token');
     }
   }
-
 }

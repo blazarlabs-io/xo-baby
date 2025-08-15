@@ -1,33 +1,61 @@
-import { IsNotEmpty, IsString, IsDateString, IsOptional, IsArray } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsDateString,
+  IsOptional,
+  IsArray,
+} from 'class-validator';
 
 export class CreateKidDto {
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   firstName: string;
 
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   lastName: string;
 
-  @IsNotEmpty() @IsDateString()
+  @IsNotEmpty()
+  @IsDateString()
   birthDate: string;
 
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   gender: string;
 
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   bloodType: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   ethnicity?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   location?: string;
 
-  @IsOptional() @IsArray()
+  @IsOptional()
+  @IsArray()
   congenitalAnomalies?: { name: string; description?: string }[];
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   avatarUrl?: string;
 
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   parentId: string;
+
+  @IsOptional()
+  @IsString()
+  adminId?: string;
+
+  @IsOptional()
+  @IsString()
+  doctorId?: string;
+
+  @IsOptional()
+  @IsString()
+  childId?: string;
 }

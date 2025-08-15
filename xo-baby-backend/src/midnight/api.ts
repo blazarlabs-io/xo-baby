@@ -255,7 +255,12 @@ export const generateNFTId = async (
       logger.info('No NFT ID found');
     }
   }
-  return finalizedTxData.public;
+  const nftId = finalizedTxData.private.output.value[0];
+  const nftIdHex = toHex(nftId);
+  logger.info('✅ NFT ID generated successfully!');
+  logger.info(`📋 NFT ID: ${nftIdHex}`);
+
+  return nftIdHex;
 };
 
 // Generate role-based NFT

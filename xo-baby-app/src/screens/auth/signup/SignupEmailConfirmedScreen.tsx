@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TextInput, StyleSheet, Pressable } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React from 'react';
+import { View, Text, Image, StyleSheet, Pressable, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../types/navigation';
 
 export default function SignupEmailConfirmedScreen() {
-  const [password, setPassword] = useState('');
-   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'SignupEmailConfirmedScreen'>>();
-
-
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'SignupEmailConfirmedScreen'>>();
 
   const handleNext = () => {
-  
+    Alert.alert(
+      'Welcome to XO-Baby!',
+      'Your account has been successfully created and verified. You can now access all features of the app.',
+      [
+        {
+          text: 'Get Started',
+          onPress: () => {
+            // Navigate to main app
+            console.log('Navigating to main app...');
+            // navigation.navigate('HomeScreen' as any);
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -42,11 +52,11 @@ export default function SignupEmailConfirmedScreen() {
 }
 
 const styles = StyleSheet.create({
-  backBtn: { borderWidth: 1, borderColor: '#CACACA', width: 54,  height: 24, borderRadius: 4, cursor: 'pointer', position: 'absolute', left: 0,  alignItems: 'center' },
-  container: { flex: 1,  padding: 24,  },
+  backBtn: { borderWidth: 1, borderColor: '#CACACA', width: 54, height: 24, borderRadius: 4, cursor: 'pointer', position: 'absolute', left: 0, alignItems: 'center' },
+  container: { flex: 1, padding: 24, },
   headerText: { fontSize: 16, fontWeight: 'bold', justifyContent: 'center', textAlign: 'center' },
-  textContainer:{ alignItems: 'center'},
-  title: { fontSize: 32, fontWeight: 'bold', lineHeight: 42, letterSpacing: 1.5, color: '#222128'},
+  textContainer: { alignItems: 'center' },
+  title: { fontSize: 32, fontWeight: 'bold', lineHeight: 42, letterSpacing: 1.5, color: '#222128' },
   input: {
     height: 36,
     borderWidth: 0,

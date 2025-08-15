@@ -24,5 +24,4 @@ export interface Kid {
 
   weightHistory?: { value: number; date: string }[];
   heightHistory?: { value: number; date: string }[];
-
 }
