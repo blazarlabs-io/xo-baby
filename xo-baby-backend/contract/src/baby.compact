@@ -69,13 +69,13 @@ export circuit createChildId(name: Bytes<32>, birthDate: Bytes<32>, gender: Byte
 
 struct encryptedData {
   childId: Bytes<32>,
-  ipfsLink : Bytes<32>,
-  AESkey : Bytes<32>
+  ipfsLink : Bytes<128>,
+  AESkey : Bytes<128>
 }
 
 export ledger childNFTs : Map<Bytes<32>, encryptedData>;
 
-export circuit generateChildNFT(childId: Bytes<32>, CID: Bytes<32>, AESkey: Bytes<32>): [] {
+export circuit generateChildNFT(childId: Bytes<32>, CID: Bytes<128>, AESkey: Bytes<128>): [] {
   round.increment(1);
   const datum = encryptedData {
     childId: disclose(childId),

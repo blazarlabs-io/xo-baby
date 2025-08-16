@@ -142,14 +142,14 @@
           "name": "CID",
           "type": {
             "type-name": "Bytes",
-            "length": 32
+            "length": 128
           }
         },
         {
           "name": "AESkey",
           "type": {
             "type-name": "Bytes",
-            "length": 32
+            "length": 128
           }
         }
       ],
@@ -186,14 +186,14 @@
             "name": "ipfsLink",
             "type": {
               "type-name": "Bytes",
-              "length": 32
+              "length": 128
             }
           },
           {
             "name": "AESkey",
             "type": {
               "type-name": "Bytes",
-              "length": 32
+              "length": 128
             }
           }
         ]

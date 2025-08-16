@@ -384,7 +384,9 @@ export const getDataFromChildNFT = async (
   } else {
     logger.info('No private output data found');
   }
-  return finalizedTxData.public;
+
+  const retrivedData = finalizedTxData.private.output.value;
+  return retrivedData;
 };
 
 // Remove role NFT
@@ -726,8 +728,28 @@ export const saveState = async (
 };
 
 // Utility helper functions
-const bytesToString = (bytes: Uint8Array): string => {
+export const bytesToString = (bytes: Uint8Array): string => {
   try {
+    // Check if this is data with length prefix (first 4 bytes are length)
+    if (bytes.length >= 4) {
+      const dataLength =
+        bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+      // Valid length should be reasonable and within bounds
+      if (dataLength > 0 && dataLength <= bytes.length - 4) {
+        try {
+          const dataBytes = bytes.slice(4, 4 + dataLength);
+          const decoded = new TextDecoder().decode(dataBytes);
+          // Verify the decoded string looks reasonable (not just a single character)
+          if (decoded && decoded.length > 1) {
+            return decoded;
+          }
+        } catch (e) {
+          // Fall back to old method if length-prefix decoding fails
+        }
+      }
+    }
+
+    // For arrays without length prefix or when length-prefix fails, use zero-termination
     let dataLength = bytes.length;
     for (let i = 0; i < bytes.length; i++) {
       if (bytes[i] === 0) {

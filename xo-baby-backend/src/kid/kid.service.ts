@@ -6,10 +6,14 @@ import { PinataService } from '../ipfs/pinata.service';
 import { EncryptionService } from '../encryption/encryption.service';
 // import { createChildId } from '../midnight/api';
 import * as admin from 'firebase-admin';
-import { createChildId } from '../midnight/index';
+import {
+  createChildId,
+  generateChildNFT,
+  getDataFromChildNFT,
+} from '../midnight/index';
 import { TestnetRemoteConfig } from 'src/midnight/config';
 import { createLogger } from 'src/midnight/logger-utils';
-
+import { bytesToString } from 'src/midnight/api';
 @Injectable()
 export class KidService {
   private readonly logger = new Logger(KidService.name);
@@ -46,6 +50,8 @@ export class KidService {
 
       const aesKey = this.encryptionService.generateAESKey();
 
+      this.logger.log(`🔐 AES key generated: ${aesKey}`);
+
       const kidDataForEncryption = {
         ...dto,
         createdAt: new Date().toISOString(),
@@ -64,58 +70,111 @@ export class KidService {
       this.logger.log(`✅ Data uploaded to IPFS with hash: ${ipfsHash}`);
 
       const ipfsGatewayUrl = this.pinataService.getGatewayUrl(ipfsHash);
-      // Create kid document in Firestore
-      const docRef = this.firebase.getFirestore().collection('kids').doc();
+      // // Create kid document in Firestore
+      const config = new TestnetRemoteConfig();
+      const logger = await createLogger(config.logDir);
 
-      const kidData = {
-        id: docRef.id,
-        childId: childId,
-        parentId: dto.parentId,
-        adminId: dto.adminId,
-        doctorId: dto.doctorId,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        birthDate: dto.birthDate,
-        gender: dto.gender,
-        bloodType: dto.bloodType,
-        ethnicity: dto.ethnicity,
-        location: dto.location,
-        congenitalAnomalies: dto.congenitalAnomalies || [],
-        avatarUrl: dto.avatarUrl,
-        createdAt: new Date().toISOString(),
-        ipfsHash,
-        encryptedData: encryptedData.substring(0, 100) + '...', // Store truncated version for reference
-        vitals: {
-          heartRate: 0,
-          oximetry: 0,
-          breathingRate: 0,
-          temperature: 0,
-          movement: 0,
-          weight: 0,
-          height: 0,
-          feedingSchedule: '',
-        },
-        weightHistory: [],
-        heightHistory: [],
-      };
-
-      await docRef.set(kidData);
-      this.logger.log(`✅ Kid data saved to Firestore with ID: ${docRef.id}`);
-
-      // Return success response
-      const result = {
-        id: docRef.id,
+      const kidNFT = await generateChildNFT(
+        config,
+        logger,
+        process.env.CONTRACT_ADDRESS as string,
+        process.env.PRIVATE_KEY as string,
         childId,
         ipfsHash,
-        message: 'Kid created successfully with blockchain ID and IPFS storage',
-        kidData: {
-          ...kidData,
-          aesKey, // Include AES key in response for parent to store securely
-        },
-      };
+        aesKey,
+      );
+      this.logger.log(`✅ Kid NFT created: ${kidNFT}`);
+      // const docRef = this.firebase.getFirestore().collection('kids').doc();
 
-      this.logger.log('🎉 Kid creation process completed successfully!');
-      return result;
+      // const kidData = {
+      //   id: docRef.id,
+      //   childId: childId,
+      //   parentId: dto.parentId,
+      //   adminId: dto.adminId,
+      //   doctorId: dto.doctorId,
+      //   firstName: dto.firstName,
+      //   lastName: dto.lastName,
+      //   birthDate: dto.birthDate,
+      //   gender: dto.gender,
+      //   bloodType: dto.bloodType,
+      //   ethnicity: dto.ethnicity,
+      //   location: dto.location,
+      //   congenitalAnomalies: dto.congenitalAnomalies || [],
+      //   avatarUrl: dto.avatarUrl,
+      //   createdAt: new Date().toISOString(),
+      //   ipfsHash,
+      //   encryptedData: encryptedData.substring(0, 100) + '...', // Store truncated version for reference
+      //   vitals: {
+      //     heartRate: 0,
+      //     oximetry: 0,
+      //     breathingRate: 0,
+      //     temperature: 0,
+      //     movement: 0,
+      //     weight: 0,
+      //     height: 0,
+      //     feedingSchedule: '',
+      //   },
+      //   weightHistory: [],
+      //   heightHistory: [],
+      // };
+
+      // await docRef.set(kidData);
+      // this.logger.log(`✅ Kid data saved to Firestore with ID: ${docRef.id}`);
+
+      // // Return success response
+      // const result = {
+      //   id: docRef.id,
+      //   childId,
+      //   ipfsHash,
+      //   message: 'Kid created successfully with blockchain ID and IPFS storage',
+      //   kidData: {
+      //     ...kidData,
+      //     aesKey, // Include AES key in response for parent to store securely
+      //   },
+      // };
+
+      // this.logger.log('🎉 Kid creation process completed successfully!');
+      // return result;
+
+      const retrivedDataString = await getDataFromChildNFT(
+        config,
+        logger,
+        process.env.CONTRACT_ADDRESS as string,
+        process.env.PRIVATE_KEY as string,
+        childId,
+      );
+
+      if (retrivedDataString) {
+        this.logger.log('📋 Child NFT Data Details:');
+        this.logger.log('='.repeat(50));
+        const values = retrivedDataString;
+        if (Array.isArray(values) && values.length > 0) {
+          this.logger.log(`Found ${values.length} values in the output`);
+          values.forEach((value: any, index: number) => {
+            if (value instanceof Uint8Array) {
+              const stringValue = bytesToString(value);
+              this.logger.log(`Value [${index}]:`);
+              this.logger.log(`  String: "${stringValue}"`);
+            } else {
+              this.logger.log(`Value [${index}]: ${value}`);
+            }
+          });
+        } else {
+          this.logger.log('No valid child NFT data found');
+        }
+        this.logger.log('='.repeat(50));
+      } else {
+        this.logger.log('No private output data found');
+      }
+
+      // const decryptedData = this.encryptionService.decryptObject(
+      //   aa.encryptedData,
+      //   aesKey,
+      // );
+
+      // this.logger.log(`✅ Decrypted kid data: ${JSON.stringify(decryptedData)}`);
+
+      return true;
     } catch (error) {
       this.logger.error(`❌ Kid creation failed: ${error.message}`);
       throw new Error(`Failed to create kid: ${error.message}`);

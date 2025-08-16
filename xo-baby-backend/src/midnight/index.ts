@@ -36,6 +36,56 @@ const stringToBytes32 = (str: string): Uint8Array => {
   return bytes;
 };
 
+// String to bytes128 conversion (padded with zeros to 128 bytes)
+// Format: [length (4 bytes)][data][padding zeros]
+export const stringToBytes128 = (str: string): Uint8Array => {
+  const byteLength = 128;
+  const maxDataLength = byteLength - 4; // Reserve 4 bytes for length
+  const bytes = new Uint8Array(byteLength); // Automatically filled with zeros
+
+  // Store the actual data length in first 4 bytes (little endian)
+  const dataLength = Math.min(str.length, maxDataLength);
+  bytes[0] = dataLength & 0xff;
+  bytes[1] = (dataLength >> 8) & 0xff;
+  bytes[2] = (dataLength >> 16) & 0xff;
+  bytes[3] = (dataLength >> 24) & 0xff;
+
+  // Store the actual data starting from byte 4
+  for (let i = 0; i < dataLength; i++) {
+    bytes[4 + i] = str.charCodeAt(i);
+  }
+
+  return bytes;
+};
+
+// Convert bytes128 back to string using length prefix
+export const bytes128ToString = (bytes: Uint8Array): string => {
+  if (bytes.length < 4) {
+    throw new Error('Invalid bytes128 data: too short');
+  }
+
+  // Read the length from first 4 bytes (little endian)
+  const dataLength =
+    bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24);
+
+  // Validate length
+  if (dataLength < 0 || dataLength > bytes.length - 4) {
+    throw new Error(`Invalid data length: ${dataLength}`);
+  }
+
+  // Extract the actual data (from byte 4 to byte 4+dataLength)
+  const dataBytes = bytes.slice(4, 4 + dataLength);
+
+  try {
+    return new TextDecoder().decode(dataBytes);
+  } catch (error) {
+    // Fallback to hex representation if decoding fails
+    return Array.from(dataBytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+};
+
 // Seed to bytes32 conversion
 const seedToBytes32 = (hexString: string): Uint8Array => {
   if (hexString.length !== 64) {
@@ -569,8 +619,8 @@ const internalGenerateChildNFT = async (
     const result = await api.generateChildNFT(
       babyHealthApi,
       stringToBytes32(childId),
-      stringToBytes32(cid),
-      stringToBytes32(aesKey),
+      stringToBytes128(cid),
+      stringToBytes128(aesKey),
     );
     console.log(result);
     return result;
