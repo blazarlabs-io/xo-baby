@@ -84,115 +84,426 @@ export class KidService {
         aesKey,
       );
       this.logger.log(`✅ Kid NFT created: ${kidNFT}`);
-      // const docRef = this.firebase.getFirestore().collection('kids').doc();
 
-      // const kidData = {
-      //   id: docRef.id,
-      //   childId: childId,
-      //   parentId: dto.parentId,
-      //   adminId: dto.adminId,
-      //   doctorId: dto.doctorId,
-      //   firstName: dto.firstName,
-      //   lastName: dto.lastName,
-      //   birthDate: dto.birthDate,
-      //   gender: dto.gender,
-      //   bloodType: dto.bloodType,
-      //   ethnicity: dto.ethnicity,
-      //   location: dto.location,
-      //   congenitalAnomalies: dto.congenitalAnomalies || [],
-      //   avatarUrl: dto.avatarUrl,
-      //   createdAt: new Date().toISOString(),
-      //   ipfsHash,
-      //   encryptedData: encryptedData.substring(0, 100) + '...', // Store truncated version for reference
-      //   vitals: {
-      //     heartRate: 0,
-      //     oximetry: 0,
-      //     breathingRate: 0,
-      //     temperature: 0,
-      //     movement: 0,
-      //     weight: 0,
-      //     height: 0,
-      //     feedingSchedule: '',
-      //   },
-      //   weightHistory: [],
-      //   heightHistory: [],
-      // };
+      // Create kid document in Firestore
+      const docRef = this.firebase.getFirestore().collection('kids').doc();
 
-      // await docRef.set(kidData);
-      // this.logger.log(`✅ Kid data saved to Firestore with ID: ${docRef.id}`);
+      const kidData = {
+        id: docRef.id,
+        childId: childId,
+        parentId: dto.parentId,
+        adminId: dto.adminId || null,
+        doctorId: dto.doctorId || null,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        birthDate: dto.birthDate,
+        gender: dto.gender,
+        bloodType: dto.bloodType,
+        ethnicity: dto.ethnicity || '',
+        location: dto.location || '',
+        congenitalAnomalies: dto.congenitalAnomalies || [],
+        avatarUrl: dto.avatarUrl || '',
+        createdAt: new Date().toISOString(),
+        ipfsHash,
+        nftTxHash: kidNFT?.txId || null, // Store the NFT transaction hash
+        encryptedData: encryptedData.substring(0, 100) + '...', // Store truncated version for reference
+        vitals: {
+          heartRate: 0,
+          oximetry: 0,
+          breathingRate: 0,
+          temperature: 0,
+          movement: 0,
+          weight: 0,
+          height: 0,
+          headCircumference: 0,
+          feedingSchedule: '',
+        },
+        weightHistory: [],
+        heightHistory: [],
+        headCircumferenceHistory: [],
+      };
 
-      // // Return success response
-      // const result = {
-      //   id: docRef.id,
-      //   childId,
-      //   ipfsHash,
-      //   message: 'Kid created successfully with blockchain ID and IPFS storage',
-      //   kidData: {
-      //     ...kidData,
-      //     aesKey, // Include AES key in response for parent to store securely
-      //   },
-      // };
+      await docRef.set(kidData);
+      this.logger.log(`✅ Kid data saved to Firestore with ID: ${docRef.id}`);
 
-      // this.logger.log('🎉 Kid creation process completed successfully!');
-      // return result;
-
-      const retrivedDataString = await getDataFromChildNFT(
-        config,
-        logger,
-        process.env.CONTRACT_ADDRESS as string,
-        process.env.PRIVATE_KEY as string,
+      // Return success response
+      const result = {
+        id: docRef.id,
         childId,
-      );
+        ipfsHash,
+        nftTxHash: kidNFT?.txId || null,
+        message: 'Kid created successfully with blockchain ID and IPFS storage',
+        kidData: {
+          ...kidData,
+          aesKey, // Include AES key in response for parent to store securely
+        },
+      };
 
-      if (retrivedDataString) {
-        this.logger.log('📋 Child NFT Data Details:');
-        this.logger.log('='.repeat(50));
-        const values = retrivedDataString;
-        if (Array.isArray(values) && values.length > 0) {
-          this.logger.log(`Found ${values.length} values in the output`);
-          values.forEach((value: any, index: number) => {
-            if (value instanceof Uint8Array) {
-              const stringValue = bytesToString(value);
-              this.logger.log(`Value [${index}]:`);
-              this.logger.log(`  String: "${stringValue}"`);
-            } else {
-              this.logger.log(`Value [${index}]: ${value}`);
-            }
-          });
-        } else {
-          this.logger.log('No valid child NFT data found');
-        }
-        this.logger.log('='.repeat(50));
-      } else {
-        this.logger.log('No private output data found');
-      }
-
-      // const decryptedData = this.encryptionService.decryptObject(
-      //   aa.encryptedData,
-      //   aesKey,
-      // );
-
-      // this.logger.log(`✅ Decrypted kid data: ${JSON.stringify(decryptedData)}`);
-
-      return true;
+      this.logger.log('🎉 Kid creation process completed successfully!');
+      return result;
     } catch (error) {
       this.logger.error(`❌ Kid creation failed: ${error.message}`);
       throw new Error(`Failed to create kid: ${error.message}`);
     }
   }
 
-  async getKidsByUserToken(token: string) {
-    const decoded = await this.firebase.getAuth().verifyIdToken(token);
-    const uid = decoded.uid;
+  // async getKidsByUserToken(token: string) {
+  //   try {
+  //     const decoded = await this.firebase.getAuth().verifyIdToken(token);
+  //     const uid = decoded.uid;
 
-    const snapshot = await this.firebase
-      .getFirestore()
-      .collection('kids')
-      .where('parentId', '==', uid)
-      .get();
+  //     this.logger.log(`🔍 Searching for kids for user: ${uid}`);
 
-    const kids = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return kids;
+  //     // Search for kids where user is parent, admin, or doctor
+  //     const snapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('parentId', '==', uid)
+  //       .get();
+
+  //     let kids = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+  //     // Also search for kids where user is admin
+  //     const adminSnapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('adminId', '==', uid)
+  //       .get();
+
+  //     const adminKids = adminSnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+  //     kids = [...kids, ...adminKids];
+
+  //     // Also search for kids where user is doctor
+  //     const doctorSnapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('doctorId', '==', uid)
+  //       .get();
+
+  //     const doctorKids = doctorSnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+  //     kids = [...kids, ...doctorKids];
+
+  //     // Remove duplicates based on kid ID
+  //     const uniqueKids = kids.filter(
+  //       (kid, index, self) => index === self.findIndex((k) => k.id === kid.id),
+  //     );
+
+  //     this.logger.log(`✅ Found ${uniqueKids.length} kids for user ${uid}`);
+  //     return uniqueKids;
+  //   } catch (error) {
+  //     this.logger.error(`❌ Failed to get kids by token: ${error.message}`);
+  //     throw new Error(`Failed to get kids: ${error.message}`);
+  //   }
+  // }
+
+  // async getKidsByUserId(userId: string) {
+  //   try {
+  //     this.logger.log(`🔍 Searching for kids for user ID: ${userId}`);
+
+  //     // Search for kids where user is parent, admin, or doctor
+  //     const parentSnapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('parentId', '==', userId)
+  //       .get();
+
+  //     let kids = parentSnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+
+  //     // Also search for kids where user is admin
+  //     const adminSnapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('adminId', '==', userId)
+  //       .get();
+
+  //     const adminKids = adminSnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+  //     kids = [...kids, ...adminKids];
+
+  //     // Also search for kids where user is doctor
+  //     const doctorSnapshot = await this.firebase
+  //       .getFirestore()
+  //       .collection('kids')
+  //       .where('doctorId', '==', userId)
+  //       .get();
+
+  //     const doctorKids = doctorSnapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     }));
+  //     kids = [...kids, ...doctorKids];
+
+  //     // Remove duplicates based on kid ID
+  //     const uniqueKids = kids.filter(
+  //       (kid, index, self) => index === self.findIndex((k) => k.id === kid.id),
+  //     );
+
+  //     this.logger.log(
+  //       `✅ Found ${uniqueKids.length} kids for user ID ${userId}`,
+  //     );
+  //     return uniqueKids;
+  //   } catch (error) {
+  //     this.logger.error(`❌ Failed to get kids by user ID: ${error.message}`);
+  //     throw new Error(`Failed to get kids: ${error.message}`);
+  //   }
+  // }
+
+  // async getKidsWithRoleInfo(token: string) {
+  //   try {
+  //     const decoded = await this.firebase.getAuth().verifyIdToken(token);
+  //     const uid = decoded.uid;
+
+  //     this.logger.log(`🔍 Getting kids with role info for user: ${uid}`);
+
+  //     // Get all kids the user has access to
+  //     const kids = await this.getKidsByUserId(uid);
+
+  //     // Enhance each kid with role information
+  //     const kidsWithRoles = kids.map((kid: any) => {
+  //       let userRole = 'viewer';
+  //       if (kid.parentId === uid) {
+  //         userRole = 'parent';
+  //       } else if (kid.adminId === uid) {
+  //         userRole = 'admin';
+  //       } else if (kid.doctorId === uid) {
+  //         userRole = 'doctor';
+  //       }
+
+  //       return {
+  //         ...kid,
+  //         userRole,
+  //         canEdit: userRole === 'parent' || userRole === 'admin',
+  //         canDelete: userRole === 'admin',
+  //         canViewVitals:
+  //           userRole === 'parent' ||
+  //           userRole === 'admin' ||
+  //           userRole === 'doctor',
+  //       };
+  //     });
+
+  //     this.logger.log(
+  //       `✅ Enhanced ${kidsWithRoles.length} kids with role information`,
+  //     );
+  //     return kidsWithRoles;
+  //   } catch (error) {
+  //     this.logger.error(
+  //       `❌ Failed to get kids with role info: ${error.message}`,
+  //     );
+  //     throw new Error(`Failed to get kids with role info: ${error.message}`);
+  //   }
+  // }
+
+  async getKidsBasicInfo(uid: string) {
+    try {
+      const parentSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('parentId', '==', uid)
+        .get();
+
+      let kids = parentSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'parent',
+      }));
+
+      const adminSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('adminId', '==', uid)
+        .get();
+
+      const adminKids = adminSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'admin',
+      }));
+      kids = [...kids, ...adminKids];
+
+      const doctorSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('doctorId', '==', uid)
+        .get();
+
+      const doctorKids = doctorSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'doctor',
+      }));
+      kids = [...kids, ...doctorKids];
+
+      const uniqueKids = kids.filter(
+        (kid, index, self) => index === self.findIndex((k) => k.id === kid.id),
+      );
+
+      const config = new TestnetRemoteConfig();
+      const logger = await createLogger(config.logDir);
+
+      const decryptedKidsData = await Promise.all(
+        uniqueKids.map(async (kid: any) => {
+          const decyptedDataInfo = await getDataFromChildNFT(
+            config,
+            logger,
+            process.env.CONTRACT_ADDRESS as string,
+            process.env.PRIVATE_KEY as string,
+            kid.childId,
+          );
+
+          let decryptedKidData = {};
+          decyptedDataInfo.forEach((value: any, index: number) => {
+            if (value instanceof Uint8Array) {
+              const stringValue = bytesToString(value);
+              decryptedKidData[index] = stringValue;
+              console.log(`  String: "${stringValue}"`);
+            } else {
+              console.log(`Value [${index}]: ${value}`);
+            }
+          });
+
+          return {
+            kidId: kid.childId,
+            ...decryptedKidData,
+          };
+        }),
+      );
+
+      const completeKidsData = await Promise.all(
+        decryptedKidsData.map(async (decryptedData: any, index: number) => {
+          try {
+            const ipfsHash = decryptedData['1']; // IPFS hash
+            const aesKey = decryptedData['2']; // AES key
+            const kid = uniqueKids[index]; // Corresponding kid from uniqueKids
+
+            if (!ipfsHash || !aesKey) {
+              return {
+                id: kid.id,
+                childId: (kid as any).childId,
+                parentId: (kid as any).parentId,
+                adminId: (kid as any).adminId,
+                doctorId: (kid as any).doctorId,
+                firstName: 'Unknown',
+                lastName: 'Unknown',
+                birthDate: '',
+                gender: 'Unknown',
+                bloodType: '',
+                ethnicity: '',
+                location: '',
+                congenitalAnomalies: [],
+                avatarUrl: '',
+                createdAt: (kid as any).createdAt,
+                ipfsHash: ipfsHash || '',
+                encryptedData: aesKey || '', // Store AES key as encryptedData
+                vitals: (kid as any).vitals,
+                weightHistory: (kid as any).weightHistory || [],
+                heightHistory: (kid as any).heightHistory || [],
+                headCircumferenceHistory:
+                  (kid as any).headCircumferenceHistory || [],
+                userRole: kid.userRole,
+                canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+                canDelete: kid.userRole === 'admin',
+                canViewVitals: true,
+              };
+            }
+
+            const encryptedData = await this.pinataService.getData(ipfsHash);
+            let actualEncryptedData: string;
+            if (typeof encryptedData === 'string') {
+              try {
+                const parsed = JSON.parse(encryptedData);
+                actualEncryptedData = parsed.encryptedData || encryptedData;
+              } catch {
+                actualEncryptedData = encryptedData;
+              }
+            } else {
+              actualEncryptedData =
+                (encryptedData as any).encryptedData || encryptedData;
+            }
+
+            const decryptedKidData = this.encryptionService.decryptToObject(
+              actualEncryptedData,
+              aesKey,
+            );
+
+            return {
+              id: kid.id,
+              childId: (kid as any).childId,
+              parentId: (kid as any).parentId,
+              adminId: (kid as any).adminId,
+              doctorId: (kid as any).doctorId,
+              firstName: decryptedKidData.firstName || 'Unknown',
+              lastName: decryptedKidData.lastName || 'Unknown',
+              birthDate: decryptedKidData.birthDate || '',
+              gender: decryptedKidData.gender || 'Unknown',
+              bloodType: decryptedKidData.bloodType || '',
+              ethnicity: decryptedKidData.ethnicity || '',
+              location: decryptedKidData.location || '',
+              congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
+              avatarUrl: decryptedKidData.avatarUrl || '',
+              createdAt: (kid as any).createdAt,
+              ipfsHash: ipfsHash,
+              encryptedData: aesKey, // Store AES key as encryptedData for frontend
+              vitals: (kid as any).vitals,
+              weightHistory: (kid as any).weightHistory || [],
+              heightHistory: (kid as any).heightHistory || [],
+              headCircumferenceHistory:
+                (kid as any).headCircumferenceHistory || [],
+              userRole: kid.userRole,
+              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              canDelete: kid.userRole === 'admin',
+              canViewVitals: true,
+            };
+          } catch (error) {
+            console.error(`Error processing kid ${index}:`, error);
+            const kid = uniqueKids[index];
+            return {
+              id: kid.id,
+              childId: (kid as any).childId,
+              parentId: (kid as any).parentId,
+              adminId: (kid as any).adminId,
+              doctorId: (kid as any).doctorId,
+              firstName: 'Error',
+              lastName: 'Loading...',
+              birthDate: '',
+              gender: 'Unknown',
+              bloodType: '',
+              ethnicity: '',
+              location: '',
+              congenitalAnomalies: [],
+              avatarUrl: '',
+              createdAt: (kid as any).createdAt,
+              ipfsHash: '',
+              encryptedData: '',
+              vitals: (kid as any).vitals,
+              weightHistory: (kid as any).weightHistory || [],
+              heightHistory: (kid as any).heightHistory || [],
+              headCircumferenceHistory:
+                (kid as any).headCircumferenceHistory || [],
+              userRole: kid.userRole,
+              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              canDelete: kid.userRole === 'admin',
+              canViewVitals: true,
+            };
+          }
+        }),
+      );
+
+      return completeKidsData;
+    } catch (error) {
+      this.logger.error(`❌ Failed to get basic kids info: ${error.message}`);
+      throw new Error(`Failed to get basic kids info: ${error.message}`);
+    }
   }
 
   async findById(kidId: string): Promise<Kid | null> {
@@ -202,20 +513,91 @@ export class KidService {
     return { id: doc.id, ...doc.data() } as Kid;
   }
 
-  /**
-   * Retrieve and decrypt kid data from IPFS
-   */
+  async checkUserAccessToKid(
+    userId: string,
+    kidId: string,
+  ): Promise<{
+    hasAccess: boolean;
+    role: string;
+    permissions: {
+      canEdit: boolean;
+      canDelete: boolean;
+      canViewVitals: boolean;
+    };
+  }> {
+    try {
+      const kid = await this.findById(kidId);
+      if (!kid) {
+        return {
+          hasAccess: false,
+          role: 'none',
+          permissions: {
+            canEdit: false,
+            canDelete: false,
+            canViewVitals: false,
+          },
+        };
+      }
+
+      let role = 'viewer';
+      if (kid.parentId === userId) {
+        role = 'parent';
+      } else if (kid.adminId === userId) {
+        role = 'admin';
+      } else if (kid.doctorId === userId) {
+        role = 'doctor';
+      } else {
+        return {
+          hasAccess: false,
+          role: 'none',
+          permissions: {
+            canEdit: false,
+            canDelete: false,
+            canViewVitals: false,
+          },
+        };
+      }
+
+      return {
+        hasAccess: true,
+        role,
+        permissions: {
+          canEdit: role === 'parent' || role === 'admin',
+          canDelete: role === 'admin',
+          canViewVitals:
+            role === 'parent' || role === 'admin' || role === 'doctor',
+        },
+      };
+    } catch (error) {
+      this.logger.error(`❌ Failed to check user access: ${error.message}`);
+      return {
+        hasAccess: false,
+        role: 'none',
+        permissions: { canEdit: false, canDelete: false, canViewVitals: false },
+      };
+    }
+  }
+
+  async findByChildId(childId: string): Promise<Kid | null> {
+    const snapshot = await this.firebase
+      .getFirestore()
+      .collection('kids')
+      .where('childId', '==', childId)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() } as Kid;
+  }
+
   async getDecryptedKidData(kidId: string, aesKey: string): Promise<any> {
     try {
-      this.logger.log(`🔍 Retrieving decrypted data for kid: ${kidId}`);
-
-      // Get kid document from Firestore
       const kid = await this.findById(kidId);
       if (!kid) {
         throw new Error('Kid not found');
       }
 
-      // Type assertion to access the new fields
       const kidWithNewFields = kid as any;
 
       if (!kidWithNewFields.ipfsHash) {
@@ -273,15 +655,18 @@ export class KidService {
     weight: number,
     date: string,
   ) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canEdit) {
+      throw new UnauthorizedException(
+        'You do not have permission to update this kid',
+      );
+    }
+
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
     const doc = await docRef.get();
 
     if (!doc.exists) throw new UnauthorizedException('Kid not found');
-
-    const kid = doc.data() as Kid;
-    if (kid.parentId !== userId) {
-      throw new UnauthorizedException('You are not the parent of this kid');
-    }
 
     await docRef.update({
       'vitals.weight': weight,
@@ -291,7 +676,7 @@ export class KidService {
       }),
     });
 
-    return { success: true, weight, date };
+    return { success: true, weight, date, role: access.role };
   }
 
   async updateHeight(
@@ -300,15 +685,18 @@ export class KidService {
     height: number,
     date: string,
   ) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canEdit) {
+      throw new UnauthorizedException(
+        'You do not have permission to update this kid',
+      );
+    }
+
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
     const doc = await docRef.get();
 
     if (!doc.exists) throw new UnauthorizedException('Kid not found');
-
-    const kid = doc.data() as Kid;
-    if (kid.parentId !== userId) {
-      throw new UnauthorizedException('You are not the parent of this kid');
-    }
 
     await docRef.update({
       'vitals.height': height,
@@ -318,36 +706,97 @@ export class KidService {
       }),
     });
 
-    return { success: true, height, date };
+    return { success: true, height, date, role: access.role };
+  }
+
+  async updateHeadCircumference(
+    kidId: string,
+    userId: string,
+    headCircumference: number,
+    date: string,
+  ) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canEdit) {
+      throw new UnauthorizedException(
+        'You do not have permission to update this kid',
+      );
+    }
+
+    const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) throw new UnauthorizedException('Kid not found');
+
+    await docRef.update({
+      'vitals.headCircumference': headCircumference,
+      headCircumferenceHistory: admin.firestore.FieldValue.arrayUnion({
+        value: headCircumference,
+        date,
+      }),
+    });
+
+    return { success: true, headCircumference, date, role: access.role };
   }
 
   async getWeightHistory(kidId: string, userId: string) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
+      throw new UnauthorizedException(
+        "You do not have permission to view this kid's vitals",
+      );
+    }
+
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
     const doc = await docRef.get();
 
     if (!doc.exists) throw new UnauthorizedException('Kid not found');
 
     const kid = doc.data() as Kid;
-    if (kid.parentId !== userId) {
-      throw new UnauthorizedException('You are not the parent of this kid');
-    }
-
     const history = kid.weightHistory || [];
-    return { kidId: kidId, weightHistory: history };
+    return { kidId: kidId, weightHistory: history, role: access.role };
   }
 
   async getHeightHistory(kidId: string, userId: string) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
+      throw new UnauthorizedException(
+        "You do not have permission to view this kid's vitals",
+      );
+    }
+
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
     const doc = await docRef.get();
 
     if (!doc.exists) throw new UnauthorizedException('Kid not found');
 
     const kid = doc.data() as Kid;
-    if (kid.parentId !== userId) {
-      throw new UnauthorizedException('You are not the parent of this kid');
+    const history = kid.heightHistory || [];
+    return { kidId: kidId, heightHistory: history, role: access.role };
+  }
+
+  async getHeadCircumferenceHistory(kidId: string, userId: string) {
+    // Check user access first
+    const access = await this.checkUserAccessToKid(userId, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
+      throw new UnauthorizedException(
+        "You do not have permission to view this kid's vitals",
+      );
     }
 
-    const history = kid.heightHistory || [];
-    return { kidId: kidId, heightHistory: history };
+    const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) throw new UnauthorizedException('Kid not found');
+
+    const kid = doc.data() as Kid;
+    const history = kid.headCircumferenceHistory || [];
+    return {
+      kidId: kidId,
+      headCircumferenceHistory: history,
+      role: access.role,
+    };
   }
 }

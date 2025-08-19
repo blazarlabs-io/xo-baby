@@ -221,7 +221,12 @@ export const createChildId = async (
       logger.info(`📋 Child ID: ${childIdHex}`);
     }
   }
-  return finalizedTxData.public;
+  const childId = finalizedTxData.private.output.value[0];
+  const childIdHex = toHex(childId);
+  logger.info('✅ Child ID created successfully!');
+  logger.info(`📋 Child ID: ${childIdHex}`);
+  logger.info('---------------------- ');
+  return childIdHex;
 };
 
 // Generate NFT ID

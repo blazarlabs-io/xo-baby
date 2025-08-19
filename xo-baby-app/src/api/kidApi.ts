@@ -22,12 +22,13 @@ export const createKid = async (data: CreateKidPayload) => {
 };
 
 // GET
-export const getMyKids = async (token: string) => {
-  const response = await api.get("/kid/my-kids", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export const getMyKids = async (uid: string) => {
+  // const response = await api.get("/kid/my-kids", {
+  //   headers: {
+  //     Authorization: `Bearer ${token}`,
+  //   },
+  // });
+  const response = await api.get(`/kid/my-kids-basic?uid=${uid}`);
   return response.data;
 };
 

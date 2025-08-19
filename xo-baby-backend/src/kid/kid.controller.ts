@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
   Post,
   Body,
+  Query,
 } from '@nestjs/common';
 import { KidService } from './kid.service';
 import { UserService } from '../user/user.service';
@@ -27,15 +28,26 @@ export class KidController {
     return this.kidService.createKid(dto);
   }
 
-  @Get('my-kids')
-  async getKidsByUser(@Headers('authorization') authHeader: string) {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException(
-        'Missing or invalid Authorization header',
-      );
+  // @Get('my-kids')
+  // async getKidsByUser(@Headers('authorization') authHeader: string) {
+  //   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  //     throw new UnauthorizedException(
+  //       'Missing or invalid Authorization header',
+  //     );
+  //   }
+  //   const idToken = authHeader.replace('Bearer ', '');
+  //   return this.kidService.getKidsWithRoleInfo(idToken);
+  // }
+
+  @Get('my-kids-basic')
+  async getKidsBasicInfo(@Query('uid') uid: string) {
+    if (!uid) {
+      throw new UnauthorizedException('User ID is required');
     }
-    const idToken = authHeader.replace('Bearer ', '');
-    return this.kidService.getKidsByUserToken(idToken);
+    console.log('Backend: Received request for UID:', uid);
+    const result = await this.kidService.getKidsBasicInfo(uid);
+    console.log('Backend: Returning result:', result);
+    return result;
   }
 
   @Get(':id/weight')
@@ -52,17 +64,24 @@ export class KidController {
     const token = authHeader.replace('Bearer ', '');
     const user = await this.userService.verifyIdToken(token);
 
-    const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== user.uid) {
+    // Use the new access control method
+    const access = await this.kidService.checkUserAccessToKid(user.uid, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
       throw new UnauthorizedException(
-        'Access denied: Not the parent of this kid',
+        "Access denied: You do not have permission to view this kid's vitals",
       );
+    }
+
+    const kid = await this.kidService.findById(kidId);
+    if (!kid) {
+      throw new UnauthorizedException('Kid not found');
     }
 
     return {
       kidId: kid.id,
       weight: kid.vitals.weight || null,
       updatedAt: kid.createdAt,
+      userRole: access.role,
     };
   }
 
@@ -80,17 +99,24 @@ export class KidController {
     const token = authHeader.replace('Bearer ', '');
     const user = await this.userService.verifyIdToken(token);
 
-    const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== user.uid) {
+    // Use the new access control method
+    const access = await this.kidService.checkUserAccessToKid(user.uid, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
       throw new UnauthorizedException(
-        'Access denied: Not the parent of this kid',
+        "Access denied: You do not have permission to view this kid's vitals",
       );
+    }
+
+    const kid = await this.kidService.findById(kidId);
+    if (!kid) {
+      throw new UnauthorizedException('Kid not found');
     }
 
     return {
       kidId: kid.id,
       height: kid.vitals.height || null,
       updatedAt: kid.createdAt,
+      userRole: access.role,
     };
   }
 
@@ -186,11 +212,11 @@ export class KidController {
     const token = authHeader.replace('Bearer ', '');
     const user = await this.userService.verifyIdToken(token);
 
-    // Verify user has access to this kid
-    const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== user.uid) {
+    // Use the new access control method
+    const access = await this.kidService.checkUserAccessToKid(user.uid, kidId);
+    if (!access.hasAccess || !access.permissions.canViewVitals) {
       throw new UnauthorizedException(
-        'Access denied: Not the parent of this kid',
+        "Access denied: You do not have permission to view this kid's data",
       );
     }
 
@@ -214,17 +240,25 @@ export class KidController {
     const token = authHeader.replace('Bearer ', '');
     const user = await this.userService.verifyIdToken(token);
 
-    // Verify user has access to this kid
-    const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== user.uid) {
+    // Use the new access control method
+    const access = await this.kidService.checkUserAccessToKid(user.uid, kidId);
+    if (!access.hasAccess) {
       throw new UnauthorizedException(
-        'Access denied: Not the parent of this kid',
+        'Access denied: You do not have permission to view this kid',
       );
+    }
+
+    // Get kid details
+    const kid = await this.kidService.findById(kidId);
+    if (!kid) {
+      throw new UnauthorizedException('Kid not found');
     }
 
     // Return kid details with IPFS info (without decrypted data)
     return {
       ...kid,
+      userRole: access.role,
+      permissions: access.permissions,
       ipfsUrl: (kid as any).ipfsHash
         ? `https://gateway.pinata.cloud/ipfs/${(kid as any).ipfsHash}`
         : null,

@@ -18,7 +18,7 @@ export interface Kid {
   avatarUrl?: string;
   createdAt: string;
   ipfsHash?: string; // IPFS hash for encrypted data
-  encryptedData?: string; // AES encrypted kid data
+  encryptedData?: string; // AES key for decryption
 
   vitals: {
     heartRate: number;
@@ -28,13 +28,22 @@ export interface Kid {
     movement?: number;
     weight?: number;
     height?: number;
+    headCircumference?: number;
     feedingSchedule?: string;
   };
 
   weightHistory?: { value: number; date: string }[];
   heightHistory?: { value: number; date: string }[];
+  headCircumferenceHistory?: { value: number; date: string }[];
+
+  // Additional fields for role-based access control
+  userRole?: "parent" | "admin" | "doctor" | "viewer";
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canViewVitals?: boolean;
 }
 
+// Since role fields are now included in Kid interface, we can use Kid directly
 interface KidStore {
   kids: Kid[];
   addKid: (kid: Kid) => void;
