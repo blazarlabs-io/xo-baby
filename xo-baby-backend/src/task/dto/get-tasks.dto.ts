@@ -6,7 +6,8 @@ export class GetTasksDto {
   @IsString()
   kidId?: string;
 
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  limit: number;
+  limit?: number = 50;
 }

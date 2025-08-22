@@ -19,75 +19,111 @@ interface UpcomingTasksProps {
   kidID: string;
 }
 
-const UpcomingTasks: React.FC<UpcomingTasksProps> = ({  kidID }) => {
+const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ kidID }) => {
 
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
 
-  // retrieve token from user store
+  // Get user from store instead of token
   const user = useUserStore((state) => state.user);
-  const token = user?.token;
+  const uid = user?.uid;
+
+  // Debug: Log user store state
+  useEffect(() => {
+    console.log('🔍 UpcomingTasks: User store state:', user);
+    console.log('🔍 UpcomingTasks: User UID:', uid);
+  }, [user, uid]);
 
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<ApiTask[]>([]);
 
   useEffect(() => {
     const loadTasks = async () => {
-      if (!token) return;
+      if (!uid) {
+        console.log('❌ UpcomingTasks: No user UID available');
+        return;
+      }
+
       setLoading(true);
       try {
-        const fetched = await getTasks(token, kidID, 2);
-        setTasks(fetched);
+        // Get more tasks to filter for upcoming ones
+        const fetched = await getTasks(kidID, 10, uid);
+        console.log('📋 UpcomingTasks: Fetched tasks:', fetched);
+
+        // Filter for upcoming tasks (today and future dates)
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        console.log('📋 UpcomingTasks: Today is:', todayString);
+
+        const upcomingTasks = fetched.filter(task => {
+          const taskDate = new Date(task.date);
+          const todayDate = new Date(todayString);
+          const isUpcoming = taskDate >= todayDate;
+          console.log(`📋 Task ${task.name} on ${task.date}: isUpcoming=${isUpcoming}`);
+          return isUpcoming;
+        });
+
+        console.log('📋 UpcomingTasks: Upcoming tasks:', upcomingTasks);
+
+        // Sort by date (earliest first) and take first 2
+        const sortedTasks = upcomingTasks
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .slice(0, 2);
+
+        console.log('📋 UpcomingTasks: Final sorted tasks to display:', sortedTasks);
+        setTasks(sortedTasks);
       } catch (err) {
-        console.error('Error loading tasks:', err);
+        console.error('❌ UpcomingTasks: Error loading tasks:', err);
       } finally {
         setLoading(false);
       }
     };
+
+    console.log('🔄 UpcomingTasks: Loading tasks for kid:', kidID, 'user:', uid);
     loadTasks();
-  }, [token, kidID]);
+  }, [uid, kidID]);
 
   const goDetail = () => {
     navigation.navigate('Tasks', { kidId: kidID });
   }
-    
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Upcoming Tasks</Text>
         <Text style={styles.seeAll} onPress={goDetail}>See All</Text>
       </View>
-      { loading ? (
+      {loading ? (
         <ActivityIndicator />
       ) : tasks.length === 0 ? (
         <View>
           <Text>No tasks yet</Text>
         </View>
       ) : (
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.cardWrapper}>
-            <View style={styles.cardLeftBorder} />
-            <View style={styles.cardContent}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.title}>{item.name}</Text>
-                <Text style={styles.description}>{item.description}</Text>
-                <Pressable>
-                  <Text style={styles.details}>Details</Text>
-                </Pressable>
-              </View>
-              <View style={styles.dateBox}>
-                <Text style={styles.dateLabel}>{item.date}</Text>
-                <View style={styles.timeRow}>
-                  <Image source={require('../../../assets/home-parent/clock.png')} alt=" pencil" width={10} height={10} />
-                  <Text style={styles.timeText}>{item.time}</Text>
+        <FlatList
+          data={tasks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.cardWrapper}>
+              <View style={styles.cardLeftBorder} />
+              <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.title}>{item.name}</Text>
+                  <Text style={styles.description}>{item.description}</Text>
+                  <Pressable>
+                    <Text style={styles.details}>Details</Text>
+                  </Pressable>
+                </View>
+                <View style={styles.dateBox}>
+                  <Text style={styles.dateLabel}>{item.date}</Text>
+                  <View style={styles.timeRow}>
+                    <Image source={require('../../../assets/home-parent/clock.png')} alt=" pencil" width={10} height={10} />
+                    <Text style={styles.timeText}>{item.time}</Text>
+                  </View>
                 </View>
               </View>
             </View>
-          </View>
-        )}
-      />
+          )}
+        />
       )}
     </View>
   );
@@ -95,7 +131,7 @@ const UpcomingTasks: React.FC<UpcomingTasksProps> = ({  kidID }) => {
 
 const styles = StyleSheet.create({
   container: {
-		width: '100%',
+    width: '100%',
     marginTop: 28,
   },
   header: {

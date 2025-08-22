@@ -38,16 +38,21 @@ export interface Kid {
 
   // Additional fields for role-based access control
   userRole?: "parent" | "admin" | "doctor" | "viewer";
-  canEdit?: boolean;
-  canDelete?: boolean;
-  canViewVitals?: boolean;
+  // canEdit?: boolean;
+  // canDelete?: boolean;
+  // canViewVitals?: boolean;
 }
 
 // Since role fields are now included in Kid interface, we can use Kid directly
 interface KidStore {
   kids: Kid[];
+  isLoading: boolean;
+  error: string | null;
   addKid: (kid: Kid) => void;
   addKids: (newKids: Kid[]) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  clearKids: () => void;
   createKid: (kidData: Partial<Kid>) => Promise<Kid>;
   getDecryptedKidData: (kidId: string, aesKey: string) => Promise<any>;
   getKidDetails: (kidId: string) => Promise<any>;
@@ -55,6 +60,8 @@ interface KidStore {
 
 export const useKidStore = create<KidStore>((set, get) => ({
   kids: [],
+  isLoading: false,
+  error: null,
   addKid: (kid) =>
     set((state) => {
       const alreadyExists = state.kids.some((k) => k.id === kid.id);
@@ -65,8 +72,15 @@ export const useKidStore = create<KidStore>((set, get) => ({
     set((state) => {
       const currentIds = new Set(state.kids.map((k) => k.id));
       const filtered = newKids.filter((k) => !currentIds.has(k.id));
-      return { kids: [...state.kids, ...filtered] };
+      return {
+        kids: [...state.kids, ...filtered],
+        isLoading: false,
+        error: null,
+      };
     }),
+  setLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error, isLoading: false }),
+  clearKids: () => set({ kids: [], isLoading: false, error: null }),
   createKid: async (kidData: Partial<Kid>) => {
     try {
       // Get the current user's token from userStore or AuthService

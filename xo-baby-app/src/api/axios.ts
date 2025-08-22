@@ -14,6 +14,7 @@ api.interceptors.request.use(
       method: config.method?.toUpperCase(),
       url: config.url,
       data: config.data,
+      params: config.params,
     });
     return config;
   },

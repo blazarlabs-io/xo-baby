@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -13,7 +13,7 @@ import { Picker } from '@react-native-picker/picker';
 import NotesContent from '@/components/Kid/Notes/NotesContent';
 import { CreateNotePayload } from '@/api/notesApi'
 
-type NotesProp = RouteProp<AppStackParamList, 'Tasks'>;
+type NotesProp = RouteProp<AppStackParamList, 'Notes'>;
 
 const categories: CreateNotePayload['category'][] = [
   'all',
@@ -27,7 +27,7 @@ const categories: CreateNotePayload['category'][] = [
 
 
 export default function NotesScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Tasks'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Notes'>>();
   const route = useRoute<NotesProp>();
   const { kidId } = route.params;
 
@@ -43,32 +43,32 @@ export default function NotesScreen() {
   if (!kid) return <Text>Kid not found</Text>;
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.componentHeaderContainer}>
-        <Image
-          source={require('../../../assets/home-parent/notebook-pen.png')}
-          style={{ width: 20, height: 20 }} />
-        <Text style={styles.realTimeText}>Notes</Text>
-      </View>
-      <View style={styles.kidCard}>
-        <View style={styles.avatarWrapper}>
-          <View style={styles.avatarBorder}>
-            <Image
-              source={require('../../../assets/kids/avatar-girl.png')}
-              style={styles.avatarImage}
-            />
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{ width: '100%', flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.componentHeaderContainer}>
+          <Image
+            source={require('../../../assets/home-parent/notebook-pen.png')}
+            style={{ width: 20, height: 20 }} />
+          <Text style={styles.realTimeText}>Notes</Text>
+        </View>
+        <View style={styles.kidCard}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={require('../../../assets/kids/avatar-girl.png')}
+                style={styles.avatarImage}
+              />
+            </View>
           </View>
+          <View style={styles.kidInfoContainer}>
+            <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
+            <Text style={styles.kidAge}>8 Months</Text>
+          </View>
+
         </View>
-        <View style={styles.kidInfoContainer}>
-          <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
-          <Text style={styles.kidAge}>8 Months</Text>
-        </View>
-        
-      </View>
-      <View style={{width: '100%', marginTop: 32}}>
-        <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-          <Picker
+        <View style={{ width: '100%', marginTop: 32 }}>
+          <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Picker
               selectedValue={selectedCategory}
               onValueChange={(itemValue) => selectCategory(itemValue as CreateNotePayload['category'])}
               style={styles.dropdown}
@@ -77,30 +77,30 @@ export default function NotesScreen() {
                 <Picker.Item label={category} value={category} key={category} />
               ))}
             </Picker>
-          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
-            <Image
-              source={require('../../../assets/home-parent/add.png')}
-              style={{ width: 14, height: 14 }}
-            />
+            <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
+              <Image
+                source={require('../../../assets/home-parent/add.png')}
+                style={{ width: 14, height: 14 }}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        <NotesContent
+          kidId={kidId}
+          setModalVisible={setModalVisible}
+          modalVisible={modalVisible}
+          selectedCategory={selectedCategory}
+        />
+
+        <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
+
+          <Pressable onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>Back</Text>
           </Pressable>
         </View>
-      </View>
 
-      <NotesContent
-        kidId={kidId}
-        setModalVisible={setModalVisible}
-        modalVisible={modalVisible}
-        selectedCategory={selectedCategory}
-       />
-
-      <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
-              
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
-     
-    </ScrollView>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 0
   },
-  
+
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },
 });
 

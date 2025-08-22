@@ -31,7 +31,7 @@ interface NotesContentProps {
 const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }: NotesContentProps) => {
 
   const user = useUserStore((state) => state.user)
-  const token = user?.token
+  const uid = user?.uid
 
   const [newDate, setNewDate] = useState('')
   const [newCategory, setNewCategory] = useState<CreateNotePayload['category']>('all')
@@ -46,13 +46,13 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
       : notes.filter((note) => note.category === selectedCategory);
 
 
-  // Fetch notes on mount or when token/kidId changes
+  // Fetch notes on mount or when uid/kidId changes
   useEffect(() => {
     const loadNotes = async () => {
-      if (!token) return
+      if (!uid) return
       setLoading(true)
       try {
-        const fetched = await getNotes(token, { kidId })
+        const fetched = await getNotes(uid, { kidId })
         setNotes(fetched)
       } catch (err) {
         console.error('Error loading notes:', err)
@@ -61,11 +61,11 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
       }
     }
     loadNotes()
-  }, [token, kidId])
+  }, [uid, kidId])
 
   // Handle creating a new note
   const handleAddNote = async () => {
-    if (!newDate || !newCategory || !newDescription || !token) return
+    if (!newDate || !newCategory || !newDescription || !uid) return
     setLoading(true)
     try {
       const payload: CreateNotePayload = {
@@ -74,7 +74,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
         description: newDescription,
         kidId,
       }
-      const created = await createNote(token, payload)
+      const created = await createNote(uid, payload)
       setNotes((prev) => [created, ...prev])
       setModalVisible(false)
       setNewDate('')

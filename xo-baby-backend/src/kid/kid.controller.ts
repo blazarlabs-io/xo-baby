@@ -45,9 +45,18 @@ export class KidController {
       throw new UnauthorizedException('User ID is required');
     }
     console.log('Backend: Received request for UID:', uid);
-    const result = await this.kidService.getKidsBasicInfo(uid);
-    console.log('Backend: Returning result:', result);
-    return result;
+    try {
+      const result = await this.kidService.getKidsBasicInfo(uid);
+      console.log(
+        'Backend: Successfully returning',
+        Array.isArray(result) ? result.length : 0,
+        'kids',
+      );
+      return result;
+    } catch (error) {
+      console.error('Backend: Error in getKidsBasicInfo:', error.message);
+      throw new Error(`Failed to retrieve kids data: ${error.message}`);
+    }
   }
 
   @Get(':id/weight')

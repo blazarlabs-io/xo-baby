@@ -1,7 +1,9 @@
+import { API_URL } from "@env";
+
 // API Configuration
 export const API_CONFIG = {
-  // Backend API URL - adjust this to match your backend
-  BASE_URL: "http://localhost:3000", // Default NestJS port
+  // Backend API URL - uses environment variable or defaults to localhost
+  BASE_URL: API_URL || "http://localhost:3000", // Default NestJS port
 
   // API Endpoints
   ENDPOINTS: {
@@ -15,8 +17,8 @@ export const API_CONFIG = {
     },
   },
 
-  // Request timeout
-  TIMEOUT: 10000, // 10 seconds
+  // Request timeout - Set to 0 to disable timeout for heavy operations
+  TIMEOUT: 0, // No timeout - let backend complete its work
 
   // Headers
   DEFAULT_HEADERS: {

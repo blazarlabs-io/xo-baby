@@ -6,15 +6,15 @@ import { createTask, getTasks, Task as ApiTask } from '@/api/taskApi';
 import { CalendarProvider, WeekCalendar } from 'react-native-calendars';
 
 interface TodayTabProps {
- kidId: string;
- modalVisible: boolean;
- setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  kidId: string;
+  modalVisible: boolean;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
-  // retrieve token from user store
+const CalendarTab = ({ kidId, modalVisible, setModalVisible }: TodayTabProps) => {
+  // Get user from store instead of token
   const user = useUserStore((state) => state.user);
-  const token = user?.token;
+  const uid = user?.uid;
 
   const today = new Date();
   const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
@@ -31,10 +31,10 @@ const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) =
 
   useEffect(() => {
     const loadTasks = async () => {
-      if (!token) return;
+      if (!uid) return;
       setLoading(true);
       try {
-        const fetched = await getTasks(token, kidId, 10);
+        const fetched = await getTasks(kidId, 50, uid); // Get more tasks to cover all dates
         setTasks(fetched);
       } catch (err) {
         console.error('Error loading tasks:', err);
@@ -43,28 +43,55 @@ const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) =
       }
     };
     loadTasks();
-  }, [token, kidId]);
+  }, [uid, kidId]);
+
+  // Function to handle date selection
+  const handleDateSelect = (dateString: string) => {
+    setSelectedDate(dateString);
+    console.log('📅 Selected date:', dateString);
+  };
+
+  // Filter tasks for the selected date
+  const tasksForDate = tasks.filter((task) => task.date === selectedDate);
 
   const handleAddTask = async () => {
-    if (!newDate || !newTime || !newName || !token) return;
+    console.log('🔄 Starting task creation...', { newDate, newTime, newName, kidId });
+
+    if (!newDate || !newTime || !newName) {
+      console.error('❌ Missing required fields:', { newDate, newTime, newName });
+      alert('Please fill in all required fields (Date, Time, Name)');
+      return;
+    }
+
+    if (!uid) {
+      console.error('❌ No authentication token available');
+      alert('Authentication required. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = { date: newDate, time: newTime, name: newName, description: newDescription, kidId };
-      const created = await createTask(token, payload);
+      console.log('📤 Sending task creation request:', payload);
+
+      const created = await createTask(payload, uid);
+      console.log('✅ Task created successfully:', created);
+
       setTasks((prev) => [created, ...prev]);
       setModalVisible(false);
       setNewDate('');
       setNewTime('');
       setNewName('');
       setNewDescription('');
+
+      alert('Task created successfully!');
     } catch (error) {
-      console.error('Failed to create task', error);
+      console.error('❌ Failed to create task:', error);
+      alert(`Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
-
-  const tasksForDate = tasks.filter((task) => task.date === selectedDate);
 
   const headerLabel = new Date(selectedDate).toLocaleDateString('en-US', {
     month: 'long',
@@ -73,40 +100,40 @@ const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) =
 
   return (
     <View style={styles.container}>
-      <View style={{paddingVertical: 8, gap: 10}}>
+      <View style={{ paddingVertical: 8, gap: 10 }}>
         <Text style={styles.day}>{monthDay}</Text>
         <View>
           <CalendarProvider date={selectedDate}>
             <WeekCalendar
               firstDay={7}
-              onDayPress={({ dateString }) => setSelectedDate(dateString)}
+              onDayPress={({ dateString }) => handleDateSelect(dateString)}
               theme={{
-              calendarBackground: 'transparent',
-              // optional: customize selected day color
-              todayTextColor: '#00796b',
-              dayTextColor: '#004d40'
-        }}
+                calendarBackground: 'transparent',
+                // optional: customize selected day color
+                todayTextColor: '#00796b',
+                dayTextColor: '#004d40'
+              }}
             />
           </CalendarProvider>
         </View>
       </View>
-      <View style={{gap: 16, marginTop: 16}}>
-      {loading ? (
+      <View style={{ gap: 16, marginTop: 16 }}>
+        {loading ? (
           <ActivityIndicator />
         ) : tasksForDate.map((task) => (
-        <View key={task.id} style={styles.itemContainer}>
-          <View>
-            <Text style={styles.itemTitle}>{task.name}</Text>
-            <Text style={styles.itemDescription}>{task.description}</Text>
-            <Pressable>
-              <Text style={styles.itemDetailBtn}>Details</Text>
-            </Pressable>
+          <View key={task.id} style={styles.itemContainer}>
+            <View>
+              <Text style={styles.itemTitle}>{task.name}</Text>
+              <Text style={styles.itemDescription}>{task.description}</Text>
+              <Pressable>
+                <Text style={styles.itemDetailBtn}>Details</Text>
+              </Pressable>
+            </View>
+            <View style={styles.itemTimeContainer}>
+              <Text style={styles.itemTime}>{task.time}</Text>
+            </View>
           </View>
-          <View style={styles.itemTimeContainer}>
-            <Text style={styles.itemTime}>{task.time}</Text>
-          </View>
-        </View>
-      ))}
+        ))}
       </View>
       <Modal
         transparent
@@ -140,7 +167,7 @@ const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) =
                 keyboardType="decimal-pad"
               />
             </View>
-             <Text style={styles.modalTitle}>Name</Text>
+            <Text style={styles.modalTitle}>Name</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Task name"
@@ -149,7 +176,7 @@ const CalendarTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) =
                 onChangeText={setNewName}
               />
             </View>
-             <Text style={styles.modalTitle}>Description</Text>
+            <Text style={styles.modalTitle}>Description</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Description"

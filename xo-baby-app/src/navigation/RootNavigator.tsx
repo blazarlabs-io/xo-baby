@@ -12,18 +12,28 @@ export default function RootNavigator() {
   const { user, setUser, clearUser } = useUserStore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
       if (firebaseUser && firebaseUser.emailVerified) {
-        // User is authenticated and email is verified
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          token: '', // Will be set when needed
-          role: 'parent' // Default role
-        });
+        try {
+          // Get the ID token for the authenticated user
+          const idToken = await firebaseUser.getIdToken();
+
+          // User is authenticated and email is verified
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            token: idToken, // Set the actual ID token
+            role: 'parent' // Default role
+          });
+          console.log('✅ User authenticated and token set:', firebaseUser.uid);
+        } catch (error) {
+          console.error('❌ Error getting ID token:', error);
+          clearUser();
+        }
       } else {
         // No user or email not verified
         clearUser();
+        console.log('❌ User not authenticated or email not verified');
       }
       setIsLoading(false);
     });

@@ -28,6 +28,8 @@ export const getMyKids = async (uid: string) => {
   //     Authorization: `Bearer ${token}`,
   //   },
   // });
+
+  // Let the backend complete its heavy operations without artificial timeouts
   const response = await api.get(`/kid/my-kids-basic?uid=${uid}`);
   return response.data;
 };

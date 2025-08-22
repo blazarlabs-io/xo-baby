@@ -94,19 +94,8 @@ export class KidService {
         parentId: dto.parentId,
         adminId: dto.adminId || null,
         doctorId: dto.doctorId || null,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        birthDate: dto.birthDate,
-        gender: dto.gender,
-        bloodType: dto.bloodType,
-        ethnicity: dto.ethnicity || '',
-        location: dto.location || '',
-        congenitalAnomalies: dto.congenitalAnomalies || [],
-        avatarUrl: dto.avatarUrl || '',
         createdAt: new Date().toISOString(),
-        ipfsHash,
         nftTxHash: kidNFT?.txId || null, // Store the NFT transaction hash
-        encryptedData: encryptedData.substring(0, 100) + '...', // Store truncated version for reference
         vitals: {
           heartRate: 0,
           oximetry: 0,
@@ -305,7 +294,23 @@ export class KidService {
   // }
 
   async getKidsBasicInfo(uid: string) {
+    this.logger.log('🔍🔍🔍🔍🔍 Getting kids basic info for user:', uid);
+
     try {
+      // Let the operation complete naturally without artificial timeouts
+      return await this.performKidsDataRetrieval(uid);
+    } catch (error) {
+      this.logger.error(`❌ Failed to get basic kids info: ${error.message}`);
+      throw new Error(`Failed to get basic kids info: ${error.message}`);
+    }
+  }
+
+  private async performKidsDataRetrieval(uid: string) {
+    try {
+      this.logger.log(
+        '📋 Step 1: Fetching kids from Firestore for parentId:',
+        uid,
+      );
       const parentSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -318,6 +323,10 @@ export class KidService {
         userRole: 'parent',
       }));
 
+      this.logger.log(
+        '📋 Step 2: Fetching kids from Firestore for adminId:',
+        uid,
+      );
       const adminSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -331,6 +340,10 @@ export class KidService {
       }));
       kids = [...kids, ...adminKids];
 
+      this.logger.log(
+        '📋 Step 3: Fetching kids from Firestore for doctorId:',
+        uid,
+      );
       const doctorSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -344,44 +357,119 @@ export class KidService {
       }));
       kids = [...kids, ...doctorKids];
 
+      this.logger.log('🔍 Step 4: Found', kids);
+
       const uniqueKids = kids.filter(
         (kid, index, self) => index === self.findIndex((k) => k.id === kid.id),
       );
 
+      this.logger.log(
+        '🔍 Step 4: Found',
+        uniqueKids.length,
+        'unique kids:',
+        uniqueKids.map((k) => k.id),
+      );
+
+      this.logger.log('⛓️ Step 5: Initializing blockchain configuration...');
       const config = new TestnetRemoteConfig();
       const logger = await createLogger(config.logDir);
 
-      const decryptedKidsData = await Promise.all(
-        uniqueKids.map(async (kid: any) => {
+      this.logger.log(
+        '⛓️ Step 6: Starting sequential blockchain data retrieval for',
+        uniqueKids.length,
+        'kids...',
+      );
+
+      // Process kids sequentially instead of simultaneously
+      const decryptedKidsData: any[] = [];
+      for (let index = 0; index < uniqueKids.length; index++) {
+        const kid = uniqueKids[index];
+
+        // Use the correct property - check if it's childId or id
+        const childId = (kid as any).childId || kid.id;
+
+        try {
+          this.logger.log(
+            `⛓️ Processing kid ${index + 1}/${uniqueKids.length}: ${childId}`,
+          );
+
           const decyptedDataInfo = await getDataFromChildNFT(
             config,
             logger,
             process.env.CONTRACT_ADDRESS as string,
             process.env.PRIVATE_KEY as string,
-            kid.childId,
+            childId,
           );
 
           let decryptedKidData = {};
-          decyptedDataInfo.forEach((value: any, index: number) => {
-            if (value instanceof Uint8Array) {
-              const stringValue = bytesToString(value);
-              decryptedKidData[index] = stringValue;
-              console.log(`  String: "${stringValue}"`);
-            } else {
-              console.log(`Value [${index}]: ${value}`);
-            }
-          });
 
-          return {
-            kidId: kid.childId,
+          // Check if decyptedDataInfo is valid before processing
+          if (
+            decyptedDataInfo &&
+            Array.isArray(decyptedDataInfo) &&
+            decyptedDataInfo.length > 0
+          ) {
+            this.logger.log(
+              `✅ Successfully retrieved blockchain data for kid ${childId}, processing ${decyptedDataInfo.length} values`,
+            );
+
+            decyptedDataInfo.forEach((value: any, valueIndex: number) => {
+              if (value instanceof Uint8Array) {
+                const stringValue = bytesToString(value);
+                decryptedKidData[valueIndex] = stringValue;
+                this.logger.log(`  String [${valueIndex}]: "${stringValue}"`);
+              } else {
+                this.logger.log(`Value [${valueIndex}]: ${value}`);
+                decryptedKidData[valueIndex] = value;
+              }
+            });
+          } else {
+            this.logger.warn(
+              `⚠️ Invalid or empty blockchain data for kid ${childId}:`,
+              decyptedDataInfo,
+            );
+            // Set default fallback values
+            decryptedKidData = {
+              '1': null, // ipfsHash
+              '2': null, // aesKey
+            };
+          }
+
+          const kidBlockchainData = {
+            kidId: kid.id,
             ...decryptedKidData,
           };
-        }),
+
+          decryptedKidsData.push(kidBlockchainData);
+          this.logger.log(
+            `✅ Completed blockchain processing for kid ${index + 1}/${uniqueKids.length}: ${kid.id}`,
+          );
+        } catch (error) {
+          this.logger.warn(
+            `Failed to get blockchain data for kid ${kid.id}:`,
+            error.message,
+          );
+          // Add fallback data if blockchain operations fail
+          decryptedKidsData.push({
+            kidId: kid.id,
+            '1': null, // ipfsHash
+            '2': null, // aesKey
+            blockchainError: error.message,
+          });
+        }
+      }
+
+      this.logger.log(
+        '🔗 Step 7: Starting IPFS data retrieval and decryption...',
+        decryptedKidsData,
       );
 
       const completeKidsData = await Promise.all(
         decryptedKidsData.map(async (decryptedData: any, index: number) => {
           try {
+            this.logger.log(
+              `🔗 Processing IPFS for kid ${index + 1}/${decryptedKidsData.length}`,
+            );
             const ipfsHash = decryptedData['1']; // IPFS hash
             const aesKey = decryptedData['2']; // AES key
             const kid = uniqueKids[index]; // Corresponding kid from uniqueKids
@@ -403,8 +491,6 @@ export class KidService {
                 congenitalAnomalies: [],
                 avatarUrl: '',
                 createdAt: (kid as any).createdAt,
-                ipfsHash: ipfsHash || '',
-                encryptedData: aesKey || '', // Store AES key as encryptedData
                 vitals: (kid as any).vitals,
                 weightHistory: (kid as any).weightHistory || [],
                 heightHistory: (kid as any).heightHistory || [],
@@ -436,6 +522,8 @@ export class KidService {
               aesKey,
             );
 
+            this.logger.log('🔍 Decrypted kid data:', decryptedKidData);
+
             return {
               id: kid.id,
               childId: (kid as any).childId,
@@ -460,9 +548,9 @@ export class KidService {
               headCircumferenceHistory:
                 (kid as any).headCircumferenceHistory || [],
               userRole: kid.userRole,
-              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
-              canDelete: kid.userRole === 'admin',
-              canViewVitals: true,
+              // canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              // canDelete: kid.userRole === 'admin',
+              // canViewVitals: true,
             };
           } catch (error) {
             console.error(`Error processing kid ${index}:`, error);
@@ -499,10 +587,17 @@ export class KidService {
         }),
       );
 
+      this.logger.log(
+        '✅ Step 8: Successfully processed all kids data. Returning',
+        completeKidsData.length,
+        'kids',
+      );
       return completeKidsData;
     } catch (error) {
-      this.logger.error(`❌ Failed to get basic kids info: ${error.message}`);
-      throw new Error(`Failed to get basic kids info: ${error.message}`);
+      this.logger.error(
+        `❌ Failed in performKidsDataRetrieval: ${error.message}`,
+      );
+      throw error;
     }
   }
 

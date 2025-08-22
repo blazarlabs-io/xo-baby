@@ -1,5 +1,5 @@
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import {
   FIREBASE_WEB_API_KEY,
   FIREBASE_WEB_AUTH_DOMAIN,
@@ -8,7 +8,7 @@ import {
   FIREBASE_WEB_MESSAGING_SENDER_ID,
   FIREBASE_WEB_APP_ID,
   FIREBASE_WEB_MEASUREMENT_ID,
-} from '@env'; 
+} from "@env";
 
 const firebaseConfig = {
   apiKey: FIREBASE_WEB_API_KEY,
@@ -19,7 +19,6 @@ const firebaseConfig = {
   appId: FIREBASE_WEB_APP_ID,
   measurementId: FIREBASE_WEB_MEASUREMENT_ID,
 };
-
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

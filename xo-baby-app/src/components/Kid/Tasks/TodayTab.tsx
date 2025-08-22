@@ -5,15 +5,15 @@ import { useUserStore } from '@/store/userStore';
 import { createTask, getTasks, Task as ApiTask } from '@/api/taskApi';
 
 interface TodayTabProps {
- kidId: string;
- modalVisible: boolean;
- setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
+  kidId: string;
+  modalVisible: boolean;
+  setModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
+const TodayTab = ({ kidId, modalVisible, setModalVisible }: TodayTabProps) => {
   // retrieve token from user store
   const user = useUserStore((state) => state.user);
-  const token = user?.token;
+  const uid = user?.uid;
 
   const today = new Date();
   const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
@@ -30,66 +30,97 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
 
   useEffect(() => {
     const loadTasks = async () => {
-      if (!token) return;
+      if (!uid) {
+        console.log('❌ TodayTab: No user UID available');
+        return;
+      }
+
       setLoading(true);
       try {
-        const fetched = await getTasks(token, kidId, 10);
-        setTasks(fetched);
+        const fetched = await getTasks(kidId, 50, uid); // Get more tasks to filter properly
+        console.log('📋 TodayTab: Fetched tasks:', fetched);
+
+        // Filter tasks for today
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        console.log('📋 TodayTab: Today is:', todayString);
+
+        const todayTasks = fetched.filter(task => task.date === todayString);
+        console.log('📋 TodayTab: Today tasks:', todayTasks);
+        setTasks(todayTasks);
       } catch (err) {
-        console.error('Error loading tasks:', err);
+        console.error('❌ TodayTab: Error loading tasks:', err);
       } finally {
         setLoading(false);
       }
     };
+
+    console.log('🔄 TodayTab: Loading tasks for kid:', kidId, 'user:', uid);
     loadTasks();
-  }, [token, kidId]);
+  }, [uid, kidId]);
 
   const handleAddTask = async () => {
-    if (!newDate || !newTime || !newName || !token) return;
+    console.log('---handle add task---')
+
+    if (!newDate || !newTime || !newName) {
+      console.error('❌ Missing required fields:', { newDate, newTime, newName });
+      alert('Please fill in all required fields (Date, Time, Name)');
+      return;
+    }
+
+    if (!uid) {
+      console.error('❌ No authentication token available');
+      alert('Authentication required. Please log in again.');
+      return;
+    }
+
     setLoading(true);
     try {
       const payload = { date: newDate, time: newTime, name: newName, description: newDescription, kidId };
-      const created = await createTask(token, payload);
+      console.log('📤 Sending task creation request:', payload);
+
+      const created = await createTask(payload, uid);
+      console.log('✅ Task created successfully:', created);
+
       setTasks((prev) => [created, ...prev]);
       setModalVisible(false);
       setNewDate('');
       setNewTime('');
       setNewName('');
       setNewDescription('');
+
+      alert('Task created successfully!');
     } catch (error) {
-      console.error('Failed to create task', error);
+      console.error('❌ Failed to create task:', error);
+      alert(`Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const todayTasks = tasks.filter(
-    (task) => task.date === todayString
-  );
-
   return (
     <View style={styles.container}>
-      <View style={{padding: 8, gap: 10}}>
+      <View style={{ padding: 8, gap: 10 }}>
         <Text style={styles.day}>{dayOfWeek}</Text>
         <Text style={styles.date}>{monthDay}</Text>
       </View>
-      <View style={{gap: 16, marginTop: 16}}>
-      {loading ? (
+      <View style={{ gap: 16, marginTop: 16 }}>
+        {loading ? (
           <ActivityIndicator />
-        ) : todayTasks.map((task) => (
-        <View key={task.id} style={styles.itemContainer}>
-          <View>
-            <Text style={styles.itemTitle}>{task.name}</Text>
-            <Text style={styles.itemDescription}>{task.description}</Text>
-            <Pressable>
-              <Text style={styles.itemDetailBtn}>Details</Text>
-            </Pressable>
+        ) : tasks.map((task) => (
+          <View key={task.id} style={styles.itemContainer}>
+            <View>
+              <Text style={styles.itemTitle}>{task.name}</Text>
+              <Text style={styles.itemDescription}>{task.description}</Text>
+              <Pressable>
+                <Text style={styles.itemDetailBtn}>Details</Text>
+              </Pressable>
+            </View>
+            <View style={styles.itemTimeContainer}>
+              <Text style={styles.itemTime}>{task.time}</Text>
+            </View>
           </View>
-          <View style={styles.itemTimeContainer}>
-            <Text style={styles.itemTime}>{task.time}</Text>
-          </View>
-        </View>
-      ))}
+        ))}
       </View>
       <Modal
         transparent
@@ -123,7 +154,7 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
                 keyboardType="decimal-pad"
               />
             </View>
-             <Text style={styles.modalTitle}>Name</Text>
+            <Text style={styles.modalTitle}>Name</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Task name"
@@ -132,7 +163,7 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
                 onChangeText={setNewName}
               />
             </View>
-             <Text style={styles.modalTitle}>Description</Text>
+            <Text style={styles.modalTitle}>Description</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Description"
