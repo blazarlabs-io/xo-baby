@@ -31,3 +31,6 @@ export interface MedicalDataBatchResponseDto {
   processingTime: string;
   message: string;
 }
+
+
+

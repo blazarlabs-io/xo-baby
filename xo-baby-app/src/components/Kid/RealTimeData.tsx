@@ -17,22 +17,34 @@ interface RealTimeDataProps {
 const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
   const [isCollecting, setIsCollecting] = useState(false);
   const [currentData, setCurrentData] = useState<RealTimeMedicalData | null>(null);
+  const [historicalData, setHistoricalData] = useState<RealTimeMedicalData | null>(null);
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false);
   const [collectionStatus, setCollectionStatus] = useState({
     isCollecting: false,
     kidId: '',
     startTime: '',
     currentBufferSize: 0,
+  } as {
+    isCollecting: boolean;
+    kidId?: string;
+    startTime?: string;
+    currentBufferSize?: number;
   });
 
   // Animated values for pulse effect
   const heartPulse = new Animated.Value(1);
   const dataPulse = new Animated.Value(1);
 
-  // Check initial collection status
+  // Check initial collection status and fetch historical data if needed
   useEffect(() => {
     console.log("🔍 RealTimeData component mounted, kidId:", kidId);
     checkCollectionStatus();
-  }, [kidId]);
+
+    // If not collecting, try to fetch historical data
+    if (!isCollecting && kidId) {
+      fetchHistoricalData();
+    }
+  }, [kidId, isCollecting]);
 
   // Update current data periodically when collecting
   useEffect(() => {
@@ -96,6 +108,34 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
         useNativeDriver: true,
       }),
     ]).start();
+  };
+
+  const fetchHistoricalData = async () => {
+    if (!kidId) return;
+
+    try {
+      setIsLoadingHistorical(true);
+      console.log("📊 Fetching historical data for kid:", kidId);
+
+      // Try to get average historical data first, fallback to latest
+      let data = await medicalDataService.getAverageHistoricalData(kidId);
+      if (!data) {
+        data = await medicalDataService.getLatestHistoricalData(kidId);
+      }
+
+      if (data) {
+        setHistoricalData(data);
+        console.log("✅ Historical data loaded:", data);
+      } else {
+        console.log("📊 No historical data available");
+        setHistoricalData(null);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching historical data:', error);
+      setHistoricalData(null);
+    } finally {
+      setIsLoadingHistorical(false);
+    }
   };
 
   const checkCollectionStatus = async () => {
@@ -176,6 +216,9 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
 
       // Update status
       await checkCollectionStatus();
+
+      // Fetch historical data to show when stopped
+      await fetchHistoricalData();
 
       // Show success message
       Alert.alert(
@@ -339,6 +382,99 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
           <ActivityIndicator size="large" color="#31CECE" />
           <Text style={styles.loadingText}>Waiting for sensor data...</Text>
         </View>
+      ) : historicalData ? (
+        <Animated.View style={[styles.dataContainer, { transform: [{ scale: dataPulse }] }]}>
+          <View style={styles.historicalDataHeader}>
+            <Text style={styles.historicalDataTitle}>
+              {new Date(historicalData.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000
+                ? 'Last Known Values'
+                : 'Demo Values (No recent data)'}
+            </Text>
+            <Text style={styles.historicalDataTimestamp}>
+              {new Date(historicalData.timestamp).toLocaleString()}
+            </Text>
+          </View>
+          <View style={styles.vitalsGrid}>
+            <View style={[styles.vitalCard, styles.heartRateCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>❤️</Text>
+                <Text style={styles.vitalLabel}>Heart Rate</Text>
+              </View>
+              <Text style={[
+                styles.vitalValue,
+                { color: getVitalColor('heartRate', historicalData.heartRate) }
+              ]}>
+                {historicalData.heartRate}
+              </Text>
+              <Text style={styles.vitalUnit}>BPM</Text>
+            </View>
+
+            <View style={[styles.vitalCard, styles.oximetryCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>🫁</Text>
+                <Text style={styles.vitalLabel}>Oximetry</Text>
+              </View>
+              <Text style={[
+                styles.vitalValue,
+                { color: getVitalColor('oximetry', historicalData.oximetry) }
+              ]}>
+                {historicalData.oximetry}
+              </Text>
+              <Text style={styles.vitalUnit}>%</Text>
+            </View>
+
+            <View style={[styles.vitalCard, styles.temperatureCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>🌡️</Text>
+                <Text style={styles.vitalLabel}>Temperature</Text>
+              </View>
+              <Text style={[
+                styles.vitalValue,
+                { color: getVitalColor('temperature', historicalData.temperature) }
+              ]}>
+                {historicalData.temperature.toFixed(1)}
+              </Text>
+              <Text style={styles.vitalUnit}>°C</Text>
+            </View>
+
+            <View style={[styles.vitalCard, styles.breathingCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>💨</Text>
+                <Text style={styles.vitalLabel}>Breathing</Text>
+              </View>
+              <Text style={styles.vitalValue}>
+                {historicalData.breathingRate}
+              </Text>
+              <Text style={styles.vitalUnit}>per min</Text>
+            </View>
+
+            <View style={[styles.vitalCard, styles.movementCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>🏃</Text>
+                <Text style={styles.vitalLabel}>Movement</Text>
+              </View>
+              <Text style={styles.vitalValue}>
+                {historicalData.movement}
+              </Text>
+              <Text style={styles.vitalUnit}>intensity</Text>
+            </View>
+
+            <View style={[styles.vitalCard, styles.timestampCard]}>
+              <View style={styles.vitalHeader}>
+                <Text style={styles.vitalIcon}>⏰</Text>
+                <Text style={styles.vitalLabel}>Last Update</Text>
+              </View>
+              <Text style={styles.timestampValue}>
+                {new Date(historicalData.timestamp).toLocaleTimeString()}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+      ) : isLoadingHistorical ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#31CECE" />
+          <Text style={styles.loadingText}>Loading historical data...</Text>
+        </View>
       ) : (
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderIcon}>📊</Text>
@@ -375,6 +511,19 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
           </Pressable>
         )}
 
+        {/* Refresh historical data button when not collecting */}
+        {!isCollecting && (
+          <Pressable
+            style={styles.refreshButton}
+            onPress={fetchHistoricalData}
+            disabled={isLoadingHistorical}
+          >
+            <Text style={styles.refreshButtonText}>
+              {isLoadingHistorical ? 'Refreshing...' : '🔄 Refresh Data'}
+            </Text>
+          </Pressable>
+        )}
+
         {/* Test button for debugging */}
         <Pressable
           style={styles.testButton}
@@ -390,6 +539,11 @@ const RealTimeData: React.FC<RealTimeDataProps> = ({ kidId }) => {
       <View style={styles.infoBox}>
         <Text style={styles.infoBoxText}>
           💡 Data is collected every second and automatically uploaded to IPFS every 10 minutes for secure storage.
+          {!isCollecting && historicalData && (
+            new Date(historicalData.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000
+              ? ' Historical data is shown when collection is stopped.'
+              : ' Demo values are shown since no recent data is available. Start collecting to see real data.'
+          )}
         </Text>
       </View>
     </View>
@@ -610,6 +764,38 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   testButtonText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#fff',
+    fontWeight: '500',
+  },
+  historicalDataHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  historicalDataTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  historicalDataTimestamp: {
+    fontSize: 12,
+    fontFamily: 'Poppins-Regular',
+    color: '#8d8d8d',
+  },
+  refreshButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  refreshButtonText: {
     fontSize: 14,
     fontFamily: 'Poppins-Medium',
     color: '#fff',

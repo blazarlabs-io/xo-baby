@@ -25,7 +25,34 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
 }) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
   const [currentData, setCurrentData] = useState<RealTimeMedicalData | null>(null);
+  const [historicalData, setHistoricalData] = useState<RealTimeMedicalData | null>(null);
   const [isCollecting, setIsCollecting] = useState(false);
+
+  // Function to fetch historical data when not collecting
+  const fetchHistoricalData = async () => {
+    if (!kidID) return;
+
+    try {
+      console.log("📊 Widget: Fetching historical data for kid:", kidID);
+
+      // Try to get average historical data first, fallback to latest
+      let data = await medicalDataService.getAverageHistoricalData(kidID);
+      if (!data) {
+        data = await medicalDataService.getLatestHistoricalData(kidID);
+      }
+
+      if (data) {
+        setHistoricalData(data);
+        console.log("✅ Widget: Historical data loaded:", data);
+      } else {
+        console.log("📊 Widget: No historical data available");
+        setHistoricalData(null);
+      }
+    } catch (error) {
+      console.error('❌ Widget: Error fetching historical data:', error);
+      setHistoricalData(null);
+    }
+  };
 
   // Check collection status and get current data
   useEffect(() => {
@@ -37,6 +64,9 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
         if (status.isCollecting) {
           const latestData = medicalDataService.getCurrentData();
           setCurrentData(latestData);
+        } else {
+          // If not collecting, fetch historical data
+          await fetchHistoricalData();
         }
       } catch (error) {
         console.error('❌ Error checking collection status:', error);
@@ -54,7 +84,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
     }, 3000); // Update every 3 seconds
 
     return () => clearInterval(interval);
-  }, [isCollecting]);
+  }, [isCollecting, kidID]);
 
   const goDetail = () => {
     navigation.navigate('RealTimeData', { kidId: kidID });
@@ -63,11 +93,11 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   const formatValue = (value?: number | string) =>
     value !== undefined && value !== null && value !== '' ? value : '-';
 
-  // Use real-time data if available, otherwise use props
-  const displayHeartRate = currentData?.heartRate || heartRate;
-  const displayTemperature = currentData?.temperature || temperature;
-  const displayRespiration = currentData?.breathingRate || respiration;
-  const displayOxygen = currentData?.oximetry || oxygen;
+  // Use real-time data if available, otherwise use historical data, then props
+  const displayHeartRate = currentData?.heartRate || historicalData?.heartRate || heartRate;
+  const displayTemperature = currentData?.temperature || historicalData?.temperature || temperature;
+  const displayRespiration = currentData?.breathingRate || historicalData?.breathingRate || respiration;
+  const displayOxygen = currentData?.oximetry || historicalData?.oximetry || oxygen;
 
   return (
     <View style={styles.container}>
@@ -112,7 +142,13 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
         <Image
           source={require('../../../assets/home-parent/bl-device.png')} width={12} height={16} />
         <Text style={styles.deviceName}>
-          {isCollecting ? 'Medical Sensor (Simulated)' : deviceName || 'No device connected'}
+          {isCollecting
+            ? 'Medical Sensor (Simulated)'
+            : historicalData
+              ? (new Date(historicalData.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000
+                ? 'Last recorded data'
+                : 'Demo data (No recent records)')
+              : deviceName || 'No device connected'}
         </Text>
       </View>
     </View>

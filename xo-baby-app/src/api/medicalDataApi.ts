@@ -125,3 +125,6 @@ export const checkMedicalDataHealth = async (): Promise<any> => {
     throw error;
   }
 };
+
+
+

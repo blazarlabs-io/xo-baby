@@ -276,6 +276,117 @@ class MedicalDataService {
   }
 
   /**
+   * Get latest historical data from database when not collecting
+   */
+  async getLatestHistoricalData(
+    kidId: string
+  ): Promise<RealTimeMedicalData | null> {
+    try {
+      console.log(`📊 Fetching latest historical data for kid: ${kidId}`);
+
+      // Get the most recent batch from the database
+      const { getMedicalDataBatches, getMedicalDataBatchData } = await import(
+        "../api/medicalDataApi"
+      );
+      const batches = await getMedicalDataBatches(kidId, 1);
+
+      if (batches.length === 0) {
+        console.log("📊 No historical data found for kid, returning demo data");
+        return this.getDemoHistoricalData();
+      }
+
+      const latestBatch = batches[0];
+      console.log(
+        `📊 Found latest batch: ${latestBatch.batchId} with ${latestBatch.dataPointCount} data points`
+      );
+
+      // Get the actual data from the batch
+      const batchData = await getMedicalDataBatchData(latestBatch.batchId);
+
+      if (
+        batchData &&
+        batchData.dataPoints &&
+        batchData.dataPoints.length > 0
+      ) {
+        // Return the most recent data point from the latest batch
+        const latestDataPoint = batchData.dataPoints[0]; // Assuming dataPoints are ordered by timestamp
+        console.log(
+          `📊 Retrieved latest historical data: HR:${latestDataPoint.heartRate} SpO2:${latestDataPoint.oximetry}% BR:${latestDataPoint.breathingRate} T:${latestDataPoint.temperature}°C M:${latestDataPoint.movement}`
+        );
+        return latestDataPoint;
+      }
+
+      return this.getDemoHistoricalData();
+    } catch (error) {
+      console.error("❌ Error fetching latest historical data:", error);
+      console.log("📊 Falling back to demo data");
+      return this.getDemoHistoricalData();
+    }
+  }
+
+  /**
+   * Get average historical data from database when not collecting
+   */
+  async getAverageHistoricalData(
+    kidId: string
+  ): Promise<RealTimeMedicalData | null> {
+    try {
+      console.log(`📊 Fetching average historical data for kid: ${kidId}`);
+
+      // Get the most recent batch from the database
+      const { getMedicalDataBatches } = await import("../api/medicalDataApi");
+      const batches = await getMedicalDataBatches(kidId, 1);
+
+      if (batches.length === 0) {
+        console.log("📊 No historical data found for kid, returning demo data");
+        return this.getDemoHistoricalData();
+      }
+
+      const latestBatch = batches[0];
+      console.log(
+        `📊 Found latest batch: ${latestBatch.batchId} with averages`
+      );
+
+      // Use the pre-calculated averages from the batch metadata
+      if (latestBatch.averages) {
+        const averageData: RealTimeMedicalData = {
+          timestamp: latestBatch.endTime, // Use end time as timestamp
+          heartRate: latestBatch.averages.heartRate,
+          oximetry: latestBatch.averages.oximetry,
+          breathingRate: latestBatch.averages.breathingRate,
+          temperature: latestBatch.averages.temperature,
+          movement: latestBatch.averages.movement,
+        };
+
+        console.log(
+          `📊 Retrieved average historical data: HR:${averageData.heartRate} SpO2:${averageData.oximetry}% BR:${averageData.breathingRate} T:${averageData.temperature}°C M:${averageData.movement}`
+        );
+        return averageData;
+      }
+
+      return this.getDemoHistoricalData();
+    } catch (error) {
+      console.error("❌ Error fetching average historical data:", error);
+      console.log("📊 Falling back to demo data");
+      return this.getDemoHistoricalData();
+    }
+  }
+
+  /**
+   * Get demo historical data when no real data exists
+   */
+  private getDemoHistoricalData(): RealTimeMedicalData {
+    return {
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+      heartRate: 118,
+      oximetry: 98.5,
+      breathingRate: 28,
+      temperature: 37.2,
+      movement: 45,
+    };
+  }
+
+  /**
    * Get stored batches (for debugging/offline sync)
    */
   async getStoredBatches(): Promise<MedicalDataBatch[]> {

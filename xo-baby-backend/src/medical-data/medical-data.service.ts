@@ -341,17 +341,57 @@ export class MedicalDataService {
     limit: number = 10,
   ): Promise<any[]> {
     try {
-      const snapshot = await this.db
-        .collection('medicalDataBatches')
-        .where('kidId', '==', kidId)
-        .orderBy('createdAt', 'desc')
-        .limit(limit)
-        .get();
+      this.logger.log(`📊 Getting medical data batches for kid: ${kidId}`);
 
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      // Try the full query first, but catch index errors
+      try {
+        const snapshot = await this.db
+          .collection('medicalDataBatches')
+          .where('kidId', '==', kidId)
+          .orderBy('createdAt', 'desc')
+          .limit(limit)
+          .get();
+
+        const results = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        this.logger.log(`✅ Retrieved ${results.length} medical data batches`);
+        return results;
+      } catch (indexError) {
+        if (indexError.message.includes('index')) {
+          this.logger.warn(
+            `⚠️ Firestore index not available, falling back to simple query`,
+          );
+
+          // Fallback: just query by kidId without ordering (for now)
+          const snapshot = await this.db
+            .collection('medicalDataBatches')
+            .where('kidId', '==', kidId)
+            .limit(limit)
+            .get();
+
+          const results = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as any[];
+
+          // Sort manually by createdAt
+          results.sort((a: any, b: any) => {
+            const timeA = new Date(a.createdAt || 0).getTime();
+            const timeB = new Date(b.createdAt || 0).getTime();
+            return timeB - timeA; // desc order
+          });
+
+          this.logger.log(
+            `✅ Retrieved ${results.length} medical data batches (manual sort)`,
+          );
+          return results;
+        } else {
+          throw indexError;
+        }
+      }
     } catch (error) {
       this.logger.error(
         `❌ Error getting medical data batches: ${error.message}`,
