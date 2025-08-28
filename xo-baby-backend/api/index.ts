@@ -4,23 +4,14 @@ import { AppModule } from '../src/app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
 
-
 const appPromise = (async () => {
   const expressApp = express();
   const nestApp = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
-
-  nestApp.enableCors({
-    origin: '*', 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-  });
-
+  nestApp.enableCors({ origin: '*', methods: ['GET','POST','PUT','DELETE','OPTIONS'], credentials: true });
   nestApp.useGlobalPipes(new ValidationPipe({ transform: true }));
   await nestApp.init();
-
   return expressApp;
 })();
-
 
 export default async function handler(req: any, res: any) {
   const app = await appPromise;
