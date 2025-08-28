@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../types/navigation';
+import { Platform } from 'react-native';
 
 export default function SignupEmailConfirmedScreen() {
   const [password, setPassword] = useState('');

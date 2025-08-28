@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { Svg, Circle } from 'react-native-svg';
 
 export default function VitalStatsDisplay() {
-  const o2Saturation = 0;
+  const o2Saturation = 90;
   const breaths = 0;
   const movement = 0;
   const circleRadius = 68;

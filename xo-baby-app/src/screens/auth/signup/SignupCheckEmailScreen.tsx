@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../types/navigation';
+import { Platform } from 'react-native';
 
 export default function SignupCheckEmailScreen() {
   const [password, setPassword] = useState('');

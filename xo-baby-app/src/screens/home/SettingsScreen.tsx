@@ -5,6 +5,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../../types/navigation';
 // store
 import { useUserStore } from '@/store/userStore';
+import { useKidStore } from '@/store/kidStore';
+
+import { logoutAll } from '@/services/logout';
 
 interface SettingsScreensProps {
   kidId: string;
@@ -14,6 +17,15 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Devices'>>();
   
   const user = useUserStore( s => s.user )
+
+  const handleLogout = async () => {
+      try {
+        await logoutAll();
+      } catch (e) {
+        console.warn('Logout error', e);
+        Alert.alert('Logout', 'Error, try again');
+      }
+    };
 
   return (
     <View style={styles.container}>
@@ -33,7 +45,9 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
         <Text style={styles.contentTitle}>{user?.email}</Text>
       </View>
 
-     
+      <Pressable style={styles.logoutBtn} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Log out</Text>
+      </Pressable>
       
     </View>
   );
@@ -110,4 +124,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center' 
   },
+  logoutBtn: {
+    marginTop: 24, height: 48, borderRadius: 12,
+    borderWidth: 1, borderColor: '#FF6B6B',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  logoutText: { fontSize: 16, fontWeight: '600', color: '#FF6B6B' },
 });

@@ -2,6 +2,7 @@
 /xo-baby-backend/dist
 /xo-baby-backend/node_modules
 /xo-baby-backend/build
+/xo-baby-app/android 
 
 # Logs
 logs

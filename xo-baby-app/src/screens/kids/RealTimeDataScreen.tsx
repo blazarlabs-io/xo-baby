@@ -45,8 +45,8 @@ export default function RealTimeDataScreen() {
 					</View>
 				</View>
 				<View style={styles.kidInfoContainer}>
-					<Text style={styles.kidName}>{kid.firstName}</Text>
-					<Text style={styles.kidAge}>8 Months</Text>
+					<Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
+					<Text style={styles.kidAge}>1 Months</Text>
 				</View>
 				<View style={styles.statusContainer}>
 					<View style={styles.statusDot} />
@@ -61,7 +61,7 @@ export default function RealTimeDataScreen() {
 						source={require('../../../assets/home-parent/bl-device.png')} 
 						style={styles.deviceIcon}
 					/>
-					<Text style={styles.deviceName}>No device connected</Text>
+					<Text style={styles.deviceName}>Mi Pulse Monitor S1</Text>
 				</View>
 			</View>
 
