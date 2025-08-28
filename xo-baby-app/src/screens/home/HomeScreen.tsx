@@ -10,29 +10,20 @@ import { useKidStore } from '../../store/kidStore';
 import NoKidsPlaceholder from './NoKidsPlaceholder'
 import KidSlider from '../../components/Kid/KidSlider';
 import { getMyKids } from '../../api/kidApi';
+import type { HomeStackParamList } from '@/navigation/HomeStack';
+import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
 
+  const route = useRoute<RouteProp<HomeStackParamList, 'Home'>>();
+  const focusKidId = route.params?.focusKidId;
+
+
   const kids = useKidStore((state) => state.kids);
 	const setKids = useKidStore.getState().addKid;
   const user = useUserStore((state) => state.user);
-
-  // mock kid
-//   useEffect(() => {
-//   if (kids.length === 0) {
-//     useKidStore.getState().addKid({
-//       id: '1',
-//       parentId: user?.uid || 'parent-1',
-//       name: 'Test Kid',
-//       birthDate: '2020-01-01',
-//       vitals: {
-//         heartRate: 90,
-//         oximetry: 98,
-//       },
-//     });
-//     }
-//   }, []);
 
 	useEffect(() => {
   const fetchKids = async () => {
@@ -66,7 +57,7 @@ export default function HomeScreen() {
 				</>
         ) : (
         <>
-            <KidSlider kids={kids} />
+            <KidSlider kids={kids} initialKidId={focusKidId} />
             
         </>
         )}

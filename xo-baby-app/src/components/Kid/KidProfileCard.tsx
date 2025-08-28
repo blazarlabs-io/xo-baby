@@ -1,11 +1,13 @@
 // system imports
 import React, { useState, useEffect } from 'react';
 import { ScrollView, Text, View, StyleSheet, Pressable, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
+import { FlatList } from 'react-native-gesture-handler'
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Navigation
 import { AppStackParamList } from '../../types/navigation';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 // Components imports
 import AvatarHeader from './AvatarHeader';
 import RealTimeDataWidget from './RealTimeDataWidget';
@@ -18,13 +20,15 @@ import { getWeightRecords, getHeightRecords, getHeadCircumferenceRecords } from 
 import { useUserStore } from '@/store/userStore';
 import { useKidStore } from '../../store/kidStore';
 
-export default function KidProfileCard({ kidId }: { kidId: string }) {
+export default function KidProfileCard({ kidId, height }: { kidId: string, height?: number }) {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
   const user = useUserStore(state => state.user);
   const token = user?.token || '';
   const kid = useKidStore((state) =>
     state.kids.find((k) => k.id === kidId)
   );
+
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [weightData, setWeightData] = useState<number[]>([]);
@@ -105,12 +109,10 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
     },
   ];
 
-  return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-    
+  const Header = (
+    <>
       <AvatarHeader kidID={kidId} />
-      <RealTimeDataWidget kidID={kidId} />
+      <RealTimeDataWidget kidID={kidId} deviceName="Mi Pulse Monitor S1" />
       <Development
         lastUpdated={lastUpdated}
         kidID={kidId}
@@ -125,15 +127,29 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
           <Text style={styles.addKidText}>Add Kid</Text>
         </View>
       </Pressable>
-    </ScrollView>
+    </>
+  );
+
+  return (
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', height}}>
+      <FlatList
+        data={[{ key: 'content' }]}
+        renderItem={() => null}
+        keyExtractor={(i) => i.key}
+        ListHeaderComponent={Header}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+      />
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
     width: '100%',
   },
   name: {

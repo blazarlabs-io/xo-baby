@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Image,  } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -45,7 +45,21 @@ export default function AddKidAvatarScreen() {
       });
 
       addKid(newKid);
-      navigation.navigate('KidProfile', {kidId: newKid.id}); 
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Tabs' as never,
+            params: {
+              screen: 'MyKids',
+              params: {
+                screen: 'Home',
+                params: { focusKidId: newKid.id },
+              },
+            } as never,
+          },
+        ],
+      });
     } catch (error) {
       console.error('Failed to create kid:', error);
       // show error to user
@@ -103,7 +117,7 @@ export default function AddKidAvatarScreen() {
       </View>
       
 
-      <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
         <Pressable style={styles.button} onPress={handleCreateKid}>
           <Text style={styles.buttonText}>Next</Text>
         </Pressable>
@@ -128,7 +142,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    width: '90%',
+    maxWidth: 320,
   },
   buttonText: { color: 'white', fontSize: 16, fontWeight: '600' },
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },

@@ -26,66 +26,66 @@ export default function WelcomeScreen() {
 
     // ---------------------------------------------------------------------------
 
-    useEffect(() => {
-      // Mock user data
-      const mockUser = {
-        uid: '1mjAa3McHnTK2R5malZ2cRFlO9O2',
-        email: 'vasea@mail.com',
-        token: 'eyJhbGciOiJSUzI1NiIsImtpZCI6Ijg3NzQ4NTAwMmYwNWJlMDI2N2VmNDU5ZjViNTEzNTMzYjVjNThjMTIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veG8tYmFieSIsImF1ZCI6InhvLWJhYnkiLCJhdXRoX3RpbWUiOjE3NTE2MjU2ODgsInVzZXJfaWQiOiIxbWpBYTNNY0huVEsyUjVtYWxaMmNSRmxPOU8yIiwic3ViIjoiMW1qQWEzTWNIblRLMlI1bWFsWjJjUkZsTzlPMiIsImlhdCI6MTc1MTYyNTY4OCwiZXhwIjoxNzUxNjI5Mjg4LCJlbWFpbCI6InZhc2VhQG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInZhc2VhQG1haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.QZFUMTFe_HOWZZ2mDsjKzRGQk9rZc8vk5RfLwh4g0auEZ9yIrzAB1HRscDHrDRpaLXzayrA2H2ir4l5PjjVjRyXVFtUOhOLp67wrz-C07pU_Ka6ULUPJ9aWuT5YmgMDguGJtaNbBUl1cleObCd3lGi7bXX-Hb2XCLwNW0dFg_ZvbpsCNRJZ0jEMF7x0xVC40oZ5H3dJfE0kBsqqvbeZk09V5hefGcVAy_AEKoDPHG_szbJF0ErTnT86vZhT-qFvN-RmVgeHiwuXJzFi_hsK2GGEWd3z_2UBZj5vxDYTy_F_JZdN0ZYY8wyvP9QRQMzWV5PMIJivYo6SPy1fT4SGl5Q',
-        role: 'parent' as UserRole
-      };
-
-      // Save mock user in store
-      setUser(mockUser);
-
-      // Mock kids data
-      const mockKids = [
-        {
-          id: 'BZnM9iTJRdt0xVL6Infv',
-          parentId: mockUser.uid,
-          firstName: 'Alice',
-          lastName: 'Johnson',
-          birthDate: '2021-05-10',
-          gender: 'female',
-          bloodType: 'A+',
-          ethnicity: 'Caucasian',
-          location: 'Chisinau',
-          congenitalAnomalies: [{ name: 'None', description: 'Healthy' }],
-          avatarUrl: '',
-          createdAt: new Date().toISOString(),
-          vitals: {
-            heartRate: 120,
-            oximetry: 98,
-            temperature: 36.6,
-            movement: 5,
-            feedingSchedule: 'every 3h'
-          }
-        },
-        {
-          id: 'fPKD2ANp3s7tfs4IyU9E',
-          parentId: mockUser.uid,
-          firstName: 'Leo',
-          lastName: 'Johnson',
-          birthDate: '2019-11-02',
-          gender: 'male',
-          bloodType: 'O-',
-          ethnicity: 'Caucasian',
-          location: 'Chisinau',
-          congenitalAnomalies: [{ name: 'Asthma', description: 'Mild condition' }],
-          avatarUrl: '',
-          createdAt: new Date().toISOString(),
-          vitals: {
-            heartRate: 110,
-            oximetry: 97,
-            temperature: 36.8,
-            movement: 6,
-            feedingSchedule: 'every 4h'
-          }
-        }
-      ];
-
-      useKidStore.getState().addKids(mockKids);
-    }, []);
+//     useEffect(() => {
+//       // Mock user data
+//       const mockUser = {
+//         uid: '1mjAa3McHnTK2R5malZ2cRFlO9O2',
+//         email: 'vasea@mail.com',
+//         token: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjJiN2JhZmIyZjEwY2FlMmIxZjA3ZjM4MTZjNTQyMmJlY2NhNWMyMjMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20veG8tYmFieSIsImF1ZCI6InhvLWJhYnkiLCJhdXRoX3RpbWUiOjE3NTUwODA1MDAsInVzZXJfaWQiOiIxbWpBYTNNY0huVEsyUjVtYWxaMmNSRmxPOU8yIiwic3ViIjoiMW1qQWEzTWNIblRLMlI1bWFsWjJjUkZsTzlPMiIsImlhdCI6MTc1NTA4MDUwMCwiZXhwIjoxNzU1MDg0MTAwLCJlbWFpbCI6InZhc2VhQG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInZhc2VhQG1haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.JApoh1ha1LroSk7bhgfbP_InW2d3T3yFOUrOoxReCaiL8YBCcGqFKrKcPUhHLG9VgjfVRQOGsnJ0_4Xl9T3urWoNmMb-cRG55RNwAARmD3hV5c6G6bBd2SkCMEHijj-aHLlUoR3sI3vJKLw7clc5J-hP993t7QG6WWu7tggr2LVIjqLMp_ufTefkaWsDj-UW_vM_ZDkeocWIKfH27SJ8Q2KUXw_1dtIWbTC0CVpayO_SYdQIsIMQyqc7vld1MVLrnEnsXiKXA8bpqHGzCwP94NuBWbnKQX16yYkrxi3w_4z2aepPlBOC4Ev6N2rKu4LZFgG1bg1vTiVOVFwTENuXyw',
+//         role: 'parent' as UserRole
+//       };
+//
+//       // Save mock user in store
+//       setUser(mockUser);
+//
+//       // Mock kids data
+//       const mockKids = [
+//         {
+//           id: 'BZnM9iTJRdt0xVL6Infv',
+//           parentId: mockUser.uid,
+//           firstName: 'Alice',
+//           lastName: 'Johnson',
+//           birthDate: '2021-05-10',
+//           gender: 'female',
+//           bloodType: 'A+',
+//           ethnicity: 'Caucasian',
+//           location: 'Chisinau',
+//           congenitalAnomalies: [{ name: 'None', description: 'Healthy' }],
+//           avatarUrl: '',
+//           createdAt: new Date().toISOString(),
+//           vitals: {
+//             heartRate: 120,
+//             oximetry: 98,
+//             temperature: 36.6,
+//             movement: 5,
+//             feedingSchedule: 'every 3h'
+//           }
+//         },
+//         {
+//           id: 'fPKD2ANp3s7tfs4IyU9E',
+//           parentId: mockUser.uid,
+//           firstName: 'Leo',
+//           lastName: 'Johnson',
+//           birthDate: '2019-11-02',
+//           gender: 'male',
+//           bloodType: 'O-',
+//           ethnicity: 'Caucasian',
+//           location: 'Chisinau',
+//           congenitalAnomalies: [{ name: 'Asthma', description: 'Mild condition' }],
+//           avatarUrl: '',
+//           createdAt: new Date().toISOString(),
+//           vitals: {
+//             heartRate: 110,
+//             oximetry: 97,
+//             temperature: 36.8,
+//             movement: 6,
+//             feedingSchedule: 'every 4h'
+//           }
+//         }
+//       ];
+//
+//       useKidStore.getState().addKids(mockKids);
+//     }, []);
 
 
     //----------------------------------------------------------------------------

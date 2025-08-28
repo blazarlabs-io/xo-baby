@@ -48,7 +48,7 @@ export const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "Roboto-Medium",
     color: "#31cece",
-    textAlign: "left"
+    textAlign: "left",
   },
   contentTitle: {
     width: "100%",
@@ -56,13 +56,24 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Poppins-Regular",
     color: "#222128",
-    textAlign: "center"
+    textAlign: "center",
+  },
+  screen: {
+    padding: 16,
+    gap: 12,
+  },
+  screenTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontFamily: 'Poppins-Medium',
+    color: '#222128',
   },
   connectContainer: {
     width: "100%",
+    height: 200,
     paddingHorizontal: 24,
-    gap: 16,
-    paddingVertical: 12,
+    gap: 12,
+    paddingVertical: 16,
     borderWidth: 1,
     borderColor: "#dce3e3",
     borderStyle: "solid",
@@ -70,8 +81,10 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     marginVertical: 16,
+    alignItems: "stretch",
   },
   statusBadge: {
+    alignSelf: 'flex-start',
     borderRadius: 16,
     borderStyle: "solid",
     borderColor: "#dce3e3",
@@ -80,29 +93,26 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 0,
-    gap: 4
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    gap: 6
   },
   circle: {
     width: 8,
-    overflow: "hidden",
-    flex: 1,
     height: 8,
-    borderRadius: 4
+    borderRadius: 4,
   },
   statusText: {
     fontSize: 8,
     lineHeight: 20,
     fontFamily: "Poppins-Regular",
     color: "#8d8d8d",
-    textAlign: "left"
   },
   contentContainer : {
     width: "100%",
     gap: 4,
     alignItems: "center",
-    flex: 1
+    flex: 1,
   },
   deviceTitle: {
     fontSize: 24,
@@ -317,5 +327,42 @@ export const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     color: "#8d8d8d",
     textAlign: "left"
-  }
+  },
+  connectBtn: {
+    borderRadius: 24,
+    height: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#31cece',
+  },
+  connectBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Poppins-Medium',
+  },
+
+  connectingWrap: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 8,
+  },
+  connectingBar: {
+    width: '100%',
+    height: 8,
+    borderRadius: 8,
+    backgroundColor: '#E9F8F8',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#dce3e3',
+  },
+  connectingFill: {
+    height: '100%',
+    backgroundColor: '#31cece',
+    borderRadius: 8,
+  },
+  connectingText: {
+    fontSize: 12,
+    color: '#8d8d8d',
+  },
 });

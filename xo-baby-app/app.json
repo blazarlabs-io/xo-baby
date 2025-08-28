@@ -21,7 +21,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.midnight.medicalrecords",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +31,12 @@
     "plugins": [
       "expo-web-browser",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a47c611b-cf5b-4381-9d12-013898ccdca9"
+      }
+    },
+    "owner": "blazarlabs"
   }
 }

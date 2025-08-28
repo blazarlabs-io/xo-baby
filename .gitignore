@@ -2,6 +2,7 @@
 /xo-baby-backend/dist
 /xo-baby-backend/node_modules
 /xo-baby-backend/build
+/xo-baby-app/android 
 
 # Logs
 logs
@@ -27,6 +28,8 @@ logs
 /xo-baby-backend/*.launch
 /xo-baby-backend/.settings/
 /xo-baby-backend/*.sublime-workspace
+.idea/
+xo-baby-app/.idea/
 
 # IDE - VSCode
 /xo-baby-backend/.vscode/*

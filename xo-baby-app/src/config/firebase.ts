@@ -1,5 +1,13 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import {
+  getAuth,
+  initializeAuth,
+  getReactNativePersistence,
+  type Auth,
+} from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+
 import {
   FIREBASE_WEB_API_KEY,
   FIREBASE_WEB_AUTH_DOMAIN,
@@ -8,7 +16,7 @@ import {
   FIREBASE_WEB_MESSAGING_SENDER_ID,
   FIREBASE_WEB_APP_ID,
   FIREBASE_WEB_MEASUREMENT_ID,
-} from '@env'; 
+} from '@env';
 
 const firebaseConfig = {
   apiKey: FIREBASE_WEB_API_KEY,
@@ -20,6 +28,21 @@ const firebaseConfig = {
   measurementId: FIREBASE_WEB_MEASUREMENT_ID,
 };
 
+// app singleton
+export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// auth singleton: web -> getAuth; native -> initializeAuth (with AsyncStorage)
+let _auth: Auth;
+if (Platform.OS === 'web') {
+  _auth = getAuth(app);
+} else {
+  try {
+    // if it has already been created (e.g. after Fast Refresh)
+    _auth = getAuth(app);
+  } catch {
+    _auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  }
+}
+export const auth = _auth;

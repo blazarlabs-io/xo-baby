@@ -1,23 +1,25 @@
 import api from './axios'
 
+export type NoteCategory =
+  | 'Health & Wellness'
+  | 'Feeding'
+  | 'Sleep'
+  | 'Milestones'
+  | 'Diaper & Potty'
+  | 'Emotions & Behavior';
+
 /** Payload for creating a new note */
 export interface CreateNotePayload {
-  date: string           // ISO date, e.g. '2025-07-15'
-  description: string    // Note text
-  category:  'all'
-           | 'Health & Wellness'
-           | 'Feeding'
-           | 'Sleep'
-           | 'Milestones'
-           | 'Diaper & Potty'
-           | 'Emotions & Behavior'
-  kidId: string          // Associated kid’s ID
+  date: string             // ISO date, e.g. '2025-07-15'
+  description: string      // Note text
+  category: NoteCategory
+  kidId: string            // Associated kid’s ID
 }
 
 /** DTO for filtering / fetching notes */
 export interface GetNotesParams {
   kidId?: string         // optional filter by child
-  category?: CreateNotePayload['category']
+  category?: NoteCategory
   limit?: number
 }
 
@@ -26,7 +28,7 @@ export interface Note {
   id: string
   date: string
   description: string
-  category: CreateNotePayload['category']
+  category: NoteCategory
   kidId: string
   createdAt: string
   updatedAt?: string

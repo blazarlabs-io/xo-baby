@@ -9,7 +9,7 @@ import TasksScreen from '@/screens/kids/TasksScreen';
 import NotesScreen from '@/screens/kids/NotesScreen';
 
 export type HomeStackParamList = {
-  Home: undefined;
+  Home: { focusKidId?: string } | undefined;
   RealTimeData: { kidId: string };
   Development: { kidId: string };
   Tasks: { kidId: string };
