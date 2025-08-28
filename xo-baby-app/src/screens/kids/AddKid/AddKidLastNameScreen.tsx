@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Image, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Image, Keyboard, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -47,7 +47,12 @@ export default function AddKidLastNameScreen() {
         <Text style={styles.title}>Kid’s last name</Text>
       </View>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          Platform.select({
+            android: { paddingVertical: 8, textAlignVertical: 'center' }, // avoid clipping
+          }),
+        ]}
         placeholder="Name"
         autoCapitalize="none"
         value={lastName}
@@ -56,7 +61,7 @@ export default function AddKidLastNameScreen() {
         returnKeyType="done"
       />
 
-      <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
         <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
         </Pressable>
@@ -76,11 +81,12 @@ const styles = StyleSheet.create({
   progressPoint: { width: 12, height: 12, borderRadius: 50, backgroundColor: '#CACACA' },
   title: { fontSize: 32, fontWeight: 'bold', lineHeight: 42, letterSpacing: 1.5, color: '#222128'},
   input: {
-    height: 36,
+    minHeight: 48,
+    paddingHorizontal: 12,
     borderWidth: 0,
     borderRadius: 10,
     marginTop: 16,
-    fontSize: 24,
+    fontSize: 18,
     color: '#CACACA',
   },
   button: {
@@ -88,7 +94,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    width: '90%',
+    maxWidth: 320,
   },
   buttonText: { color: 'white', fontSize: 16, fontWeight: '600' },
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },

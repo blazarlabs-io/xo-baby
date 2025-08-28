@@ -1,79 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
-// Styles
-import { styles } from './styles/DevicesScreen.styles'
-// Navigation
+import React, { useRef, useState } from 'react';
+import { View, Text, Pressable, Animated, Easing, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../../types/navigation';
+import type { AppStackParamList } from '../../types/navigation';
+import {styles} from './styles/DevicesScreen.styles';
 
-interface DeviceScreensProps {
-  kidId: string;
-}
+const DEVICE = { id: 'xo-AxS83Eg1', name: 'Mi Pulse Monitor S1 (A7:3C)' };
 
-const DevicesScreen = ({ kidId } : DeviceScreensProps) => {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Devices'>>();
+export default function DevicesScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
-  // is connected device
-  const isConnected = true;
-  const isOnline = true
+  // Setează "true" dacă vrei să pornească deja conectat
+  const [isConnected, setIsConnected] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const progress = useRef(new Animated.Value(0)).current;
 
-  // on edit function
-  const onEdit = () => {
-    navigation.navigate('DeviceItem', { kidId: kidId });
-  }
-  // on add new device
-  const onAdd = () => {
-    navigation.navigate('DeviceAdd');
-  }
+  const isOnline = isConnected; // online/offline depinde de isConnected
 
+  const onEdit = () => navigation.navigate('DeviceItem', { kidId: DEVICE.id });
+
+  const onConnect = () => {
+    if (isConnecting || isConnected) return;
+    setIsConnecting(true);
+    progress.setValue(0);
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: 3000,
+      easing: Easing.inOut(Easing.quad),
+      useNativeDriver: false,
+    }).start(() => {
+      setIsConnecting(false);
+      setIsConnected(true);
+      progress.setValue(0);
+    });
+  };
+
+  const onDisconnect = () => {
+    if (isConnecting) return;
+    setIsConnected(false);
+  };
+
+  const widthInterpolate = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.componentHeaderContainer}>
-        <Image
-          source={require('../../../assets/home-parent/tabs/device-active.png')}
-          style={{ width: 18, height: 24 }} />
-        <Text style={styles.realTimeText}>My Devices</Text>
-      </View>
+    <ScrollView contentContainerStyle={styles.screen}>
+      <Text style={styles.screenTitle}>My Devices</Text>
 
-      {
-        isConnected ? (
-          <View style={[styles.connectContainer]}>
-            <View style={styles.statusBadge}>
-              <View style={[styles.circle,  { backgroundColor: isOnline ? '#92F939' : '#FF6D68' } ] }></View>
-              <Text style={styles.statusText}>{ isOnline ? 'Online' : 'Offline' }</Text>
-            </View>
-            <View style={styles.contentContainer}>
-              <Text style={styles.deviceTitle}>XO-BABY</Text>
-              <Text style={styles.deviceID}>xo-AxS83Eg1</Text>
-            </View>
-            <View style={styles.btnContainer}>
-              <Pressable style={styles.disconectBtn}><Text style={styles.disconectBtnText}>Disconect</Text> </Pressable>
-              <Pressable style={styles.editBtn} onPress={onEdit}><Text style={styles.editBtnText}>Edit</Text> </Pressable>
-            </View>
-          </View>
-        ) : (
-          // no device connected
-          <View style={{width: '100%', display: 'flex', alignItems: 'center', marginTop: 20}}>
-            <Text style={styles.contentTitle}>No one device conected</Text>
-          </View>
-        )
-      }
-      
-
-      <Pressable onPress={onAdd} style={styles.buttonAdd}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-          <Text style={styles.addKidText}>Add New Device</Text>
+      {/* Un singur device în listă (mock) */}
+      <View style={styles.connectContainer}>
+        {/* Status badge */}
+        <View style={styles.statusBadge}>
+          <View
+            style={[
+              styles.circle,
+              { backgroundColor: isConnecting ? '#FEC84B' : isOnline ? '#92F939' : '#FF6D68' },
+            ]}
+          />
+          <Text style={styles.statusText}>
+            {isConnecting ? 'Connecting…' : isOnline ? 'Online' : 'Offline'}
+          </Text>
         </View>
-      </Pressable>
-      
-    </View>
+
+        {/* Device name + ID */}
+        <View style={styles.contentContainer}>
+          <Text style={styles.deviceTitle}>{DEVICE.name}</Text>
+          <Text style={styles.deviceID}>{DEVICE.id}</Text>
+        </View>
+
+        {/* Buttons / Connecting animation */}
+        <View style={styles.btnContainer}>
+          {isConnected && !isConnecting && (
+            <>
+              <Pressable style={styles.disconectBtn} onPress={onDisconnect}>
+                <Text style={styles.disconectBtnText}>Disconnect</Text>
+              </Pressable>
+              <Pressable style={styles.editBtn} onPress={onEdit}>
+                <Text style={styles.editBtnText}>Edit</Text>
+              </Pressable>
+            </>
+          )}
+
+          {!isConnected && !isConnecting && (
+            <Pressable style={styles.connectBtn} onPress={onConnect}>
+              <Text style={styles.connectBtnText}>Connect</Text>
+            </Pressable>
+          )}
+
+          {isConnecting && (
+            <View style={styles.connectingWrap}>
+              <View style={styles.connectingBar}>
+                <Animated.View style={[styles.connectingFill, { width: widthInterpolate }]} />
+              </View>
+              <Text style={styles.connectingText}>Connecting to device…</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </ScrollView>
   );
-};
-
-
-
-export default DevicesScreen;
+}
 

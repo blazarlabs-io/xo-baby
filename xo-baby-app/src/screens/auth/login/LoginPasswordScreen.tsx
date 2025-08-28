@@ -8,6 +8,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../config/firebase';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUserStore } from '../../../store/userStore';
+import { Platform } from 'react-native';
 
 export default function LoginPasswordScreen() {
   const [password, setPassword] = useState('');
@@ -23,12 +24,12 @@ export default function LoginPasswordScreen() {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log('User logged in:', user.email);
 
         setUser({
           uid: user.uid,
           email: user.email ?? '',
           token: await user.getIdToken(),
+          role: 'parent', // Default role, can be updated later
         });
 
       } catch (error: any) {
@@ -54,7 +55,12 @@ export default function LoginPasswordScreen() {
         <Text style={styles.title}>Enter password</Text>
       </View>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          Platform.select({
+            android: { paddingVertical: 8, textAlignVertical: 'center' }, // avoid clipping
+          }),
+        ]}
         placeholder="********"
         secureTextEntry
         value={password}
@@ -63,14 +69,14 @@ export default function LoginPasswordScreen() {
         returnKeyType="done"
       />
 
-      <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
-        <Pressable style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Next</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
+       <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
+         <Pressable style={styles.button} onPress={handleLogin}>
+           <Text style={styles.buttonText}>Next</Text>
+         </Pressable>
+         <Pressable onPress={() => navigation.goBack()}>
+           <Text style={styles.backText}>Back</Text>
+         </Pressable>
+       </View>
     </LinearGradient>
   );
 }
@@ -83,11 +89,12 @@ const styles = StyleSheet.create({
   progressPoint: { width: 12, height: 12, borderRadius: 50, backgroundColor: '#CACACA' },
   title: { fontSize: 32, fontWeight: 'bold', lineHeight: 42, letterSpacing: 1.5, color: '#222128'},
   input: {
-    height: 36,
+    minHeight: 48,
+    paddingHorizontal: 12,
     borderWidth: 0,
     borderRadius: 10,
     marginTop: 16,
-    fontSize: 24,
+    fontSize: 18,
     color: '#CACACA',
   },
   button: {
@@ -95,7 +102,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    width: '90%',
+    maxWidth: 320,
   },
   buttonText: { color: 'white', fontSize: 16, fontWeight: '600' },
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },

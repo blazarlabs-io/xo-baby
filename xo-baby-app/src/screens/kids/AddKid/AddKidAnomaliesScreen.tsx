@@ -101,7 +101,7 @@ export default function AddKidAnomaliesScreen() {
 			</View>
       
 
-      <View style={{ position: 'absolute', bottom: 24, width: '92%' }}>
+      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
         <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
         </Pressable>
@@ -130,10 +130,11 @@ export default function AddKidAnomaliesScreen() {
             />
             <Text style={styles.modalTitle}>Description</Text>
             <TextInput
-              placeholder="Please describe the anomaly or disease here..."
+              placeholder="Please describe the anomaly"
               style={styles.modalTextArea}
               value={newDescription}
-              multiline
+              numberOfLines={6}                 // initial height on Android
+              scrollEnabled                      // lets it scroll when content grows
               onChangeText={setNewDescription}
             />
             <View style={styles.modalButtonRow}>

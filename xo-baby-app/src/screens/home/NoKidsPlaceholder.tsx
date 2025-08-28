@@ -7,10 +7,12 @@ export default function NoKidsPlaceholder({ onAdd }: { onAdd: () => void }) {
       <View style={styles.firsLineContainer}>
         <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
         <Text>My kids</Text>
-        </View>
+       </View>
+
       <Image source={require('../../../assets/home-parent/kid1.png')} style={styles.image} />
       <Text style={styles.title}>Keep your first child safe with Womby</Text>
       <Text style={styles.subTitle}>Please add your first kid</Text>
+
       <Pressable onPress={onAdd} style={styles.button}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
@@ -27,6 +29,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F9F9F9',
     width: '100%',
+    paddingHorizontal: 12,
   },
   firsLineContainer:{
     flexDirection: 'row',

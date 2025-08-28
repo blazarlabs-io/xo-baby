@@ -34,7 +34,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
   const token = user?.token
 
   const [newDate, setNewDate] = useState('')
-  const [newCategory, setNewCategory] = useState<CreateNotePayload['category']>('all')
+  const [newCategory, setNewCategory] = useState<CreateNotePayload['category'] | ''>('')
   const [newDescription, setNewDescription] = useState('')
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(false)
@@ -78,7 +78,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
       setNotes((prev) => [created, ...prev])
       setModalVisible(false)
       setNewDate('')
-      setNewCategory('all')
+      setNewCategory('')
       setNewDescription('')
     } catch (error) {
       console.error('Failed to create note', error)
@@ -163,8 +163,11 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
             <Text style={styles.modalTitle}>Category</Text>
             <Picker
               selectedValue={newCategory}
-              style={{ flex: 1, height: 40 }}
-              onValueChange={(item) => setNewCategory(item)}
+              // On Android use a native dialog so it appears above the Modal
+              mode={Platform.OS === 'android' ? 'dialog' : undefined}
+              // Keep it a fixed height; avoid flex:1 here
+              style={{ height: 68, width: '100%' }}
+              onValueChange={(value /*, index */) => setNewCategory(value)}
             >
               <Picker.Item label="Select category" value="" />
               <Picker.Item label="Health & Wellness" value="Health & Wellness" />
@@ -172,10 +175,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
               <Picker.Item label="Sleep" value="Sleep" />
               <Picker.Item label="Milestones" value="Milestones" />
               <Picker.Item label="Diaper & Potty" value="Diaper & Potty" />
-              <Picker.Item
-                label="Emotions & Behavior"
-                value="Emotions & Behavior"
-              />
+              <Picker.Item label="Emotions & Behavior" value="Emotions & Behavior" />
             </Picker>
 
             <View style={styles.modalButtonRow}>

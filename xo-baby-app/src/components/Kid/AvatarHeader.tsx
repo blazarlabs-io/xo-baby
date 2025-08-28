@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-		marginTop: 16,
+		marginTop: 1,
 		width: '100%',
   },
   avatarWrapper: {
