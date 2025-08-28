@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { View, Text, Dimensions, Image, Pressable, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { styles } from './WeightChartCard.styles';
@@ -8,7 +8,7 @@ import { useUserStore } from '@/store/userStore';
 
 const chartHeight = 195;
 
-const rangeOptions: Record <RangeKey, { label: string; months: number }> = {
+const rangeOptions: Record<RangeKey, { label: string; months: number }> = {
   '3m': { label: 'Last 3 months', months: 3 },
   '6m': { label: 'Last 6 months', months: 6 },
   '9m': { label: 'Last 9 months', months: 9 },
@@ -28,9 +28,9 @@ function getMonthYearString(date: Date) {
 
 export default function HeightChartCard({ kidID }: HeightChartCardProps) {
 
-  // retrieve token from user store
-  const user = useUserStore((state) => state.user)
-  const token = user?.token
+  // token validation temporarily disabled for development
+  // const user = useUserStore((state) => state.user)
+  // const token = user?.token
 
   const [modalVisible, setModalVisible] = useState(false);
   const [newDate, setNewDate] = useState('');
@@ -38,28 +38,54 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
   const [selectedRange, setSelectedRange] = useState<RangeKey>('3m');
   const [loading, setLoading] = useState(false)
   const [heightRecords, setHeightRecords] = useState<MeasurementRecord[]>([])
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const now = new Date();
   const monthsBack = rangeOptions[selectedRange].months;
   const fromDate = new Date(now.getFullYear(), now.getMonth() - monthsBack + 1, 1);
 
-  // Fetch Weight Records 
-    useEffect(() => {
-      const loadWeight = async () => {
-        if (!token) return
-        setLoading(true)
-        try {
-          const kidId = kidID
-          const fetched = await getHeightRecords(token, kidId )
-          setHeightRecords(fetched)
-        } catch (err) {
-          console.error('Error loading Height:', err)
-        } finally {
-          setLoading(false)
-        }
-      }
-      loadWeight()
-    }, [token, kidID])
+  // Function to fetch height records
+  const loadHeightRecords = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const kidId = kidID
+      const fetched = await getHeightRecords(kidId)
+      setHeightRecords(fetched)
+    } catch (err: any) {
+      console.error('Error loading Height:', err)
+      setError(err?.message || 'Failed to load height data')
+      // Set empty array to prevent crashes
+      setHeightRecords([])
+    } finally {
+      setLoading(false)
+    }
+  }, [kidID])
+
+  // Function to refresh data (for manual refresh)
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await loadHeightRecords()
+    } finally {
+      setRefreshing(false)
+    }
+  }, [loadHeightRecords])
+
+  // Fetch Height Records on mount and when kidID changes
+  useEffect(() => {
+    loadHeightRecords()
+  }, [loadHeightRecords])
+
+  // Set up periodic refresh every 30 seconds to keep data live
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadHeightRecords()
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [loadHeightRecords])
 
   const filtered = useMemo(() => {
     const byMonth = new Map();
@@ -76,13 +102,50 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
     return byMonth;
   }, [heightRecords, selectedRange]);
 
+  // Calculate progress percentage
+  const progressPercentage = useMemo(() => {
+    if (heightRecords.length < 2) return 0;
+
+    const sortedRecords = [...heightRecords].sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    // Get current month's records
+    const currentMonthRecords = sortedRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+    });
+
+    // Get previous month's records
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    const prevMonthRecords = sortedRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      return recordDate.getMonth() === prevMonth && recordDate.getFullYear() === prevYear;
+    });
+
+    if (currentMonthRecords.length === 0 || prevMonthRecords.length === 0) return 0;
+
+    const currentAvg = currentMonthRecords.reduce((sum, record) => sum + record.value, 0) / currentMonthRecords.length;
+    const prevAvg = prevMonthRecords.reduce((sum, record) => sum + record.value, 0) / prevMonthRecords.length;
+
+    if (prevAvg === 0) return 0;
+    return ((currentAvg - prevAvg) / prevAvg) * 100;
+  }, [heightRecords]);
+
   const labels = [];
   const dataset = [];
+  const progressDataset = []; // For expected growth line
+
   for (let i = 0; i < monthsBack; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - monthsBack + 1 + i, 1);
     const label = monthLabels[d.getMonth()];
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     labels.push(label);
+
     if (filtered.has(key)) {
       const values = filtered.get(key);
       const avg = values.reduce((a: number, b: number) => a + b, 0) / values.length;
@@ -90,19 +153,41 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
     } else {
       dataset.push(0);
     }
+
+    // Calculate expected growth line (simple linear progression)
+    if (i === 0) {
+      // Use first actual data point or start with a reasonable base value
+      const firstActualValue = dataset[0] || 50; // Default starting height
+      progressDataset.push(firstActualValue);
+    } else {
+      const expectedGrowth = 2.0; // Expected monthly growth in cm
+      const prevValue: number = progressDataset[i - 1];
+      progressDataset.push(Math.max(0, prevValue + expectedGrowth));
+    }
   }
 
   const chartData = {
     labels,
     datasets: [
-      { data: dataset, color: () => '#FAAD37', strokeWidth: 3 },
+      {
+        data: dataset,
+        color: () => '#FAAD37',
+        strokeWidth: 3,
+        legend: 'Actual Height'
+      },
+      {
+        data: progressDataset,
+        color: () => '#E3E3E3',
+        strokeWidth: 2,
+        legend: 'Expected Growth'
+      }
     ],
-    legend: ['Progress']
+    legend: ['Actual Height', 'Expected Growth']
   };
 
-  // Handle creating a new weight record
+  // Handle creating a new height record
   const handleAddRecord = async () => {
-    if (!newDate.trim() || !newHeight.trim() || !token) return;
+    if (!newDate.trim() || !newHeight.trim()) return;
     setLoading(true);
     try {
       const payload: CreateMeasurementRecordPayload = {
@@ -111,7 +196,7 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
       };
 
       // Call backend to create and return the new record
-      const created: MeasurementRecord = await createHeightRecord(token, kidID, payload);
+      const created: MeasurementRecord = await createHeightRecord(kidID, payload);
 
       // Prepend to local state
       setHeightRecords(prev => [created, ...prev]);
@@ -131,22 +216,47 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={[styles.icon1, {backgroundColor: '#FAAD37'}]}>
+          <View style={[styles.icon1, { backgroundColor: '#FAAD37' }]}>
             <Image source={require('../../../assets/development/ruler.png')} width={10} height={10} />
           </View>
           <Text style={styles.header}>Height</Text>
         </View>
-        <Pressable onPress={() => {
-          setSelectedRange(prev => prev === '3m' ? '6m' : prev === '6m' ? '9m' : '3m');
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
-            <Text style={styles.subHeader}>{rangeOptions[selectedRange].label}</Text>
-            <Image source={require('../../../assets/development/chevron-down.png')} width={16} height={16} />
-          </View>
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {/* Refresh Button */}
+          <Pressable onPress={handleRefresh} disabled={refreshing}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              opacity: refreshing ? 0.6 : 1
+            }}>
+              <Image
+                source={require('../../../assets/development/chart-line.png')}
+                width={16}
+                height={16}
+                style={{
+                  transform: [{ rotate: refreshing ? '180deg' : '0deg' }]
+                }}
+              />
+              <Text style={[styles.subHeader, { fontSize: 12 }]}>
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </Text>
+            </View>
+          </Pressable>
+
+          {/* Range Selector */}
+          <Pressable onPress={() => {
+            setSelectedRange(prev => prev === '3m' ? '6m' : prev === '6m' ? '9m' : '3m');
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+              <Text style={styles.subHeader}>{rangeOptions[selectedRange].label}</Text>
+              <Image source={require('../../../assets/development/chevron-down.png')} width={16} height={16} />
+            </View>
+          </Pressable>
+        </View>
       </View>
 
-      <View style={[styles.chartContainer, {backgroundColor: '#FFF2DF'}]}>
+      <View style={[styles.chartContainer, { backgroundColor: '#FFF2DF' }]}>
         <Text style={styles.name}>Camila Doe</Text>
         <Text style={styles.dateRange}>{getMonthYearString(fromDate)} - {getMonthYearString(now)}</Text>
         <LineChart
@@ -174,17 +284,41 @@ export default function HeightChartCard({ kidID }: HeightChartCardProps) {
           bezier
           style={styles.chart}
         />
-        <Text style={styles.progressText}>Height chart over time</Text>
-        <Text style={styles.progressNote}>Showing <Text style={styles.progressHighlight}>average per month</Text>.</Text>
+        <Text style={styles.progressText}>
+          {progressPercentage > 0
+            ? `Height increase of ${progressPercentage.toFixed(1)}% this month`
+            : progressPercentage < 0
+              ? `Height decrease of ${Math.abs(progressPercentage).toFixed(1)}% this month`
+              : 'No height change this month'
+          }
+        </Text>
+        <Text style={styles.progressNote}>Showing <Text style={styles.progressHighlight}>actual measurements</Text> and <Text style={styles.progressHighlight}>expected growth</Text>.</Text>
+
+        {/* Error Display */}
+        {error && (
+          <View style={{
+            backgroundColor: '#FFE5E5',
+            padding: 12,
+            borderRadius: 8,
+            marginVertical: 8,
+            borderWidth: 1,
+            borderColor: '#FFCCCC'
+          }}>
+            <Text style={{ color: '#D32F2F', fontSize: 12, textAlign: 'center' }}>
+              ⚠️ {error}
+            </Text>
+          </View>
+        )}
+
         {loading ? (
           <ActivityIndicator size="small" color="#31CECE" />
         ) : (
-        <Pressable style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Image source={require('../../../assets/development/chart-line.png')} style={{ width: 20, height: 20 }} />
-            <Text style={styles.addNewRecordText}>New Record</Text>
-          </View>
-        </Pressable>
+          <Pressable style={styles.buttonAdd} onPress={() => setModalVisible(true)}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Image source={require('../../../assets/development/chart-line.png')} style={{ width: 20, height: 20 }} />
+              <Text style={styles.addNewRecordText}>New Record</Text>
+            </View>
+          </Pressable>
         )}
       </View>
 

@@ -20,8 +20,9 @@ import { useKidStore } from '../../store/kidStore';
 
 export default function KidProfileCard({ kidId }: { kidId: string }) {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
-  const user = useUserStore(state => state.user);
-  const token = user?.token || '';
+  // token validation temporarily disabled for development
+  // const user = useUserStore(state => state.user);
+  // const token = user?.token || '';
   const kid = useKidStore((state) =>
     state.kids.find((k) => k.id === kidId)
   );
@@ -33,12 +34,12 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
-    if (!token || !kidId) return;
+    if (!kidId) return;
     setLoading(true);
     Promise.all([
-      getWeightRecords(token, kidId),
-      getHeightRecords(token, kidId),
-      getHeadCircumferenceRecords(token, kidId),
+      getWeightRecords(kidId),
+      getHeightRecords(kidId),
+      getHeadCircumferenceRecords(kidId),
     ])
       .then(([weights, heights, heads]) => {
         // fill chart data
@@ -62,7 +63,7 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
       })
       .catch(err => console.error('Error loading measurements:', err))
       .finally(() => setLoading(false));
-  }, [token, kidId]);
+  }, [kidId]);
 
   if (!kid) return <Text>Kid not found</Text>;
 
@@ -106,26 +107,26 @@ export default function KidProfileCard({ kidId }: { kidId: string }) {
   ];
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-    
-      <AvatarHeader kidID={kidId} />
-      <RealTimeDataWidget kidID={kidId} />
-      <Development
-        lastUpdated={lastUpdated}
-        kidID={kidId}
-        data={developmentItems}
-      />
-      <UpcomingTasks kidID={kidId} />
-      <Notes kidID={kidId}/>
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{ width: '100%', flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
-      <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-          <Text style={styles.addKidText}>Add Kid</Text>
-        </View>
-      </Pressable>
-    </ScrollView>
+        <AvatarHeader kidID={kidId} />
+        <RealTimeDataWidget kidID={kidId} />
+        <Development
+          lastUpdated={lastUpdated}
+          kidID={kidId}
+          data={developmentItems}
+        />
+        <UpcomingTasks kidID={kidId} />
+        <Notes kidID={kidId} />
+
+        <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
+            <Text style={styles.addKidText}>Add Kid</Text>
+          </View>
+        </Pressable>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     marginBottom: 160,
     borderWidth: 1,
     borderColor: '#31CECE',
-    borderRadius: 32, 
+    borderRadius: 32,
     borderStyle: 'dashed',
     width: '100%',
     height: 48,

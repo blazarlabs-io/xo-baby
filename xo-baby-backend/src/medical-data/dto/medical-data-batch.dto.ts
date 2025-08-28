@@ -34,3 +34,8 @@ export interface MedicalDataBatchResponseDto {
 
 
 
+
+
+
+
+

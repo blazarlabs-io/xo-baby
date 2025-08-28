@@ -12,9 +12,7 @@ export class MeasurementsService {
     this.db = this.firebase.getFirestore();
   }
 
-  private async getCollection(
-    type: 'weight' | 'height' | 'headCircumference',
-  ) {
+  private async getCollection(type: 'weight' | 'height' | 'headCircumference') {
     const map = {
       weight: 'weightRecords',
       height: 'heightRecords',
@@ -28,15 +26,16 @@ export class MeasurementsService {
     type: 'weight' | 'height' | 'headCircumference',
   ): Promise<MeasurementRecordDto[]> {
     const col = await this.getCollection(type);
-    const snap = await col
-      .where('kidId', '==', kidId)
-      .orderBy('date', 'asc')
-      .get();
+    const snap = await col.where('kidId', '==', kidId).get();
 
-    return snap.docs.map(doc => ({
+    // Sort by date on the client side to avoid compound index requirement
+    const docs = snap.docs.map((doc) => ({
       id: doc.id,
       ...(doc.data() as any),
     }));
+
+    // Sort by date string (works for ISO date format YYYY-MM-DD)
+    return docs.sort((a, b) => a.date.localeCompare(b.date));
   }
 
   async createRecord(

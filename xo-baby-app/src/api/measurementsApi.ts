@@ -1,4 +1,4 @@
-import api from './axios';
+import api from "./axios";
 
 /**
  * Payload for creating a new measurement record
@@ -21,39 +21,50 @@ export interface MeasurementRecord {
 }
 
 /**
- * Helper to include the Authorization header
+ * Helper to include the Authorization header (currently disabled for development)
  */
 const buildAuthHeader = (token: string) => ({
   headers: { Authorization: `Bearer ${token}` },
 });
+
+// Helper function to handle API calls with proper error handling
+const handleApiCall = async <T>(
+  apiCall: () => Promise<T>,
+  type: string
+): Promise<T> => {
+  try {
+    return await apiCall();
+  } catch (error) {
+    console.error(`API call for ${type} failed:`, error);
+    throw error; // Re-throw the error instead of falling back to mock data
+  }
+};
 
 // ----- Weight -----
 /**
  * Fetch all weight records for a given kid
  */
 export const getWeightRecords = async (
-  token: string,
   kidId: string
 ): Promise<MeasurementRecord[]> => {
-  const response = await api.get<MeasurementRecord[]>(
-    `/measurements/${kidId}/weight`,
-    buildAuthHeader(token)
-  );
-  return response.data;
+  return handleApiCall(async () => {
+    const response = await api.get<MeasurementRecord[]>(
+      `/measurements/${kidId}/weight`
+    );
+    return response.data;
+  }, "weight");
 };
 
 /**
  * Create a new weight record for a given kid
  */
 export const createWeightRecord = async (
-  token: string,
   kidId: string,
   data: CreateMeasurementRecordPayload
 ): Promise<MeasurementRecord> => {
   const response = await api.post<MeasurementRecord>(
     `/measurements/${kidId}/weight`,
-    data,
-    buildAuthHeader(token)
+    data
   );
   return response.data;
 };
@@ -63,28 +74,26 @@ export const createWeightRecord = async (
  * Fetch all height records for a given kid
  */
 export const getHeightRecords = async (
-  token: string,
   kidId: string
 ): Promise<MeasurementRecord[]> => {
-  const response = await api.get<MeasurementRecord[]>(
-    `/measurements/${kidId}/height`,
-    buildAuthHeader(token)
-  );
-  return response.data;
+  return handleApiCall(async () => {
+    const response = await api.get<MeasurementRecord[]>(
+      `/measurements/${kidId}/height`
+    );
+    return response.data;
+  }, "height");
 };
 
 /**
  * Create a new height record for a given kid
  */
 export const createHeightRecord = async (
-  token: string,
   kidId: string,
   data: CreateMeasurementRecordPayload
 ): Promise<MeasurementRecord> => {
   const response = await api.post<MeasurementRecord>(
     `/measurements/${kidId}/height`,
-    data,
-    buildAuthHeader(token)
+    data
   );
   return response.data;
 };
@@ -94,28 +103,26 @@ export const createHeightRecord = async (
  * Fetch all head circumference records for a given kid
  */
 export const getHeadCircumferenceRecords = async (
-  token: string,
   kidId: string
 ): Promise<MeasurementRecord[]> => {
-  const response = await api.get<MeasurementRecord[]>(
-    `/measurements/${kidId}/head-circumference`,
-    buildAuthHeader(token)
-  );
-  return response.data;
+  return handleApiCall(async () => {
+    const response = await api.get<MeasurementRecord[]>(
+      `/measurements/${kidId}/head-circumference`
+    );
+    return response.data;
+  }, "head circumference");
 };
 
 /**
  * Create a new head circumference record for a given kid
  */
 export const createHeadCircumferenceRecord = async (
-  token: string,
   kidId: string,
   data: CreateMeasurementRecordPayload
 ): Promise<MeasurementRecord> => {
   const response = await api.post<MeasurementRecord>(
     `/measurements/${kidId}/head-circumference`,
-    data,
-    buildAuthHeader(token)
+    data
   );
   return response.data;
 };
