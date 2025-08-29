@@ -15,6 +15,9 @@ const appPromise = (async () => {
   });
 
   nestApp.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  nestApp.setGlobalPrefix('api');
+
   await nestApp.init();
   return expressApp;
 })();
