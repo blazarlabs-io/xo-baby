@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { KidController } from './kid.controller';
 import { KidService } from './kid.service';
 import { FirebaseService } from '../firebase/firebase.service';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [UserModule],
