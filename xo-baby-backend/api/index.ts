@@ -2,7 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express'; // sigur pt TS fără esModuleInterop
+import express from 'express';
 
 const appPromise = (async () => {
   const expressApp = express();
