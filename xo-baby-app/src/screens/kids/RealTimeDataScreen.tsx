@@ -14,7 +14,7 @@ import RealTimeData from '../../components/Kid/RealTimeData';
 type RealTimeDataProp = RouteProp<AppStackParamList, 'RealTimeData'>;
 
 export default function RealTimeDataScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'RealTimeData'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<RealTimeDataProp>();
   const { kidId } = route.params;
 

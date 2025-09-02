@@ -19,7 +19,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "postbuild": "cp -r contract dist/contract && cp -r src/midnight/contract dist/src/midnight/"
+    "postbuild": "cp -r contract dist/contract && cp -r src/midnight/contract dist/src/midnight/",
+    "update-roles": "ts-node src/scripts/update-user-roles.ts"
   },
   "resolutions": {
     "@apollo/client": "^3.8.0",
@@ -51,6 +52,7 @@
     "class-validator": "^0.14.2",
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.1",
     "firebase-admin": "^13.4.0",
     "ipfs-http-client": "^56.0.3",
     "midnight-cli": "^1.0.7",

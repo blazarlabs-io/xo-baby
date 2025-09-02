@@ -21,7 +21,7 @@ interface UpcomingTasksProps {
 
 const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ kidID }) => {
 
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   // Get user from store instead of token
   const user = useUserStore((state) => state.user);

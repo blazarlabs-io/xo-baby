@@ -24,11 +24,11 @@ interface DevelopmentProps {
 
 const Development: React.FC<DevelopmentProps> = (props) => {
 
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const { lastUpdated, kidID, data } = props;
- 
+
   const goDetail = () => {
-    navigation.navigate('Development', { kidId: kidID }); 
+    navigation.navigate('Development', { kidId: kidID });
   }
 
 
@@ -40,10 +40,10 @@ const Development: React.FC<DevelopmentProps> = (props) => {
       </View>
       <View style={styles.cardRow}>
         {data.map((item) => (
-          <View key={item.id} style={[styles.card, {backgroundColor: '#FFF'}]}>
+          <View key={item.id} style={[styles.card, { backgroundColor: '#FFF' }]}>
             <View style={styles.cardHeader}>
               <Image
-            		source={item.icon} width={16} height={16} /> 
+                source={item.icon} width={16} height={16} />
               <Text style={styles.label}>{item.label}</Text>
             </View>
             <LineChart
@@ -70,14 +70,14 @@ const Development: React.FC<DevelopmentProps> = (props) => {
                 backgroundGradientTo: 'transparent',
                 color: () => item.chartColor,
               }}
-              style={{ 
-                marginVertical: 4, 
-                borderRadius: 12, 
-                backgroundColor: item.color, 
+              style={{
+                marginVertical: 4,
+                borderRadius: 12,
+                backgroundColor: item.color,
                 height: 62,
                 paddingRight: 0,
                 paddingLeft: 0,
-              } }
+              }}
             />
             <Text style={styles.value}>{item.value} <Text style={styles.unit}>{item.unit}</Text></Text>
           </View>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   cardRow: {
     flexDirection: 'row',
     gap: 8,
-		marginTop: 12
+    marginTop: 12
   },
   card: {
     borderRadius: 12,
@@ -135,20 +135,20 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-		letterSpacing: 0.2,
-		fontWeight: "500",
-		fontFamily: "Poppins-Medium",
-		color: "#222128",
-		textAlign: "left",
-		marginLeft: 4,
+    letterSpacing: 0.2,
+    fontWeight: "500",
+    fontFamily: "Poppins-Medium",
+    color: "#222128",
+    textAlign: "left",
+    marginLeft: 4,
   },
   value: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-		position: 'absolute',
-		bottom: 10,
-		right: 18,
+    position: 'absolute',
+    bottom: 10,
+    right: 18,
   },
   unit: {
     fontSize: 12,
@@ -156,11 +156,11 @@ const styles = StyleSheet.create({
   },
   updatedText: {
     fontSize: 12,
-		lineHeight: 20,
-		fontFamily: "Poppins-Regular",
-		color: "#8d8d8d",
-		textAlign: "left",
-		marginTop: 8,
+    lineHeight: 20,
+    fontFamily: "Poppins-Regular",
+    color: "#8d8d8d",
+    textAlign: "left",
+    marginTop: 8,
   },
 });
 

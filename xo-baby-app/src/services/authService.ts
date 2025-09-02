@@ -9,7 +9,7 @@ import {
   User as FirebaseUser,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { createUser } from "../api/userApi";
+import { createUser, getUserRole } from "../api/userApi";
 import type { UserRole } from "@/constants/roles";
 
 export interface AuthUser {
@@ -122,11 +122,20 @@ export class AuthService {
       const idToken = await user.getIdToken();
       console.log("✅ ID token obtained");
 
+      // Fetch user role from backend
+      let userRole: UserRole = "parent"; // default role
+      try {
+        const roleResponse = await getUserRole(user.uid, idToken);
+        userRole = roleResponse.role;
+      } catch (error) {
+        console.log("⚠️ Could not fetch user role, using default:", error);
+      }
+
       const authUser: AuthUser = {
         uid: user.uid,
         email: user.email || "",
         token: idToken,
-        role: "parent" as UserRole,
+        role: userRole,
       };
 
       console.log("🎉 User signup completed successfully:", authUser);
@@ -156,11 +165,20 @@ export class AuthService {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
+      // Fetch user role from backend
+      let userRole: UserRole = "parent"; // default role
+      try {
+        const roleResponse = await getUserRole(user.uid, idToken);
+        userRole = roleResponse.role;
+      } catch (error) {
+        console.log("⚠️ Could not fetch user role, using default:", error);
+      }
+
       return {
         uid: user.uid,
         email: user.email || "",
         token: idToken,
-        role: "parent" as UserRole,
+        role: userRole,
       };
     } catch (error: any) {
       console.error("Sign in failed:", error);
@@ -185,11 +203,20 @@ export class AuthService {
       if (user) {
         const idToken = await user.getIdToken();
 
+        // Fetch user role from backend
+        let userRole: UserRole = "parent"; // default role
+        try {
+          const roleResponse = await getUserRole(user.uid, idToken);
+          userRole = roleResponse.role;
+        } catch (error) {
+          console.log("⚠️ Could not fetch user role, using default:", error);
+        }
+
         return {
           uid: user.uid,
           email: user.email || "",
           token: idToken,
-          role: "parent" as UserRole,
+          role: userRole,
         };
       }
 

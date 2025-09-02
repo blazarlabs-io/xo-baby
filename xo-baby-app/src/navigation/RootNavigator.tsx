@@ -6,6 +6,8 @@ import AppStack from './AppStack';
 import { useUserStore } from '../store/userStore';
 import { auth } from '../config/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { getUserRole } from '../api/userApi';
+import { UserRole } from '../constants/roles';
 
 export default function RootNavigator() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,12 +20,23 @@ export default function RootNavigator() {
           // Get the ID token for the authenticated user
           const idToken = await firebaseUser.getIdToken();
 
+          // Fetch user role from backend
+          let userRole: UserRole = 'parent'; // default role
+          try {
+            console.log('🔍 RootNavigator - Fetching role for UID:', firebaseUser.uid);
+            const roleResponse = await getUserRole(firebaseUser.uid, idToken);
+            userRole = roleResponse.role as UserRole;
+            console.log('✅ RootNavigator - Role fetched successfully:', userRole);
+          } catch (error) {
+            console.log('⚠️ Could not fetch user role, using default:', error);
+          }
+
           // User is authenticated and email is verified
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
             token: idToken, // Set the actual ID token
-            role: 'parent' // Default role
+            role: userRole
           });
           console.log('✅ User authenticated and token set:', firebaseUser.uid);
         } catch (error) {

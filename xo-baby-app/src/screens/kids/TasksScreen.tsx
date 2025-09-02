@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -17,7 +17,7 @@ type SelectedTab = 'today' | 'calendar';
 
 
 export default function TasksScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Tasks'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<TasksProp>();
   const { kidId } = route.params;
 
@@ -33,88 +33,88 @@ export default function TasksScreen() {
   if (!kid) return <Text>Kid not found</Text>;
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.componentHeaderContainer}>
-        <Image
-          source={require('../../../assets/home-parent/calendar.png')}
-          style={{ width: 20, height: 20 }} />
-        <Text style={styles.realTimeText}>Tasks</Text>
-      </View>
-      <View style={styles.kidCard}>
-        <View style={styles.avatarWrapper}>
-          <View style={styles.avatarBorder}>
-            <Image
-              source={require('../../../assets/kids/avatar-girl.png')}
-              style={styles.avatarImage}
-            />
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{ width: '100%', flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.componentHeaderContainer}>
+          <Image
+            source={require('../../../assets/home-parent/calendar.png')}
+            style={{ width: 20, height: 20 }} />
+          <Text style={styles.realTimeText}>Tasks</Text>
+        </View>
+        <View style={styles.kidCard}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={require('../../../assets/kids/avatar-girl.png')}
+                style={styles.avatarImage}
+              />
+            </View>
           </View>
+          <View style={styles.kidInfoContainer}>
+            <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
+            <Text style={styles.kidAge}>8 Months</Text>
+          </View>
+
         </View>
-        <View style={styles.kidInfoContainer}>
-          <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
-          <Text style={styles.kidAge}>8 Months</Text>
-        </View>
-        
-      </View>
-      <View style={{width: '100%', marginTop: 32}}>
-        <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-          <View style={{ gap: 8, display: 'flex', flexDirection: 'row' }}>
-            <Pressable 
-              style={[
-                selectedTab === 'today' ? styles.activeTabButton : styles.tabButton
-              ]} 
-            
-              onPress={() => selectTab('today')}>
-
-              <Text style={[
-                styles.buttonText,
-                selectedTab === 'today' ? {color: '#fff'} : { color: '#222128' },
-              ]}>Today</Text>
-            </Pressable>
-
-            <Pressable 
-              style={[
-                selectedTab === 'calendar' ? styles.activeTabButton : styles.tabButton
-              ]} 
-
-              onPress={() => selectTab('calendar')}>
-              <Text 
+        <View style={{ width: '100%', marginTop: 32 }}>
+          <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <View style={{ gap: 8, display: 'flex', flexDirection: 'row' }}>
+              <Pressable
                 style={[
-                  styles.buttonText, selectedTab === 'calendar' ? { color: '#fff' } : { color: '#222128' }
-                ]}>Calendar</Text>
+                  selectedTab === 'today' ? styles.activeTabButton : styles.tabButton
+                ]}
+
+                onPress={() => selectTab('today')}>
+
+                <Text style={[
+                  styles.buttonText,
+                  selectedTab === 'today' ? { color: '#fff' } : { color: '#222128' },
+                ]}>Today</Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  selectedTab === 'calendar' ? styles.activeTabButton : styles.tabButton
+                ]}
+
+                onPress={() => selectTab('calendar')}>
+                <Text
+                  style={[
+                    styles.buttonText, selectedTab === 'calendar' ? { color: '#fff' } : { color: '#222128' }
+                  ]}>Calendar</Text>
+              </Pressable>
+            </View>
+            <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
+              <Image
+                source={require('../../../assets/home-parent/add.png')}
+                style={{ width: 14, height: 14 }}
+              />
             </Pressable>
           </View>
-          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
-            <Image
-              source={require('../../../assets/home-parent/add.png')}
-              style={{ width: 14, height: 14 }}
-            />
+        </View>
+
+        {
+          selectedTab === 'today' ?
+            (<TodayTab
+              modalVisible={modalVisible}
+              setModalVisible={setModalVisible}
+              kidId={kidId}
+            />) :
+            (<CalendarTab
+              modalVisible={modalVisible}
+              setModalVisible={setModalVisible}
+              kidId={kidId}
+            />)
+        }
+
+        <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
+
+          <Pressable onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>Back</Text>
           </Pressable>
         </View>
-      </View>
 
-      { 
-        selectedTab === 'today' ? 
-        (<TodayTab 
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          kidId={kidId} 
-        /> ): 
-        (<CalendarTab 
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          kidId={kidId} 
-        /> )
-      }
-
-      <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
-              
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
-     
-    </ScrollView>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#31cece"
   },
-  
+
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },
 });
 

@@ -10,6 +10,11 @@ import AddKidEthnicityScreen from '../screens/kids/AddKid/AddKidEthnicityScreen'
 import AddKidLocationScreen from '../screens/kids/AddKid/AddKidLocationScreen';
 import AddKidAnomaliesScreen from '../screens/kids/AddKid/AddKidAnomaliesScreen';
 import AddKidAvatarScreen from '../screens/kids/AddKid/AddKidAvatarScreen';
+import KidProfileScreen from '../screens/kids/KidProfileScreen';
+import RealTimeDataScreen from '../screens/kids/RealTimeDataScreen';
+import DevelopmentScreen from '../screens/kids/DevelopmentScreen';
+import TasksScreen from '../screens/kids/TasksScreen';
+import NotesScreen from '../screens/kids/NotesScreen';
 import ProtectedRoute from '../components/ProtectedRoute';
 import TabNavigator from './TabNavigator';
 
@@ -21,7 +26,7 @@ export default function AppStack() {
       {/* Tab-based root navigator */}
       <Stack.Screen
         name="Tabs"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <TabNavigator {...props} />
           </ProtectedRoute>
@@ -31,7 +36,7 @@ export default function AppStack() {
       {/* Add-Kid flow screens - all protected */}
       <Stack.Screen
         name="AddKid"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidNameScreen {...props} />
           </ProtectedRoute>
@@ -39,7 +44,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidName"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidNameScreen {...props} />
           </ProtectedRoute>
@@ -47,7 +52,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidLastName"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidLastNameScreen {...props} />
           </ProtectedRoute>
@@ -55,7 +60,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidGender"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidGenderScreen {...props} />
           </ProtectedRoute>
@@ -63,7 +68,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidBirthday"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidBirthdayScreen {...props} />
           </ProtectedRoute>
@@ -71,7 +76,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidBloodType"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidBloodTypeScreen {...props} />
           </ProtectedRoute>
@@ -79,7 +84,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidEthnicity"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidEthnicityScreen {...props} />
           </ProtectedRoute>
@@ -87,7 +92,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidLocation"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidLocationScreen {...props} />
           </ProtectedRoute>
@@ -95,7 +100,7 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidAnomalies"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidAnomaliesScreen {...props} />
           </ProtectedRoute>
@@ -103,9 +108,49 @@ export default function AppStack() {
       />
       <Stack.Screen
         name="AddKidAvatar"
-        component={(props) => (
+        component={(props: any) => (
           <ProtectedRoute>
             <AddKidAvatarScreen {...props} />
+          </ProtectedRoute>
+        )}
+      />
+      <Stack.Screen
+        name="KidProfile"
+        component={(props: any) => (
+          <ProtectedRoute>
+            <KidProfileScreen {...props} />
+          </ProtectedRoute>
+        )}
+      />
+      <Stack.Screen
+        name="RealTimeData"
+        component={(props: any) => (
+          <ProtectedRoute>
+            <RealTimeDataScreen {...props} />
+          </ProtectedRoute>
+        )}
+      />
+      <Stack.Screen
+        name="Development"
+        component={(props: any) => (
+          <ProtectedRoute>
+            <DevelopmentScreen {...props} />
+          </ProtectedRoute>
+        )}
+      />
+      <Stack.Screen
+        name="Tasks"
+        component={(props: any) => (
+          <ProtectedRoute>
+            <TasksScreen {...props} />
+          </ProtectedRoute>
+        )}
+      />
+      <Stack.Screen
+        name="Notes"
+        component={(props: any) => (
+          <ProtectedRoute>
+            <NotesScreen {...props} />
           </ProtectedRoute>
         )}
       />

@@ -13,7 +13,7 @@ interface NotesProps {
 
 const Notes: React.FC<NotesProps> = (props) => {
   const { kidID } = props;
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Notes'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   // Get user from store instead of token
   const user = useUserStore((state) => state.user)

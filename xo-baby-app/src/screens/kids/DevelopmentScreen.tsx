@@ -18,7 +18,7 @@ import HeadChartCard from '../../components/Kid/HeadSizeChartCard';
 type DevelopmentProp = RouteProp<AppStackParamList, 'Development'>;
 
 export default function DevelopmentScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Development'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<DevelopmentProp>();
   const { kidId } = route.params;
 
@@ -29,43 +29,43 @@ export default function DevelopmentScreen() {
   if (!kid) return <Text>Kid not found</Text>;
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.componentHeaderContainer}>
-        <Image
-          source={require('../../../assets/home-parent/development-icon.png')}
-          style={{ width: 24, height: 24 }} />
-        <Text style={styles.realTimeText}>Development</Text>
-      </View>
-			<View style={styles.kidCard}>
-				<View style={styles.avatarWrapper}>
-					<View style={styles.avatarBorder}>
-						<Image
-							source={require('../../../assets/kids/avatar-girl.png')}
-							style={styles.avatarImage}
-						/>
-					</View>
-				</View>
-				<View style={styles.kidInfoContainer}>
-					<Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
-					<Text style={styles.kidAge}>8 Months</Text>
-				</View>
-				
-			</View>
-      <View style={{gap: 16}}>
-        <WeightChartCard kidID={kidId} />
-        <HeightChartCard kidID={kidId} />
-        <HeadChartCard kidID={kidId} />
-      </View>
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{ width: '100%', flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.componentHeaderContainer}>
+          <Image
+            source={require('../../../assets/home-parent/development-icon.png')}
+            style={{ width: 24, height: 24 }} />
+          <Text style={styles.realTimeText}>Development</Text>
+        </View>
+        <View style={styles.kidCard}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={require('../../../assets/kids/avatar-girl.png')}
+                style={styles.avatarImage}
+              />
+            </View>
+          </View>
+          <View style={styles.kidInfoContainer}>
+            <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
+            <Text style={styles.kidAge}>8 Months</Text>
+          </View>
 
-      <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
-              
-        <Pressable onPress={() => navigation.goBack()} style={{marginBottom: 100}}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
-     
-    </ScrollView>
+        </View>
+        <View style={{ gap: 16 }}>
+          <WeightChartCard kidID={kidId} />
+          <HeightChartCard kidID={kidId} />
+          <HeadChartCard kidID={kidId} />
+        </View>
+
+        <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
+
+          <Pressable onPress={() => navigation.goBack()} style={{ marginBottom: 100 }}>
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+        </View>
+
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999'
   },
-    deviceCard: {
+  deviceCard: {
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -163,11 +163,11 @@ const styles = StyleSheet.create({
   },
   deviceLabel: {
     flex: 1,
-        fontSize: 12,
-        lineHeight: 20,
-        fontFamily: "Poppins-Regular",
-        color: "#8d8d8d",
-        textAlign: "left"
+    fontSize: 12,
+    lineHeight: 20,
+    fontFamily: "Poppins-Regular",
+    color: "#8d8d8d",
+    textAlign: "left"
   },
   deviceRow: {
     flexDirection: 'row',
@@ -181,11 +181,11 @@ const styles = StyleSheet.create({
   },
   deviceName: {
     fontSize: 14,
-        lineHeight: 24,
-        fontWeight: "500",
-        fontFamily: "Poppins-Medium",
-        color: "#222128",
-        textAlign: "left"
+    lineHeight: 24,
+    fontWeight: "500",
+    fontFamily: "Poppins-Medium",
+    color: "#222128",
+    textAlign: "left"
   },
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },
 });

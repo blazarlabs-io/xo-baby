@@ -7,13 +7,13 @@ import { AppStackParamList } from '../../types/navigation';
 import { useUserStore } from '@/store/userStore';
 
 interface SettingsScreensProps {
-  kidId: string;
+  kidId?: string;
 }
 
-const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
+const SettingsScreen = ({ kidId }: SettingsScreensProps = {}) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Devices'>>();
-  
-  const user = useUserStore( s => s.user )
+
+  const user = useUserStore(s => s.user)
 
   return (
     <View style={styles.container}>
@@ -21,7 +21,7 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
         <Pressable style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Image source={require('../../../assets/common/chevron-left.png')} width={24} height={24} />
         </Pressable>
-        <View style={{display: 'flex', flexDirection: 'row', gap: 4}}>
+        <View style={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
           <Image
             source={require('../../../assets/home-parent/tabs/settings-active.png')}
             style={{ width: 24, height: 24 }} />
@@ -29,12 +29,12 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
         </View>
       </View>
 
-      <View style={{width: '100%', display: 'flex', alignItems: 'center', marginTop: 20}}>
+      <View style={{ width: '100%', display: 'flex', alignItems: 'center', marginTop: 20 }}>
         <Text style={styles.contentTitle}>{user?.email}</Text>
       </View>
 
-     
-      
+
+
     </View>
   );
 };
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 160,
     borderWidth: 1,
     borderColor: '#31CECE',
-    borderRadius: 32, 
+    borderRadius: 32,
     borderStyle: 'dashed',
     width: '100%',
     height: 48,
@@ -98,16 +98,16 @@ const styles = StyleSheet.create({
     color: "#222128",
     textAlign: "center"
   },
-  backBtn: { 
-    borderWidth: 1, 
-    borderColor: '#CACACA', 
-    width: 24,  
-    height: 24, 
-    borderRadius: 4, 
-    cursor: 'pointer', 
-    position: 'absolute', 
-    left: 0,  
-    alignItems: 'center', 
-    justifyContent: 'center' 
+  backBtn: {
+    borderWidth: 1,
+    borderColor: '#CACACA',
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    cursor: 'pointer',
+    position: 'absolute',
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
 });

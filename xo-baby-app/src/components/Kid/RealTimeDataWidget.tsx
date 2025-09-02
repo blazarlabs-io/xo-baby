@@ -23,7 +23,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   deviceName,
   kidID
 }) => {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const [currentData, setCurrentData] = useState<RealTimeMedicalData | null>(null);
   const [historicalData, setHistoricalData] = useState<RealTimeMedicalData | null>(null);
   const [isCollecting, setIsCollecting] = useState(false);

@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { EncryptedDataDto, MockUserDataDto } from './dto/encrypted-data.dto';
 import { FirebaseService } from '../firebase/firebase.service';
 import { EncryptionService } from '../encryption/encryption.service';
+import * as admin from 'firebase-admin';
 // import { IpfsService } from '../ipfs/ipfs.service';
 // import { PinataService } from '../ipfs/pinata.service';
 
@@ -301,4 +302,76 @@ export class UserService {
   //     throw new Error(`Demonstration failed: ${error.message}`);
   //   }
   // }
+
+  /**
+   * Get user role from Firestore
+   */
+  async getUserRole(uid: string, idToken: string) {
+    try {
+      this.logger.log(`🔍 Getting user role for UID: ${uid}`);
+
+      // Verify the token
+      const decodedToken = await this.firebase.getAuth().verifyIdToken(idToken);
+      this.logger.log(`✅ Token verified for UID: ${decodedToken.uid}`);
+
+      // Check if the token belongs to the requested user
+      if (decodedToken.uid !== uid) {
+        this.logger.error(
+          `❌ Token UID (${decodedToken.uid}) doesn't match requested UID (${uid})`,
+        );
+        throw new UnauthorizedException(
+          'Token does not match the requested user',
+        );
+      }
+
+      // Get user data from Firestore
+      this.logger.log(`🔍 Fetching user data from Firestore for UID: ${uid}`);
+      const userDoc = await this.firebase
+        .getFirestore()
+        .collection('users')
+        .doc(uid)
+        .get();
+
+      if (!userDoc.exists) {
+        this.logger.log(`❌ User not found in Firestore: ${uid}`);
+        return { role: 'parent' }; // Default role
+      }
+
+      const userData = userDoc.data();
+      this.logger.log(`📋 User data from Firestore:`, userData);
+
+      const role = userData?.role || 'parent'; // Default to parent if no role is set
+      this.logger.log(`✅ User role retrieved: ${role} for UID: ${uid}`);
+
+      return { role };
+    } catch (error) {
+      this.logger.error(`❌ Failed to get user role: ${error.message}`);
+      throw new Error(`Failed to get user role: ${error.message}`);
+    }
+  }
+
+  /**
+   * Update user role in Firestore
+   */
+  async updateUserRole(uid: string, role: string) {
+    try {
+      this.logger.log(`🔧 Updating user role for UID: ${uid} to role: ${role}`);
+
+      // Update user data in Firestore
+      await this.firebase.getFirestore().collection('users').doc(uid).set(
+        {
+          uid,
+          role,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      this.logger.log(`✅ User role updated successfully: ${uid} -> ${role}`);
+      return { success: true, uid, role };
+    } catch (error) {
+      this.logger.error(`❌ Failed to update user role: ${error.message}`);
+      throw new Error(`Failed to update user role: ${error.message}`);
+    }
+  }
 }

@@ -3,6 +3,7 @@ import { View, TouchableOpacity, Dimensions, StyleSheet, Text, Image } from 'rea
 import Svg, { Path } from 'react-native-svg';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { safeArea } from '../constants/safeArea';
+import { useUserStore } from '../store/userStore';
 
 const { width } = Dimensions.get('window');
 const TAB_HEIGHT = 93;
@@ -12,6 +13,18 @@ const ICON_MAP: Record<string, { inactive: any; active: any }> = {
   MyKids: {
     inactive: require('../../assets/home-parent/tabs/kid.png'),
     active: require('../../assets/home-parent/tabs/kid-active.png'),
+  },
+  MyFacility: {
+    inactive: require('../../assets/home-parent/tabs/kid.png'),
+    active: require('../../assets/home-parent/tabs/kid-active.png'),
+  },
+  Kids: {
+    inactive: require('../../assets/home-parent/tabs/kid.png'),
+    active: require('../../assets/home-parent/tabs/kid-active.png'),
+  },
+  Personnel: {
+    inactive: require('../../assets/home-parent/tabs/device.png'),
+    active: require('../../assets/home-parent/tabs/device-active.png'),
   },
   Devices: {
     inactive: require('../../assets/home-parent/tabs/device.png'),
@@ -42,8 +55,31 @@ const createPath = () => {
 };
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const role = useUserStore(s => s.user?.role) || 'parent';
+
+  // Role-specific label mapping
+  const getLabel = (routeName: string) => {
+    if (role === 'admin') {
+      const adminLabels: Record<string, string> = {
+        MyFacility: 'My Facility',
+        Kids: 'Kids',
+        Personnel: 'Personnel',
+        Devices: 'Devices',
+        Settings: 'Settings',
+      };
+      return adminLabels[routeName] || routeName;
+    } else {
+      const defaultLabels: Record<string, string> = {
+        MyKids: 'My Kids',
+        Devices: 'My Devices',
+        Settings: 'Settings',
+      };
+      return defaultLabels[routeName] || routeName;
+    }
+  };
+
   return (
-    <View style={[styles.container, { bottom: safeArea.bottom }]}>      
+    <View style={[styles.container, { bottom: safeArea.bottom }]}>
       <Svg width={width} height={TAB_HEIGHT} style={styles.svg}>
         <Path
           d={createPath()}
@@ -59,10 +95,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           const { inactive, active } = ICON_MAP[route.name] || {};
           const source = focused ? active : inactive;
 
-          // determine label text
-          const label = typeof route.name === 'string' ?
-            { MyKids: 'My Kids', Devices: 'My Devices', Settings: 'Settings' }[route.name] || route.name
-            : route.name
+          // determine label text based on role
+          const label = getLabel(route.name);
 
           return (
             <TouchableOpacity
@@ -104,7 +138,7 @@ const styles = StyleSheet.create({
   svg: {
     position: 'absolute',
     top: 0,
-    
+
   },
   buttons: {
     flexDirection: 'row',

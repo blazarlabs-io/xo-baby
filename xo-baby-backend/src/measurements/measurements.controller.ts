@@ -16,21 +16,23 @@ export class MeasurementsController {
       return {
         success: true,
         kidId,
-        collections: collections.map(col => col.id),
-        message: 'Firebase connection successful'
+        collections: collections.map((col) => col.id),
+        message: 'Firebase connection successful',
       };
     } catch (error) {
       return {
         success: false,
         kidId,
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       };
     }
   }
 
   @Get('weight')
-  async getWeight(@Param('kidId') kidId: string): Promise<MeasurementRecordDto[]> {
+  async getWeight(
+    @Param('kidId') kidId: string,
+  ): Promise<MeasurementRecordDto[]> {
     try {
       return await this.service.getRecords(kidId, 'weight');
     } catch (error) {

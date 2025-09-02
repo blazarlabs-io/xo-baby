@@ -19,7 +19,7 @@ import { useUserStore } from '@/store/userStore';
 import { useKidStore } from '../../store/kidStore';
 
 export default function KidProfileCard({ kidId }: { kidId: string }) {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   // token validation temporarily disabled for development
   // const user = useUserStore(state => state.user);
   // const token = user?.token || '';

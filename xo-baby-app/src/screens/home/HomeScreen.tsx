@@ -12,7 +12,7 @@ import KidSlider from '../../components/Kid/KidSlider';
 import { getMyKids } from '../../api/kidApi';
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const kids = useKidStore((state) => state.kids);
   const isLoading = useKidStore((state) => state.isLoading);

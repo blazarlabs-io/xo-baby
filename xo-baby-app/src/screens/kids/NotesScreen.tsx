@@ -27,7 +27,7 @@ const categories: CreateNotePayload['category'][] = [
 
 
 export default function NotesScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Notes'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<NotesProp>();
   const { kidId } = route.params;
 
