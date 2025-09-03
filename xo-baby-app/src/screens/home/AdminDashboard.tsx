@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, ScrollView, FlatList } from 'react-native';
+import { View, Text, Image, Pressable, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,7 +7,7 @@ import type { AppStackParamList } from '../../types/navigation';
 import { CommonActions } from '@react-navigation/native';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
-import { getMyKids } from '../../api/kidApi';
+import { getMyKids, getAdminKids, getMedicalPersonnel } from '../../api/kidApi';
 
 interface KidListItem {
   id: string;
@@ -19,14 +19,16 @@ interface KidListItem {
   vitals: {
     heartRate: number;
     temperature: number;
-    diaperChanges: number;
+    weight: number;
     oxygenSaturation: number;
   };
+  alert?: boolean;
 }
 
 interface PersonnelItem {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   status: 'Active' | 'Not Active';
   patients: string[];
@@ -38,6 +40,7 @@ export default function AdminDashboard() {
   const user = useUserStore((state) => state.user);
   const [allKids, setAllKids] = useState<KidListItem[]>([]);
   const [personnel, setPersonnel] = useState<PersonnelItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   console.log('🏥 AdminDashboard - Rendering with user:', user);
   console.log('🏥 AdminDashboard - User role:', user?.role);
@@ -45,48 +48,73 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.uid) return;
+
+      setLoading(true);
       try {
-        // Fetch kids data
-        const kidsData = await getMyKids(user.uid);
+        // Fetch kids data based on user role
+        let kidsData;
+        if (user.role === 'admin') {
+          // For admin users, fetch kids assigned to their facility
+          kidsData = await getAdminKids(user.uid);
+        } else {
+          // For other users, fetch their own kids
+          kidsData = await getMyKids(user.uid);
+        }
+
         useKidStore.getState().addKids(kidsData);
 
         // Transform kids data for admin view
-        const transformedKids = kidsData.map((kid: any) => ({
-          id: kid.id,
-          firstName: kid.firstName || 'Unknown',
-          lastName: kid.lastName || 'Unknown',
-          age: '21 weeks',
-          status: kid.deviceConnected ? 'Online' : 'Offline',
-          batteryLevel: kid.batteryLevel || 90,
-          vitals: {
-            heartRate: kid.vitals?.heartRate || 140,
-            temperature: kid.vitals?.temperature || 36.2,
-            diaperChanges: kid.vitals?.diaperChanges || 52,
-            oxygenSaturation: kid.vitals?.oxygenSaturation || 98,
-          },
-        }));
+        const transformedKids = kidsData.map((kid: any) => {
+          const heartRate = kid.vitals?.heartRate || 140;
+          const temperature = kid.vitals?.temperature || 36.2;
+          const oxygenSaturation = kid.vitals?.oxygenSaturation || 98;
+
+          // Check for alerts based on vital signs
+          const hasAlert = heartRate > 160 || heartRate < 100 ||
+            temperature > 37.5 || temperature < 36.0 ||
+            oxygenSaturation < 95;
+
+          return {
+            id: kid.id,
+            firstName: kid.firstName || 'Unknown',
+            lastName: kid.lastName || 'Unknown',
+            age: '21 weeks',
+            status: kid.deviceConnected ? 'Online' : 'Offline',
+            batteryLevel: kid.batteryLevel || 90,
+            vitals: {
+              heartRate,
+              temperature,
+              weight: kid.vitals?.weight || 3.2,
+              oxygenSaturation,
+            },
+            alert: hasAlert,
+          };
+        });
         setAllKids(transformedKids);
 
-        // Mock personnel data - in real app, this would come from API
-        const mockPersonnel: PersonnelItem[] = [
-          {
-            id: '1',
-            name: 'Dr. Kosy Dwell',
-            email: 'kosydoctor@hospital.com',
-            status: 'Active',
-            patients: ['Patient 1', 'Patient 2', 'Patient 3'],
-          },
-          {
-            id: '2',
-            name: 'Dr. Kosy Dwell',
-            email: 'kosydoctor@hospital.com',
-            status: 'Not Active',
-            patients: ['Patient 1', 'Patient 2', 'Patient 3'],
-          },
-        ];
-        setPersonnel(mockPersonnel);
+        // Fetch real medical personnel data
+        try {
+          const personnelData = await getMedicalPersonnel();
+          console.log('🏥 AdminDashboard - Fetched medical personnel:', personnelData);
+
+          const transformedPersonnel = personnelData.map((person: any) => ({
+            id: person.id,
+            firstName: person.firstName || 'Dr.',
+            lastName: person.lastName || 'Unknown',
+            email: person.email || '',
+            status: person.status || 'Active',
+            patients: person.patients || [],
+          }));
+
+          setPersonnel(transformedPersonnel);
+        } catch (error) {
+          console.error('Failed to fetch medical personnel:', error);
+          setPersonnel([]);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -148,27 +176,49 @@ export default function AdminDashboard() {
       </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', position: 'relative' }}>
           <Image source={require('../../../assets/home-parent/heart.png')} style={{ width: 20, height: 20 }} />
-          <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{item.vitals.heartRate}</Text>
+          <Text style={{
+            fontSize: 12,
+            color: item.alert ? '#F44336' : '#666',
+            marginTop: 4,
+            fontWeight: item.alert ? 'bold' : 'normal'
+          }}>
+            {item.vitals.heartRate}
+          </Text>
         </View>
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', position: 'relative' }}>
           <Image source={require('../../../assets/home-parent/temperature.png')} style={{ width: 20, height: 20 }} />
           <Text style={{
             fontSize: 12,
-            color: item.vitals.temperature > 37 ? '#F44336' : '#666',
-            marginTop: 4
+            color: item.alert ? '#F44336' : '#666',
+            marginTop: 4,
+            fontWeight: item.alert ? 'bold' : 'normal'
           }}>
             {item.vitals.temperature}
           </Text>
         </View>
-        <View style={{ alignItems: 'center' }}>
-          <Image source={require('../../../assets/home-parent/diaper.png')} style={{ width: 20, height: 20 }} />
-          <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{item.vitals.diaperChanges}</Text>
+        <View style={{ alignItems: 'center', position: 'relative' }}>
+          <Image source={require('../../../assets/home-parent/weight.png')} style={{ width: 20, height: 20 }} />
+          <Text style={{
+            fontSize: 12,
+            color: item.alert ? '#F44336' : '#666',
+            marginTop: 4,
+            fontWeight: item.alert ? 'bold' : 'normal'
+          }}>
+            {item.vitals.weight}
+          </Text>
         </View>
-        <View style={{ alignItems: 'center' }}>
+        <View style={{ alignItems: 'center', position: 'relative' }}>
           <Image source={require('../../../assets/home-parent/oxygen.png')} style={{ width: 20, height: 20 }} />
-          <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{item.vitals.oxygenSaturation}%</Text>
+          <Text style={{
+            fontSize: 12,
+            color: item.alert ? '#F44336' : '#666',
+            marginTop: 4,
+            fontWeight: item.alert ? 'bold' : 'normal'
+          }}>
+            {item.vitals.oxygenSaturation}%
+          </Text>
         </View>
       </View>
     </Pressable>
@@ -201,7 +251,7 @@ export default function AdminDashboard() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>
-            {item.name}
+            {item.firstName} {item.lastName}
           </Text>
           <Text style={{ fontSize: 14, color: '#666' }}>{item.email}</Text>
         </View>
@@ -290,12 +340,20 @@ export default function AdminDashboard() {
             marginBottom: 10
           }}>
             <Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>My Kids</Text>
-            <Pressable>
+            <Pressable onPress={() => {
+              // TODO: Navigate to AdminKidsScreen when implemented
+              console.log('Navigate to AdminKidsScreen');
+            }}>
               <Text style={{ color: '#31CECE', fontSize: 14 }}>See All {'>'}</Text>
             </Pressable>
           </View>
 
-          {allKids.length === 0 ? (
+          {loading ? (
+            <View style={{ alignItems: 'center', padding: 20 }}>
+              <ActivityIndicator size="large" color="#31CECE" />
+              <Text style={{ color: '#666', marginTop: 10 }}>Loading kids...</Text>
+            </View>
+          ) : allKids.length === 0 ? (
             <View style={{ alignItems: 'center', padding: 20 }}>
               <Text style={{ color: '#666' }}>No kids in facility</Text>
             </View>
@@ -339,12 +397,20 @@ export default function AdminDashboard() {
             marginBottom: 10
           }}>
             <Text style={{ fontSize: 16, fontWeight: '600', color: '#333' }}>My Personnel</Text>
-            <Pressable>
+            <Pressable onPress={() => {
+              // TODO: Navigate to AdminPersonnelScreen when implemented
+              console.log('Navigate to AdminPersonnelScreen');
+            }}>
               <Text style={{ color: '#31CECE', fontSize: 14 }}>See All {'>'}</Text>
             </Pressable>
           </View>
 
-          {personnel.length === 0 ? (
+          {loading ? (
+            <View style={{ alignItems: 'center', padding: 20 }}>
+              <ActivityIndicator size="large" color="#31CECE" />
+              <Text style={{ color: '#666', marginTop: 10 }}>Loading personnel...</Text>
+            </View>
+          ) : personnel.length === 0 ? (
             <View style={{ alignItems: 'center', padding: 20 }}>
               <Text style={{ color: '#666' }}>No personnel in facility</Text>
             </View>

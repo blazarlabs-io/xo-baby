@@ -59,6 +59,45 @@ export class KidController {
     }
   }
 
+  @Get('admin-kids')
+  async getAdminKids(@Query('adminId') adminId: string) {
+    if (!adminId) {
+      throw new UnauthorizedException('Admin ID is required');
+    }
+    console.log('Backend: Received request for admin kids, adminId:', adminId);
+    try {
+      const result = await this.kidService.getKidsByAdminId(adminId);
+      console.log(
+        'Backend: Successfully returning',
+        Array.isArray(result) ? result.length : 0,
+        'admin kids',
+      );
+      return result;
+    } catch (error) {
+      console.error('Backend: Error in getAdminKids:', error.message);
+      throw new Error(`Failed to retrieve admin kids data: ${error.message}`);
+    }
+  }
+
+  @Get('medical-personnel')
+  async getMedicalPersonnel() {
+    console.log('Backend: Received request for medical personnel');
+    try {
+      const result = await this.kidService.getMedicalPersonnel();
+      console.log(
+        'Backend: Successfully returning',
+        Array.isArray(result) ? result.length : 0,
+        'medical personnel',
+      );
+      return result;
+    } catch (error) {
+      console.error('Backend: Error in getMedicalPersonnel:', error.message);
+      throw new Error(
+        `Failed to retrieve medical personnel data: ${error.message}`,
+      );
+    }
+  }
+
   @Get(':id/weight')
   async getKidWeight(
     @Param('id') kidId: string,

@@ -305,6 +305,67 @@ export class KidService {
     }
   }
 
+  async getKidsByAdminId(adminId: string) {
+    this.logger.log('🏥 AdminDashboard - Fetching kids for adminId:', adminId);
+
+    try {
+      const adminSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('adminId', '==', adminId)
+        .get();
+
+      const adminKids = adminSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'admin',
+      }));
+
+      this.logger.log(
+        '🏥 AdminDashboard - Found',
+        adminKids.length,
+        'kids for admin',
+      );
+      return adminKids;
+    } catch (error) {
+      this.logger.error(
+        '🏥 AdminDashboard - Error fetching admin kids:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  async getMedicalPersonnel() {
+    this.logger.log('🏥 AdminDashboard - Fetching medical personnel');
+
+    try {
+      const personnelSnapshot = await this.firebase
+        .getFirestore()
+        .collection('users')
+        .where('role', '==', 'medical')
+        .get();
+
+      const medicalPersonnel = personnelSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      this.logger.log(
+        '🏥 AdminDashboard - Found',
+        medicalPersonnel.length,
+        'medical personnel',
+      );
+      return medicalPersonnel;
+    } catch (error) {
+      this.logger.error(
+        '🏥 AdminDashboard - Error fetching medical personnel:',
+        error,
+      );
+      throw error;
+    }
+  }
+
   private async performKidsDataRetrieval(uid: string) {
     try {
       this.logger.log(

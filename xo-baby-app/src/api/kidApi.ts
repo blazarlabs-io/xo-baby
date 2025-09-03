@@ -114,3 +114,15 @@ export const getHeightHistory = async (kidId: string, token: string) => {
   });
   return response.data as { date: string; value: number }[];
 };
+
+// GET admin kids
+export const getAdminKids = async (adminId: string) => {
+  const response = await api.get(`/kid/admin-kids?adminId=${adminId}`);
+  return response.data;
+};
+
+// GET medical personnel
+export const getMedicalPersonnel = async () => {
+  const response = await api.get("/kid/medical-personnel");
+  return response.data;
+};
