@@ -10,7 +10,7 @@ export class KidController {
   constructor(
     private readonly kidService: KidService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Post('create')
   async createKid(@Body() dto: CreateKidDto) {

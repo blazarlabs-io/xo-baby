@@ -4,24 +4,62 @@ import { CreateKidDto } from './dto/create-kid.dto';
 import { FirebaseService } from '../firebase/firebase.service';
 import * as admin from 'firebase-admin';
 
+import { TestnetRemoteConfig } from 'src/midnight/config';
+import { createLogger } from 'src/midnight/logger-utils';
+import { createChildId } from 'src/midnight/index';
+
 @Injectable()
 export class KidService {
-  constructor(private readonly firebase: FirebaseService) {}
+  constructor(private readonly firebase: FirebaseService) { }
 
   async createKid(dto: CreateKidDto) {
-    const docRef = this.firebase
-      .getFirestore()
-      .collection('kids')
-      .doc(); 
+    try {
 
-    const kidData = {
-      ...dto,
-      createdAt: new Date().toISOString(),
-    };
+      let childId: string;
 
-    await docRef.set(kidData);
-    return { id: docRef.id, ...kidData };
+      try {
+        const config = new TestnetRemoteConfig();
+        const logger = await createLogger(config.logDir);
+
+        console.log("😀", dto.birthDate, dto.gender);
+        childId = await createChildId(
+          config,
+          logger,
+          process.env.CONTRACT_ADDRESS as string,
+          process.env.PRIVATE_KEY as string,
+          dto.firstName + ' ' + dto.lastName,
+          dto.birthDate,
+          dto.gender,
+        );
+
+        console.log('✅Child ID created:', childId);
+      } catch (error) {
+        console.error('Error creating kid:', error);
+        throw new Error('Failed to create kid');
+      }
+
+      // const docRef = this.firebase
+      //   .getFirestore()
+      //   .collection('kids')
+      //   .doc();
+
+      const kidDataForEncryption = {
+        ...dto,
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log('🔐 Encrypting kid data...', kidDataForEncryption);
+      // await docRef.set(kidData);
+      // return { id: docRef.id, ...kidData };
+
+      return true;
+    } catch (error) {
+      console.error('Error creating kid:', error);
+      throw new Error('Failed to create kid');
+    }
   }
+
+
 
   async getKidsByUserToken(token: string) {
     const decoded = await this.firebase.getAuth().verifyIdToken(token);
