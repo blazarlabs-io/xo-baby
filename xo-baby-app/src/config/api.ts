@@ -4,12 +4,12 @@ import { auth } from './firebase';
 import { useUserStore } from '../store/userStore';
 
 const DEV_HOST = Platform.select({
-  android: '10.0.2.2',
+  android: '143.198.52.130',
   ios: 'localhost',
   default: 'localhost',
 });
 const BASE_URL = __DEV__
-  ? `http://${DEV_HOST}:${process.env.API_PORT}`
+  ? `http://${DEV_HOST}:3000`
   : (process.env.EXPO_PUBLIC_API_URL as string);
 
 export const api = axios.create({

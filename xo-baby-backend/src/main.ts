@@ -7,7 +7,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: '*', 
+    origin: [
+      'http://localhost:3000',
+      'http://143.198.52.130:8081',
+      'http://10.0.2.2:8081',  // LD Player localhost
+      'http://10.48.0.5:8081', // Your host IP
+      'http://localhost:8081'   // Local development
+    ], 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   });
