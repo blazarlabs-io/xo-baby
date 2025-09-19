@@ -9,7 +9,7 @@ export class TaskService {
   constructor(
     private readonly firebaseService: FirebaseService,
     private readonly kidService: KidService,
-  ) {}
+  ) { }
 
   private async ensureOwnership(kidId: string, userId: string) {
     const kid = await this.kidService.findById(kidId);
@@ -34,22 +34,26 @@ export class TaskService {
   }
 
   async findAll(queryDto: GetTasksDto, userId: string) {
-    const { limit, kidId } = queryDto;
-    if (kidId) {
-      await this.ensureOwnership(kidId, userId);
-    }
+      const { limit, kidId } = queryDto;
 
-    let query = this.firebaseService
-      .getFirestore()
-      .collection('tasks')
-      .orderBy('date', 'desc')
-      .limit(limit);
+      console.log('kidId', kidId);
+      console.log('limit', limit);
+      if (kidId) {
+        await this.ensureOwnership(kidId, userId);
+      }
 
-    if (kidId) {
-      query = query.where('kidId', '==', kidId);
-    }
+      let query = this.firebaseService
+        .getFirestore()
+        .collection('tasks')
+        // .orderBy('date', 'desc')
+        .limit(limit);
 
-    const snapshot = await query.get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (kidId) {
+        query = query.where('kidId', '==', kidId);
+      }
+
+      const snapshot = await query.get();
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // return [];
   }
 }

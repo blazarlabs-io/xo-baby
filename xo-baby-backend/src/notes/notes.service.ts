@@ -10,7 +10,7 @@ export class NotesService {
   constructor(
     private readonly firebaseService: FirebaseService,
     private readonly kidService: KidService,
-  ) {}
+  ) { }
 
   private async ensureOwnership(kidId: string, userId: string) {
     const kid = await this.kidService.findById(kidId);
@@ -48,6 +48,8 @@ export class NotesService {
 
     const snapshot = await firestoreQuery.get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
+
+    // return []
   }
 
   async update(id: string, dto: UpdateNoteDto, userId: string) {

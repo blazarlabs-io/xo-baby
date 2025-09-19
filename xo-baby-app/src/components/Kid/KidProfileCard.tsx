@@ -119,7 +119,7 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
         data={developmentItems}
       />
       <UpcomingTasks kidID={kidId} />
-      <Notes kidID={kidId}/>
+      <Notes kidID={kidId} />
 
       <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -131,7 +131,7 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
   );
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', height}}>
+    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{ width: '100%', height }}>
       <FlatList
         data={[{ key: 'content' }]}
         renderItem={() => null}
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     marginBottom: 160,
     borderWidth: 1,
     borderColor: '#31CECE',
-    borderRadius: 32, 
+    borderRadius: 32,
     borderStyle: 'dashed',
     width: '100%',
     height: 48,

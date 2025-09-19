@@ -6,53 +6,178 @@ import * as admin from 'firebase-admin';
 
 import { TestnetRemoteConfig } from 'src/midnight/config';
 import { createLogger } from 'src/midnight/logger-utils';
-import { createChildId } from 'src/midnight/index';
+import { createChildId, generateChildNFT } from 'src/midnight/index';
+import { EncryptionService } from '../encryption/encryption.service';
+import { PinataService } from '../ipfs/pinata.service';
+import { getDataFromChildNFT } from '../midnight/index';
+import { bytesToString } from 'src/midnight/api';
 
 @Injectable()
 export class KidService {
-  constructor(private readonly firebase: FirebaseService) { }
+  constructor(
+    private readonly firebase: FirebaseService,
+    private readonly encryptionService: EncryptionService,
+    private readonly pinataService: PinataService,
+  ) { }
 
   async createKid(dto: CreateKidDto) {
     try {
-
       let childId: string;
 
-      try {
-        const config = new TestnetRemoteConfig();
-        const logger = await createLogger(config.logDir);
+      // Create child ID on blockchain
+      const config = new TestnetRemoteConfig();
+      const logger = await createLogger(config.logDir);
 
-        console.log("😀", dto.birthDate, dto.gender);
-        childId = await createChildId(
-          config,
-          logger,
-          process.env.CONTRACT_ADDRESS as string,
-          process.env.PRIVATE_KEY as string,
-          dto.firstName + ' ' + dto.lastName,
-          dto.birthDate,
-          dto.gender,
-        );
+      console.log("😀", dto.birthDate, dto.gender);
+      childId = await createChildId(
+        config,
+        logger,
+        process.env.CONTRACT_ADDRESS as string,
+        process.env.PRIVATE_KEY as string,
+        dto.firstName + ' ' + dto.lastName,
+        dto.birthDate,
+        dto.gender,
+      );
 
-        console.log('✅Child ID created:', childId);
-      } catch (error) {
-        console.error('Error creating kid:', error);
-        throw new Error('Failed to create kid');
+      console.log('✅Child ID created:', childId);
+
+      // Validate that childId was created successfully
+      if (!childId) {
+        throw new Error('Failed to generate child ID');
       }
 
-      // const docRef = this.firebase
-      //   .getFirestore()
-      //   .collection('kids')
-      //   .doc();
+      const aesKey = this.encryptionService.generateAESKey();
+      console.log('🔑 AES Key generated:', aesKey);
 
       const kidDataForEncryption = {
         ...dto,
         createdAt: new Date().toISOString(),
       };
 
-      console.log('🔐 Encrypting kid data...', kidDataForEncryption);
-      // await docRef.set(kidData);
-      // return { id: docRef.id, ...kidData };
+      console.log('🔑 kidDataForEncryption', kidDataForEncryption);
 
-      return true;
+      const encryptedKidData = this.encryptionService.encryptObject
+        (
+          kidDataForEncryption,
+          aesKey
+        );
+
+      console.log('🔑 encryptedKidData', encryptedKidData);
+
+      // Wrap encrypted string in JSON object for Pinata upload
+      const jsonDataForPinata = {
+        encryptedData: encryptedKidData,
+        dataType: 'kid-profile',
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const ipfsHash = await this.pinataService.uploadJSON(jsonDataForPinata);
+
+      console.log('📌 Pinata IPFS Hash generated:', ipfsHash);
+
+      // Generate NFT (this might fail but we still want to save the kid)
+      let nftTxHash = null;
+      try {
+        const kidNFT = await generateChildNFT(
+          config,
+          logger,
+          process.env.CONTRACT_ADDRESS as string,
+          process.env.PRIVATE_KEY as string,
+          childId,
+          ipfsHash,
+          aesKey,
+        );
+        console.log('✅ NFT generated successfully');
+
+        // Extract only the serializable data we need for Firestore
+        nftTxHash = kidNFT?.txId || null;
+        console.log('✅ NFT Transaction ID:', nftTxHash);
+      } catch (nftError) {
+        console.warn('⚠️ NFT generation failed, but continuing with kid creation:', nftError);
+      }
+
+      const docRef = this.firebase.getFirestore().collection('kids').doc();
+
+      // Prepare kid data for Firestore
+      const kidData = {
+        id: docRef.id,
+        childId: childId, // This should now be defined
+        parentId: dto.parentId,
+        adminId: dto.adminId || null,
+        doctorId: dto.doctorId || null,
+        createdAt: new Date().toISOString(),
+        nftTxHash: nftTxHash, // Store only the transaction hash string
+        vitals: {
+          heartRate: 0,
+          oximetry: 0,
+          breathingRate: 0,
+          temperature: 0,
+          movement: 0,
+          weight: 0,
+          height: 0,
+          headCircumference: 0,
+          feedingSchedule: '',
+        },
+        weightHistory: [],
+        heightHistory: [],
+        headCircumferenceHistory: [],
+      };
+
+      // Validate required fields before saving
+      if (!kidData.childId) {
+        throw new Error('childId is required but is undefined');
+      }
+      if (!kidData.parentId) {
+        throw new Error('parentId is required but is undefined');
+      }
+
+      await docRef.set(kidData);
+
+      const result = {
+        id: docRef.id,
+        childId: childId,
+        ipfsHash: ipfsHash,
+        nftTxHash: nftTxHash,
+        message: 'Kid created successfully with blockchain ID and IPFS storage',
+        kidData: {
+          id: docRef.id,
+          childId: childId,
+          parentId: dto.parentId,
+          adminId: dto.adminId || null,
+          doctorId: dto.doctorId || null,
+          firstName: kidDataForEncryption.firstName,
+          lastName: kidDataForEncryption.lastName,
+          birthDate: kidDataForEncryption.birthDate,
+          gender: kidDataForEncryption.gender,
+          bloodType: kidDataForEncryption.bloodType,
+          ethnicity: kidDataForEncryption.ethnicity,
+          location: kidDataForEncryption.location,
+          congenitalAnomalies: kidDataForEncryption.congenitalAnomalies,
+          avatarUrl: kidDataForEncryption.avatarUrl,
+          createdAt: new Date().toISOString(),
+          nftTxHash: nftTxHash,
+          vitals: {
+            heartRate: 0,
+            oximetry: 0,
+            breathingRate: 0,
+            temperature: 0,
+            movement: 0,
+            weight: 0,
+            height: 0,
+            headCircumference: 0,
+            feedingSchedule: '',
+          },
+          weightHistory: [],
+          heightHistory: [],
+          headCircumferenceHistory: [],
+          aesKey: aesKey, // Include AES key in response for parent to store securely
+        },
+      };
+
+      console.log('🎉 Kid creation process completed successfully!', result);
+
+      return result;
     } catch (error) {
       console.error('Error creating kid:', error);
       throw new Error('Failed to create kid');
@@ -62,18 +187,223 @@ export class KidService {
 
 
   async getKidsByUserToken(token: string) {
+    console.log('😂 here is the get kid part');
+    console.log('🔍 Getting kids by user token:', token);
     const decoded = await this.firebase.getAuth().verifyIdToken(token);
+
     const uid = decoded.uid;
 
-    const snapshot = await this.firebase
+    const parentSnapshot = await this.firebase
       .getFirestore()
       .collection('kids')
       .where('parentId', '==', uid)
       .get();
 
-    const kids = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    return kids;
+    let kids = parentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data(), userRole: 'parent' }));
+
+    const adminSnapshot = await this.firebase
+      .getFirestore()
+      .collection('kids')
+      .where('adminId', '==', uid)
+      .get();
+
+    let adminKids = adminSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data(), userRole: 'admin' }));
+    kids = [...kids, ...adminKids];
+
+    const doctorSnapshot = await this.firebase
+      .getFirestore()
+      .collection('kids')
+      .where('doctorId', '==', uid)
+      .get();
+
+    const doctorKids = doctorSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data(), userRole: 'doctor' }));
+    kids = [...kids, ...doctorKids];
+
+    const uniqueKids = kids.filter((kid, index, self) =>
+      index === self.findIndex((t) => t.id === kid.id)
+    );
+
+    // If no kids found, return empty array
+    if (uniqueKids.length === 0) {
+      console.log('No kids found for user:', uid);
+      return [];
+    }
+
+    console.log('🔍 Unique kids:', uniqueKids);
+
+    const config = new TestnetRemoteConfig();
+    const logger = await createLogger(config.logDir);
+
+    const decryptedKidsData: any[] = []
+    for (let index = 0; index < uniqueKids.length; index++) {
+      const kid = uniqueKids[index];
+      const childId = (kid as any).childId || kid.id;
+
+      try {
+
+        const decyptedDataInfo = await getDataFromChildNFT(
+          config,
+          logger,
+          process.env.CONTRACT_ADDRESS as string,
+          process.env.PRIVATE_KEY as string,
+          childId,
+        );
+
+        let decryptedKidData = {};
+
+        if (
+          decyptedDataInfo &&
+          Array.isArray(decyptedDataInfo) &&
+          decyptedDataInfo.length > 0
+        ) {
+          decyptedDataInfo.forEach((value: any, valueIndex: number) => {
+            if (value instanceof Uint8Array) {
+              const stringValue = bytesToString(value);
+              decryptedKidData[valueIndex] = stringValue;
+            } else {
+              decryptedKidData[valueIndex] = value;
+            }
+          });
+        } else {
+          decryptedKidData = {
+            '1': null, // ipfsHash
+            '2': null, // aesKey
+          };
+        }
+
+        const kidBlockchainData = {
+          kidId: kid.id,
+          ...decryptedKidData,
+        };
+
+        decryptedKidsData.push(kidBlockchainData);
+      } catch (error) {
+        decryptedKidsData.push({
+          kidId: kid.id,
+          '1': null, // ipfsHash
+          '2': null, // aesKey
+          blockchainError: error.message,
+        });
+      }
+
+      const completeKidsData = await Promise.all(
+        decryptedKidsData.map(async (decryptedData: any, index: number): Promise<any> => {
+          try {
+            const ipfsHash = decryptedData['1']; // IPFS hash
+            const aesKey = decryptedData['2']; // AES key
+            const kid = uniqueKids[index]; // Corresponding kid from uniqueKids
+
+            if (!ipfsHash || !aesKey) {
+              return {
+                id: kid.id,
+                childId: (kid as any).childId,
+                parentId: (kid as any).parentId,
+                adminId: (kid as any).adminId,
+                doctorId: (kid as any).doctorId,
+                firstName: 'Unknown',
+                lastName: 'Unknown',
+                birthDate: '',
+                gender: 'Unknown',
+                bloodType: '',
+                ethnicity: '',
+                location: '',
+                congenitalAnomalies: [],
+                avatarUrl: '',
+                createdAt: (kid as any).createdAt,
+                vitals: (kid as any).vitals,
+                weightHistory: (kid as any).weightHistory || [],
+                heightHistory: (kid as any).heightHistory || [],
+                headCircumferenceHistory:
+                  (kid as any).headCircumferenceHistory || [],
+                userRole: kid.userRole,
+                canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+                canDelete: kid.userRole === 'admin',
+                canViewVitals: true,
+              };
+            }
+
+            const encryptedData = await this.pinataService.getData(ipfsHash);
+            let actualEncryptedData: string;
+            if (typeof encryptedData === 'string') {
+              try {
+                const parsed = JSON.parse(encryptedData);
+                actualEncryptedData = parsed.encryptedData || encryptedData;
+              } catch {
+                actualEncryptedData = encryptedData;
+              }
+            } else {
+              actualEncryptedData =
+                (encryptedData as any).encryptedData || encryptedData;
+            }
+
+            const decryptedKidData = this.encryptionService.decryptToObject(
+              actualEncryptedData,
+              aesKey,
+            );
+
+            console.log('🔍 Decrypted kid data:', decryptedKidData);
+
+            const result = {
+              id: kid.id,
+              childId: (kid as any).childId,
+              parentId: (kid as any).parentId,
+              adminId: (kid as any).adminId,
+              doctorId: (kid as any).doctorId,
+              firstName: decryptedKidData.firstName || 'Unknown',
+              lastName: decryptedKidData.lastName || 'Unknown',
+              birthDate: decryptedKidData.birthDate || '',
+              gender: decryptedKidData.gender || 'Unknown',
+              bloodType: decryptedKidData.bloodType || '',
+              ethnicity: decryptedKidData.ethnicity || '',
+              location: decryptedKidData.location || '',
+              congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
+              avatarUrl: decryptedKidData.avatarUrl || '',
+              createdAt: (kid as any).createdAt,
+              vitals: (kid as any).vitals || {},
+              weightHistory: (kid as any).weightHistory || [],
+              heightHistory: (kid as any).heightHistory || [],
+              headCircumferenceHistory:
+                (kid as any).headCircumferenceHistory || [],
+              // userRole: kid.userRole,
+              // canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              // canDelete: kid.userRole === 'admin',
+              // canViewVitals: true,
+            };
+
+            console.log('✅ Processed kid data for frontend:', result);
+
+            console.log('🔍 Result:', result);
+            return result;
+          } catch (error) {
+            console.error(`Error processing kid ${index}:`, error);
+            return []
+          }
+        }),
+      );
+
+      // Type guard function to check if item is a valid kid object
+      const isValidKidObject = (item: any): item is any => {
+        return item &&
+          typeof item === 'object' &&
+          !Array.isArray(item) &&
+          'id' in item &&
+          item.id;
+      };
+
+      // Filter out any null/undefined/empty array results
+      const filteredKidsData = completeKidsData.filter(isValidKidObject);
+
+      console.log('🎉 Final kids data being returned to frontend:', {
+        originalCount: completeKidsData.length,
+        filteredCount: filteredKidsData.length,
+        data: filteredKidsData
+      });
+
+      return filteredKidsData;
+    }
+
   }
+
 
   async findById(kidId: string): Promise<Kid | null> {
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);

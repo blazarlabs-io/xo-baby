@@ -31,8 +31,8 @@ export class IpfsService {
               'Basic ' +
               Buffer.from(
                 process.env.INFURA_PROJECT_ID +
-                  ':' +
-                  process.env.INFURA_PROJECT_SECRET,
+                ':' +
+                process.env.INFURA_PROJECT_SECRET,
               ).toString('base64'),
           },
         });

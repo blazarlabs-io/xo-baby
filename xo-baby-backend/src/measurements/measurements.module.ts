@@ -7,4 +7,4 @@ import { FirebaseService } from '../firebase/firebase.service';
   controllers: [MeasurementsController],
   providers: [MeasurementsService, FirebaseService],
 })
-export class MeasurementsModule {}
+export class MeasurementsModule { }

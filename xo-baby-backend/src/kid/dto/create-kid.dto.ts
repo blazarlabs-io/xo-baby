@@ -30,4 +30,10 @@ export class CreateKidDto {
 
   @IsNotEmpty() @IsString()
   parentId: string;
+
+  @IsOptional() @IsString()
+  adminId?: string;
+
+  @IsOptional() @IsString()
+  doctorId?: string;
 }

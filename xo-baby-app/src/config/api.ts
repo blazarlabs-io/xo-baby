@@ -4,7 +4,7 @@ import { auth } from './firebase';
 import { useUserStore } from '../store/userStore';
 
 const DEV_HOST = Platform.select({
-  android: '143.198.52.130',
+  android: '64.227.35.231',
   ios: 'localhost',
   default: 'localhost',
 });
@@ -14,7 +14,7 @@ const BASE_URL = __DEV__
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 300000, // 5 minutes default timeout
   headers: { 'Content-Type': 'application/json' },
 });
 
