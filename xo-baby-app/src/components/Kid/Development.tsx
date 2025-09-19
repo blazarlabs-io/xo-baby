@@ -46,39 +46,46 @@ const Development: React.FC<DevelopmentProps> = (props) => {
             		source={item.icon} width={16} height={16} /> 
               <Text style={styles.label}>{item.label}</Text>
             </View>
-            <LineChart
-              data={{
-                labels: item.chartData.map(() => ""),
-                datasets: [
-                  {
-                    data: item.chartData,
-                    color: () => item.chartColor,
-                    strokeWidth: 2,
-                  },
-                ],
-              }}
-              width={90}
-              height={40}
-              withDots={false}
-              withShadow={false}
-              withInnerLines={false}
-              withOuterLines={false}
-              withHorizontalLabels={false}
-              withVerticalLabels={false}
-              chartConfig={{
-                backgroundGradientFrom: 'transparent',
-                backgroundGradientTo: 'transparent',
-                color: () => item.chartColor,
-              }}
-              style={{ 
-                marginVertical: 4, 
-                borderRadius: 12, 
-                backgroundColor: item.color, 
-                height: 62,
-                paddingRight: 0,
-                paddingLeft: 0,
-              } }
-            />
+{item.chartData && item.chartData.length > 0 ? (
+              <LineChart
+                data={{
+                  labels: item.chartData.map(() => ""),
+                  datasets: [
+                    {
+                      data: item.chartData.length === 1 ? [item.chartData[0], item.chartData[0]] : item.chartData,
+                      color: () => item.chartColor,
+                      strokeWidth: 2,
+                    },
+                  ],
+                }}
+                width={90}
+                height={40}
+                withDots={false}
+                withShadow={false}
+                withInnerLines={false}
+                withOuterLines={false}
+                withHorizontalLabels={false}
+                withVerticalLabels={false}
+                chartConfig={{
+                  backgroundGradientFrom: item.color,
+                  backgroundGradientTo: item.color,
+                  color: () => item.chartColor,
+                }}
+                style={{ 
+                  marginVertical: 4, 
+                  borderRadius: 12, 
+                  backgroundColor: item.color, 
+                  height: 62,
+                  paddingRight: 0,
+                  paddingLeft: 0,
+                }}
+                bezier
+              />
+            ) : (
+              <View style={[styles.noDataChart, { backgroundColor: item.color }]}>
+                <Text style={styles.noDataText}>No data</Text>
+              </View>
+            )}
             <Text style={styles.value}>{item.value} <Text style={styles.unit}>{item.unit}</Text></Text>
           </View>
         ))}
@@ -161,6 +168,18 @@ const styles = StyleSheet.create({
 		color: "#8d8d8d",
 		textAlign: "left",
 		marginTop: 8,
+  },
+  noDataChart: {
+    height: 62,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  noDataText: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '500',
   },
 });
 

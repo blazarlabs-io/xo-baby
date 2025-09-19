@@ -31,7 +31,7 @@ export class MeasurementsService {
       const col = this.getCollection(type);
       const snap = await col
         .where('kidId', '==', kidId)
-        .orderBy('date', 'asc')
+        // .orderBy('date', 'asc')
         .get();
 
       return snap.docs.map(doc => ({

@@ -12,7 +12,6 @@ interface RealTimeDataProps {
   oxygen?: number;
   deviceName?: string;
   kidID: string;
-  /** when true we simulate a BL device streaming data */
   isConnectedBl?: boolean;
 }
 
@@ -30,68 +29,58 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
 
   const goDetail = () => {
-    navigation.navigate('RealTimeData', { kidId: kidID }); 
+    navigation.navigate('RealTimeData', { kidId: kidID });
   }
 
   const formatValue = (value?: number | string) =>
     value !== undefined && value !== null && value !== '' ? value : '-';
+  const [hr, setHr] = useState<number>(heartRate ?? 110);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
- /**
-    * --- Simulated BL stream ---
-    * We keep an internal heart rate state that updates every 2s when connected.
-    */
-   const [hr, setHr] = useState<number>(heartRate ?? 110);
-   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!isConnectedBl) return; // no simulation, keep whatever is in props/state
 
-   useEffect(() => {
-     if (!isConnectedBl) return; // no simulation, keep whatever is in props/state
+    setHr(prev => (typeof heartRate === 'number' ? heartRate : prev));
 
-     // seed from prop if provided, otherwise default 110
-     setHr(prev => (typeof heartRate === 'number' ? heartRate : prev));
+    intervalRef.current = setInterval(() => {
+      setHr(prev => {
+        const jitter = Math.round((Math.random() - 0.5) * 8); // -4..+4
+        return clamp((prev || 80) + jitter, 90, 110);
+      });
+    }, 2000);
 
-     // update every 2s with a small random walk
-     intervalRef.current = setInterval(() => {
-       setHr(prev => {
-         const jitter = Math.round((Math.random() - 0.5) * 8); // -4..+4
-         return clamp((prev || 80) + jitter, 90, 110);
-       });
-     }, 2000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+  }, [isConnectedBl]);
 
-     return () => {
-       if (intervalRef.current) clearInterval(intervalRef.current);
-       intervalRef.current = null;
-     };
-   }, [isConnectedBl]);
+  const displayHeartRate = isConnectedBl ? hr : heartRate;
+  const pulse = useRef(new Animated.Value(0)).current;
 
-   // pick the value to show (stream if connected, otherwise prop)
-   const displayHeartRate = isConnectedBl ? hr : heartRate;
+  useEffect(() => {
+    if (!isConnectedBl) {
+      pulse.stopAnimation();
+      pulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true, easing: Easing.out(Easing.quad) }),
+        Animated.timing(pulse, { toValue: 0, duration: 700, useNativeDriver: true, easing: Easing.in(Easing.quad) }),
+      ])
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+    };
+  }, [isConnectedBl]);
 
-   /** Heart icon pulsing while data is live  */
-   const pulse = useRef(new Animated.Value(0)).current;
-
-   useEffect(() => {
-     if (!isConnectedBl) {
-       pulse.stopAnimation();
-       pulse.setValue(0);
-       return;
-     }
-     const loop = Animated.loop(
-       Animated.sequence([
-         Animated.timing(pulse, { toValue: 1, duration: 700, useNativeDriver: true, easing: Easing.out(Easing.quad) }),
-         Animated.timing(pulse, { toValue: 0, duration: 700, useNativeDriver: true, easing: Easing.in(Easing.quad) }),
-       ])
-     );
-     loop.start();
-     return () => {
-       loop.stop();
-     };
-   }, [isConnectedBl]);
-
-   const animatedStyle = useMemo(() => {
-     const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.25] });
-     const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
-     return { transform: [{ scale }], opacity };
-   }, [pulse]);
+  const animatedStyle = useMemo(() => {
+    const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.25] });
+    const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+    return { transform: [{ scale }], opacity };
+  }, [pulse]);
 
 
   return (
@@ -142,7 +131,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#E9F8F8',
     borderRadius: 16,
-		width: '100%',
+    width: '100%',
   },
   header: {
     flexDirection: 'row',
