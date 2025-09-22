@@ -15,7 +15,9 @@ import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
+  console.log('🏠 HomeScreen rendering...');
+  
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   const route = useRoute<RouteProp<HomeStackParamList, 'Home'>>();
   const focusKidId = route.params?.focusKidId;
@@ -26,7 +28,16 @@ export default function HomeScreen() {
   const lastTokenRef = useRef<string | null>(null);
 
   const kids = useKidStore((state) => state.kids);
+  const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
+
+  // Track kids changes
+  useEffect(() => {
+    console.log('🔄 Kids state changed in HomeScreen:', {
+      count: kids.length,
+      kids: kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName }))
+    });
+  }, [kids]);
 
   useEffect(() => {
     let isMounted = true; // Track if component is still mounted
@@ -74,27 +85,34 @@ export default function HomeScreen() {
           console.log('📊 Kids data details:', {
             isArray: Array.isArray(kids),
             length: kids?.length,
-            firstKid: kids?.[0] ? {
-              id: kids[0].id,
-              firstName: kids[0].firstName,
-              lastName: kids[0].lastName
-            } : null
+            allKids: kids?.map((k: any) => ({ id: k.id, firstName: k.firstName, lastName: k.lastName }))
           });
 
           // Always set kids from API response (empty array if no kids)
-          useKidStore.getState().setKids(kids || []);
+          const kidsToSet = kids || [];
+          console.log('🔄 About to set kids in store:', kidsToSet.length, 'kids');
+          useKidStore.getState().setKids(kidsToSet);
           console.log('🏪 Updated store with kids data');
+          
+          // Verify the store was updated
+          const storeKids = useKidStore.getState().kids;
+          console.log('✅ Verified store now has:', storeKids.length, 'kids');
+          
+          // Set loading to false immediately after setting kids data
+          console.log('🔄 Setting loading to false after setting kids data');
+          setIsLoading(false);
         }
       } catch (error) {
         if (isMounted) {
           console.error('❌ Failed to fetch kids:', error);
           // On error, also clear kids to avoid showing stale data
           useKidStore.getState().clearKids();
-        }
-      } finally {
-        if (isMounted) {
+          // Set loading to false on error too
+          console.log('🔄 Setting loading to false due to error');
           setIsLoading(false);
         }
+      } finally {
+        // Clean up the request reference
         fetchRequestRef.current = null;
       }
     };
@@ -115,8 +133,19 @@ export default function HomeScreen() {
     kids: kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName }))
   });
 
-  // Show loading spinner while fetching data
-  if (isLoading && kids.length === 0) {
+  console.log('🔍 Full Kids Data in HomeScreen:', JSON.stringify(kids, null, 2));
+
+  // Show loading spinner ONLY when we are loading AND have no kids data
+  const shouldShowLoading = isLoading && kids.length === 0;
+  console.log('🎯 Loading decision:', { 
+    isLoading, 
+    kidsLength: kids.length, 
+    shouldShowLoading,
+    hasValidKids: kids.length > 0 && kids.every(k => k.id && k.firstName)
+  });
+  
+  if (shouldShowLoading) {
+    console.log('🔄 Showing loading screen because shouldShowLoading is true');
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#31CECE" />
@@ -127,14 +156,15 @@ export default function HomeScreen() {
       </View>
     );
   }
+  
+  console.log('🎯 NOT showing loading, proceeding to render kids UI');
 
   // Add refresh function for debugging
   const handleRefresh = async () => {
     if (user?.token && !isLoading) {
       setIsLoading(true);
       try {
-        const kids = await getMyKids(user.token);
-        useKidStore.getState().setKids(kids || []);
+        await refreshKids(user.token);
         console.log('🔄 Manual refresh completed');
       } catch (error) {
         console.error('❌ Manual refresh failed:', error);
@@ -147,14 +177,25 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       {/* Debug refresh button - remove in production */}
-      {__DEV__ && (
-        <Pressable
-          onPress={handleRefresh}
-          style={{ position: 'absolute', top: 50, right: 20, zIndex: 1000, padding: 10, borderRadius: 5 }}
-        >
-          {/* <Text style={{ color: 'white', fontSize: 12 }}>Refresh</Text> */}
-        </Pressable>
-      )}
+      {/* {__DEV__ && (
+        <View style={{ position: 'absolute', top: 50, right: 20, zIndex: 1000, flexDirection: 'column', gap: 5 }}>
+          <Pressable
+            onPress={handleRefresh}
+            style={{ padding: 10, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: 5 }}
+          >
+            <Text style={{ color: 'white', fontSize: 10 }}>Refresh</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              console.log('🧹 Manually clearing kids store');
+              useKidStore.getState().clearKids();
+            }}
+            style={{ padding: 10, backgroundColor: 'rgba(255,0,0,0.7)', borderRadius: 5 }}
+          >
+            <Text style={{ color: 'white', fontSize: 10 }}>Clear</Text>
+          </Pressable>
+        </View>
+      )} */}
 
       {kids.length === 0 ? (
         <>

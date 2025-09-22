@@ -234,13 +234,18 @@ export class KidService {
     const config = new TestnetRemoteConfig();
     const logger = await createLogger(config.logDir);
 
-    const decryptedKidsData: any[] = []
+    // Process all kids and get their blockchain data
+    const decryptedKidsData: any[] = [];
+    
+    console.log(`🔄 Processing ${uniqueKids.length} kids from midnight blockchain...`);
+    
     for (let index = 0; index < uniqueKids.length; index++) {
       const kid = uniqueKids[index];
       const childId = (kid as any).childId || kid.id;
 
-      try {
+      console.log(`🔍 Processing kid ${index + 1}/${uniqueKids.length} - childId: ${childId}`);
 
+      try {
         const decyptedDataInfo = await getDataFromChildNFT(
           config,
           logger,
@@ -265,6 +270,7 @@ export class KidService {
             }
           });
         } else {
+          console.log(`⚠️ No blockchain data found for kid ${childId}`);
           decryptedKidData = {
             '1': null, // ipfsHash
             '2': null, // aesKey
@@ -277,7 +283,9 @@ export class KidService {
         };
 
         decryptedKidsData.push(kidBlockchainData);
+        console.log(`✅ Successfully processed blockchain data for kid ${index + 1}`);
       } catch (error) {
+        console.error(`❌ Error getting blockchain data for kid ${childId}:`, error);
         decryptedKidsData.push({
           kidId: kid.id,
           '1': null, // ipfsHash
@@ -285,122 +293,154 @@ export class KidService {
           blockchainError: error.message,
         });
       }
+    }
 
-      const completeKidsData = await Promise.all(
-        decryptedKidsData.map(async (decryptedData: any, index: number): Promise<any> => {
-          try {
-            const ipfsHash = decryptedData['1']; // IPFS hash
-            const aesKey = decryptedData['2']; // AES key
-            const kid = uniqueKids[index]; // Corresponding kid from uniqueKids
+    console.log(`🎯 Collected ${decryptedKidsData.length} blockchain data entries, now processing IPFS data...`);
 
-            if (!ipfsHash || !aesKey) {
-              return {
-                id: kid.id,
-                childId: (kid as any).childId,
-                parentId: (kid as any).parentId,
-                adminId: (kid as any).adminId,
-                doctorId: (kid as any).doctorId,
-                firstName: 'Unknown',
-                lastName: 'Unknown',
-                birthDate: '',
-                gender: 'Unknown',
-                bloodType: '',
-                ethnicity: '',
-                location: '',
-                congenitalAnomalies: [],
-                avatarUrl: '',
-                createdAt: (kid as any).createdAt,
-                vitals: (kid as any).vitals,
-                weightHistory: (kid as any).weightHistory || [],
-                heightHistory: (kid as any).heightHistory || [],
-                headCircumferenceHistory:
-                  (kid as any).headCircumferenceHistory || [],
-                userRole: kid.userRole,
-                canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
-                canDelete: kid.userRole === 'admin',
-                canViewVitals: true,
-              };
-            }
+    // Now process all the collected blockchain data
+    const completeKidsData = await Promise.all(
+      decryptedKidsData.map(async (decryptedData: any, index: number): Promise<any> => {
+        try {
+          const ipfsHash = decryptedData['1']; // IPFS hash
+          const aesKey = decryptedData['2']; // AES key
+          const kid = uniqueKids[index]; // Corresponding kid from uniqueKids
 
-            const encryptedData = await this.pinataService.getData(ipfsHash);
-            let actualEncryptedData: string;
-            if (typeof encryptedData === 'string') {
-              try {
-                const parsed = JSON.parse(encryptedData);
-                actualEncryptedData = parsed.encryptedData || encryptedData;
-              } catch {
-                actualEncryptedData = encryptedData;
-              }
-            } else {
-              actualEncryptedData =
-                (encryptedData as any).encryptedData || encryptedData;
-            }
+          console.log(`🔄 Processing IPFS data for kid ${index + 1}: ipfsHash=${ipfsHash ? 'present' : 'missing'}, aesKey=${aesKey ? 'present' : 'missing'}`);
 
-            const decryptedKidData = this.encryptionService.decryptToObject(
-              actualEncryptedData,
-              aesKey,
-            );
-
-            console.log('🔍 Decrypted kid data:', decryptedKidData);
-
-            const result = {
+          if (!ipfsHash || !aesKey) {
+            console.log(`⚠️ Missing IPFS data for kid ${kid.id}, returning default data`);
+            return {
               id: kid.id,
               childId: (kid as any).childId,
               parentId: (kid as any).parentId,
               adminId: (kid as any).adminId,
               doctorId: (kid as any).doctorId,
-              firstName: decryptedKidData.firstName || 'Unknown',
-              lastName: decryptedKidData.lastName || 'Unknown',
-              birthDate: decryptedKidData.birthDate || '',
-              gender: decryptedKidData.gender || 'Unknown',
-              bloodType: decryptedKidData.bloodType || '',
-              ethnicity: decryptedKidData.ethnicity || '',
-              location: decryptedKidData.location || '',
-              congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
-              avatarUrl: decryptedKidData.avatarUrl || '',
+              firstName: 'Unknown',
+              lastName: 'Unknown',
+              birthDate: '',
+              gender: 'Unknown',
+              bloodType: '',
+              ethnicity: '',
+              location: '',
+              congenitalAnomalies: [],
+              avatarUrl: '',
               createdAt: (kid as any).createdAt,
-              vitals: (kid as any).vitals || {},
+              vitals: (kid as any).vitals,
               weightHistory: (kid as any).weightHistory || [],
               heightHistory: (kid as any).heightHistory || [],
               headCircumferenceHistory:
                 (kid as any).headCircumferenceHistory || [],
-              // userRole: kid.userRole,
-              // canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
-              // canDelete: kid.userRole === 'admin',
-              // canViewVitals: true,
+              userRole: kid.userRole,
+              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              canDelete: kid.userRole === 'admin',
+              canViewVitals: true,
             };
-
-            console.log('✅ Processed kid data for frontend:', result);
-
-            console.log('🔍 Result:', result);
-            return result;
-          } catch (error) {
-            console.error(`Error processing kid ${index}:`, error);
-            return []
           }
-        }),
-      );
 
-      // Type guard function to check if item is a valid kid object
-      const isValidKidObject = (item: any): item is any => {
-        return item &&
-          typeof item === 'object' &&
-          !Array.isArray(item) &&
-          'id' in item &&
-          item.id;
-      };
+          const encryptedData = await this.pinataService.getData(ipfsHash);
+          let actualEncryptedData: string;
+          if (typeof encryptedData === 'string') {
+            try {
+              const parsed = JSON.parse(encryptedData);
+              actualEncryptedData = parsed.encryptedData || encryptedData;
+            } catch {
+              actualEncryptedData = encryptedData;
+            }
+          } else {
+            actualEncryptedData =
+              (encryptedData as any).encryptedData || encryptedData;
+          }
 
-      // Filter out any null/undefined/empty array results
-      const filteredKidsData = completeKidsData.filter(isValidKidObject);
+          const decryptedKidData = this.encryptionService.decryptToObject(
+            actualEncryptedData,
+            aesKey,
+          );
 
-      console.log('🎉 Final kids data being returned to frontend:', {
-        originalCount: completeKidsData.length,
-        filteredCount: filteredKidsData.length,
-        data: filteredKidsData
-      });
+          console.log(`🔍 Decrypted kid data for ${kid.id}:`, decryptedKidData);
 
-      return filteredKidsData;
-    }
+          const result = {
+            id: kid.id,
+            childId: (kid as any).childId,
+            parentId: (kid as any).parentId,
+            adminId: (kid as any).adminId,
+            doctorId: (kid as any).doctorId,
+            firstName: decryptedKidData.firstName || 'Unknown',
+            lastName: decryptedKidData.lastName || 'Unknown',
+            birthDate: decryptedKidData.birthDate || '',
+            gender: decryptedKidData.gender || 'Unknown',
+            bloodType: decryptedKidData.bloodType || '',
+            ethnicity: decryptedKidData.ethnicity || '',
+            location: decryptedKidData.location || '',
+            congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
+            avatarUrl: decryptedKidData.avatarUrl || '',
+            createdAt: (kid as any).createdAt,
+            vitals: (kid as any).vitals || {},
+            weightHistory: (kid as any).weightHistory || [],
+            heightHistory: (kid as any).heightHistory || [],
+            headCircumferenceHistory:
+              (kid as any).headCircumferenceHistory || [],
+            userRole: kid.userRole,
+            canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+            canDelete: kid.userRole === 'admin',
+            canViewVitals: true,
+          };
+
+          console.log(`✅ Successfully processed complete data for kid ${kid.id}:`, result);
+          return result;
+        } catch (error) {
+          console.error(`❌ Error processing kid ${index + 1}:`, error);
+          const kid = uniqueKids[index];
+          // Return a valid kid object even on error instead of empty array
+          return {
+            id: kid.id,
+            childId: (kid as any).childId,
+            parentId: (kid as any).parentId,
+            adminId: (kid as any).adminId,
+            doctorId: (kid as any).doctorId,
+            firstName: 'Error Loading',
+            lastName: 'Error Loading',
+            birthDate: '',
+            gender: 'Unknown',
+            bloodType: '',
+            ethnicity: '',
+            location: '',
+            congenitalAnomalies: [],
+            avatarUrl: '',
+            createdAt: (kid as any).createdAt,
+            vitals: (kid as any).vitals,
+            weightHistory: (kid as any).weightHistory || [],
+            heightHistory: (kid as any).heightHistory || [],
+            headCircumferenceHistory:
+              (kid as any).headCircumferenceHistory || [],
+            userRole: kid.userRole,
+            canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+            canDelete: kid.userRole === 'admin',
+            canViewVitals: true,
+            error: error.message,
+          };
+        }
+      }),
+    );
+
+    // Type guard function to check if item is a valid kid object
+    const isValidKidObject = (item: any): item is any => {
+      return item &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        'id' in item &&
+        item.id;
+    };
+
+    // Filter out any null/undefined/empty array results
+    const filteredKidsData = completeKidsData.filter(isValidKidObject);
+
+    console.log('🎉 Final kids data being returned to frontend:', {
+      originalCount: completeKidsData.length,
+      filteredCount: filteredKidsData.length,
+      data: filteredKidsData
+    });
+
+    return filteredKidsData;
   }
 
   async findById(kidId: string): Promise<Kid | null> {

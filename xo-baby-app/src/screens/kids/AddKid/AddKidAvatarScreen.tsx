@@ -10,6 +10,7 @@ import { useKidStore } from '../../../store/kidStore';
 import { createKid } from '../../../api/kidApi';
 import { useUserStore } from '../../../store/userStore';
 import LoadingModal from '../../../components/LoadingModal';
+import TransactionSuccessModal from '../../../components/TransactionSuccessModal';
 
 
 export default function AddKidAvatarScreen() {
@@ -18,9 +19,33 @@ export default function AddKidAvatarScreen() {
 
   const { user } = useUserStore();
   const addKid = useKidStore((state) => state.addKid);
+  const refreshKids = useKidStore((state) => state.refreshKids);
   const [isCreating, setIsCreating] = useState(false);
   const [loadingStage, setLoadingStage] = useState<'blockchain' | 'encrypting' | 'uploading' | 'finalizing'>('blockchain');
   const [progressInterval, setProgressInterval] = useState<NodeJS.Timeout | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [transactionHash, setTransactionHash] = useState<string>('');
+  const [createdKidId, setCreatedKidId] = useState<string>('');
+
+  // Handle success modal close and navigation
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'Tabs' as never,
+          params: {
+            screen: 'MyKids',
+            params: {
+              screen: 'Home',
+              params: { focusKidId: createdKidId },
+            },
+          } as never,
+        },
+      ],
+    });
+  };
 
   // Cleanup on unmount
   useEffect(() => {
@@ -105,22 +130,32 @@ export default function AddKidAvatarScreen() {
         throw new Error('Invalid response: missing kid data or ID');
       }
 
+      // Store the transaction hash and kid ID from the response
+      const txHash = response.kidData.nftTxHash || response.nftTxHash || '';
+      if (txHash) {
+        setTransactionHash(txHash);
+        console.log('Transaction hash received:', txHash);
+      } else {
+        console.warn('No transaction hash found in response');
+        setTransactionHash('Transaction hash not available');
+      }
+      setCreatedKidId(newKid.id);
+
       addKid(newKid);
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Tabs' as never,
-            params: {
-              screen: 'MyKids',
-              params: {
-                screen: 'Home',
-                params: { focusKidId: newKid.id },
-              },
-            } as never,
-          },
-        ],
-      });
+      
+      // Refresh kids data from backend to get complete blockchain data
+      if (user?.token) {
+        console.log('🔄 Refreshing kids data from backend after creation...');
+        try {
+          await refreshKids(user.token);
+          console.log('✅ Successfully refreshed kids data after creation');
+        } catch (error) {
+          console.warn('⚠️ Failed to refresh kids data after creation, but kid was created locally:', error);
+        }
+      }
+      
+      // Show the transaction success modal instead of navigating immediately
+      setShowSuccessModal(true);
     } catch (error: any) {
       console.error('Failed to create kid:', error);
 
@@ -216,6 +251,13 @@ export default function AddKidAvatarScreen() {
       </View>
 
       <LoadingModal visible={isCreating} stage={loadingStage} />
+      
+      <TransactionSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessModalClose}
+        transactionHash={transactionHash}
+        kidName={`${firstName} ${lastName}`}
+      />
 
     </LinearGradient>
   );

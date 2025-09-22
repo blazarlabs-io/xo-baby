@@ -18,6 +18,12 @@ export default function KidSlider({ kids, initialKidId }: Props) {
   const carouselRef = useRef<ICarouselInstance>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  console.log('🎠 KidSlider received kids:', {
+    count: kids.length,
+    kids: kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName })),
+    initialKidId
+  });
+
   const insets = useSafeAreaInsets();
   const availableHeight = Math.max(0, height - insets.top - insets.bottom);
 
@@ -64,10 +70,6 @@ export default function KidSlider({ kids, initialKidId }: Props) {
         pagingEnabled
         enableSnap
         onSnapToItem={setActiveIndex}
-        panGestureHandlerProps={{
-          activeOffsetX: [-12, 12],
-          failOffsetY: [-10, 10],
-        }}
         renderItem={({ item }) => (
         <View style={{ width, height: availableHeight }}>
           <KidProfileCard key={item.id} kidId={item.id} height={availableHeight} />

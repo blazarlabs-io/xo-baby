@@ -20,6 +20,7 @@
     "countries-list": "^3.1.1",
     "expo": "53.0.22",
     "expo-auth-session": "~6.2.1",
+    "expo-clipboard": "^8.0.7",
     "expo-font": "~13.3.1",
     "expo-linear-gradient": "~14.1.4",
     "expo-status-bar": "~2.2.3",

@@ -28,6 +28,9 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
     state.kids.find((k) => k.id === kidId)
   );
 
+  console.log('🏪 KidProfileCard for kidId:', kidId, 'found kid:', kid ? `${kid.firstName} ${kid.lastName}` : 'NOT FOUND');
+  console.log('🏪 All kids in store:', useKidStore.getState().kids.map(k => ({ id: k.id, firstName: k.firstName })));
+
   const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);

@@ -52,9 +52,21 @@ export const createKid = async (data: CreateKidPayload, retryCount = 0): Promise
 // Request cache to prevent duplicate concurrent requests
 const requestCache = new Map<string, Promise<any>>();
 
+// Clear the request cache (useful after creating/updating kids)
+export const clearKidsCache = () => {
+  console.log('🧹 Clearing kids request cache');
+  requestCache.clear();
+};
+
 // GET with request deduplication
-export const getMyKids = async (token: string) => {
+export const getMyKids = async (token: string, forceRefresh: boolean = false) => {
   const cacheKey = `getMyKids-${token}`;
+
+  // If force refresh is requested, clear the cache first
+  if (forceRefresh) {
+    requestCache.delete(cacheKey);
+    console.log('🔄 Force refresh requested, cleared cache');
+  }
 
   // If there's already a request in progress with this token, return it
   if (requestCache.has(cacheKey)) {
@@ -72,10 +84,12 @@ export const getMyKids = async (token: string) => {
   }).then(response => {
     // Remove from cache when completed
     requestCache.delete(cacheKey);
+    console.log('✅ getMyKids request completed, received kids:', response.data?.length || 0);
     return response.data;
   }).catch(error => {
     // Remove from cache on error too
     requestCache.delete(cacheKey);
+    console.error('❌ getMyKids request failed:', error);
     throw error;
   });
 

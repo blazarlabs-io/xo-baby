@@ -13,6 +13,8 @@ export default function AvatarHeader({ kidID }: AvatarHeaderProps) {
     state.kids.find((k) => k.id === kidID)
   );
 
+  console.log('👤 AvatarHeader for kidID:', kidID, 'found kid:', kid ? `${kid.firstName} ${kid.lastName}` : 'NOT FOUND');
+
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>

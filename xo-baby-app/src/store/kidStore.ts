@@ -4,7 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Kid {
   id: string;
+  childId?: string;
   parentId: string;
+  adminId?: string | null;
+  doctorId?: string | null;
   firstName: string;
   lastName: string;
   birthDate: string;
@@ -12,23 +15,27 @@ export interface Kid {
   bloodType: string;
   ethnicity: string;
   location: string;
-  congenitalAnomalies: { name: string; description: string }[];
+  congenitalAnomalies: { name: string; description: string }[] | any[];
   avatarUrl?: string;
   createdAt: string;
   vitals: {
-    heartRate: number;
-    oximetry: number;
+    heartRate?: number;
+    oximetry?: number;
     breathingRate?: number;
     temperature?: number;
     movement?: number;
     weight?: number;
     height?: number;
     headCircumference?: number;
-  };
-  // usere
+  } | any;
+  userRole?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  canViewVitals?: boolean;
   weightHistory?: { value: number; date: string }[];
   heightHistory?: { value: number; date: string }[];
   headCircumferenceHistory?: { value: number; date: string }[];
+  error?: string;
 }
 
 interface KidStore {
@@ -36,6 +43,7 @@ interface KidStore {
   addKid: (kid: Kid) => void;
   addKids: (newKids: Kid[]) => void;
   setKids: (kids: Kid[]) => void;
+  refreshKids: (token: string) => Promise<void>;
   removeKid: (id: string) => void;
   clearKids: () => void;
 }
@@ -50,6 +58,7 @@ export const useKidStore = create<KidStore>()(
           set((state) => {
             const exists = state.kids.some((k) => k.id === kid.id);
             if (exists) return state;
+            console.log('🏪 Adding kid:', kid.firstName, kid.lastName);
             return { kids: [...state.kids, kid] };
           }),
 
@@ -57,35 +66,70 @@ export const useKidStore = create<KidStore>()(
           set((state) => {
             const currentIds = new Set(state.kids.map((k) => k.id));
             const filtered = newKids.filter((k) => !currentIds.has(k.id));
+            console.log('🏪 Adding kids:', filtered.length, 'new kids');
             return { kids: [...state.kids, ...filtered] };
           }),
 
-        setKids: (kids: Kid[]) => set({ kids }),
+        setKids: (kids: Kid[]) => {
+          console.log('🏪 setKids called with:', kids.length, 'kids');
+          console.log('🏪 Kids being set:', kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName })));
+          set({ kids: [...kids] }); // Create a new array to ensure reactivity
+        },
+
+        refreshKids: async (token: string) => {
+          try {
+            const { getMyKids, clearKidsCache } = await import('../api/kidApi');
+            clearKidsCache(); // Clear any cached requests
+            const kids = await getMyKids(token, true); // Force refresh
+            console.log('🔄 refreshKids received from API:', kids?.length || 0, 'kids');
+            set({ kids: kids ? [...kids] : [] }); // Ensure new array reference
+            console.log('🔄 Successfully refreshed kids from backend:', kids?.length || 0);
+          } catch (error) {
+            console.error('❌ Failed to refresh kids:', error);
+            // Don't clear kids on error, keep existing data
+          }
+        },
 
         removeKid: (id: string) =>
           set((state) => ({
             kids: state.kids.filter((k) => k.id !== id),
           })),
 
-        clearKids: () => set({ kids: [] }),
+        clearKids: () => {
+          console.log('🧹 Clearing all kids from store');
+          set({ kids: [] });
+        },
       }),
       {
-        name: 'kids-storage', // AsyncStorage key
+        name: 'kids-storage',
+        // Use simpler storage without custom implementation to avoid issues
         storage: {
           getItem: async (name: string) => {
-            const value = await AsyncStorage.getItem(name);
-            return value ? JSON.parse(value) : null;
+            try {
+              const value = await AsyncStorage.getItem(name);
+              return value ? JSON.parse(value) : null;
+            } catch (error) {
+              console.error('Error reading from AsyncStorage:', error);
+              return null;
+            }
           },
           setItem: async (name: string, value: any) => {
-            await AsyncStorage.setItem(name, JSON.stringify(value));
+            try {
+              await AsyncStorage.setItem(name, JSON.stringify(value));
+            } catch (error) {
+              console.error('Error writing to AsyncStorage:', error);
+            }
           },
           removeItem: async (name: string) => {
-            await AsyncStorage.removeItem(name);
+            try {
+              await AsyncStorage.removeItem(name);
+            } catch (error) {
+              console.error('Error removing from AsyncStorage:', error);
+            }
           },
         },
-        // @ts-ignore - Zustand persist partialize type issue
         partialize: (state: KidStore) => ({ kids: state.kids }),
-        version: 1,
+        version: 2, // Increment version to force migration
       }
     ),
     { name: 'KidStore' }
