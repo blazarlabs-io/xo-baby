@@ -24,7 +24,7 @@ export class KidService {
     try {
       let childId: string;
 
-      // Create child ID on blockchain
+      // Create child ID on blockchain 
       const config = new TestnetRemoteConfig();
       const logger = await createLogger(config.logDir);
 
@@ -401,9 +401,7 @@ export class KidService {
 
       return filteredKidsData;
     }
-
   }
-
 
   async findById(kidId: string): Promise<Kid | null> {
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
