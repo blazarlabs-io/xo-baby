@@ -1,6 +1,6 @@
-import { onIdTokenChanged } from 'firebase/auth';
-import { auth } from '@/config/firebase';
-import { useUserStore } from '../store/userStore';
+import { onIdTokenChanged } from "firebase/auth";
+import { auth } from "@/config/firebase";
+import { useUserStore } from "../store/userStore";
 
 export function attachAuthTokenListener() {
   return onIdTokenChanged(auth, async (fbUser) => {
@@ -12,9 +12,9 @@ export function attachAuthTokenListener() {
     const current = useUserStore.getState().user;
     useUserStore.getState().setUser({
       uid: fbUser.uid,
-      email: fbUser.email ?? current?.email ?? '',
+      email: fbUser.email ?? current?.email ?? "",
       token,
-      role: current?.role ?? 'parent',
+      role: current?.role ?? "parent",
     });
   });
 }

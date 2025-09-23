@@ -1,23 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Kid } from '../../store/kidStore';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../../types/navigation';
+import React from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { Kid } from "../../store/kidStore";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { AppStackParamList } from "../../types/navigation";
 
 interface Props {
   kid: Kid;
 }
 
 export default function KidCard({ kid }: Props) {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList>>();
 
   if (!kid?.vitals) {
     return (
       <Pressable
         style={styles.card}
-        onPress={() => navigation.navigate('KidProfile', { kidId: kid.id })}
+        onPress={() => navigation.navigate("KidProfile", { kidId: kid.id })}
       >
         <View style={styles.card}>
           <Text style={styles.name}>{kid.firstName}</Text>
@@ -27,11 +27,10 @@ export default function KidCard({ kid }: Props) {
     );
   }
 
-
   return (
     <Pressable
       style={styles.card}
-      onPress={() => navigation.navigate('KidProfile', { kidId: kid.id })}
+      onPress={() => navigation.navigate("KidProfile", { kidId: kid.id })}
     >
       <Text style={styles.name}>{kid.firstName}</Text>
       <Text style={styles.label}>HR: {kid.vitals.heartRate} bpm</Text>
@@ -42,16 +41,16 @@ export default function KidCard({ kid }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#DFF6F6',
+    backgroundColor: "#DFF6F6",
     padding: 24,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: 8,
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   label: {
     fontSize: 14,

@@ -3,10 +3,8 @@ import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../../types/navigation';
-// store
 import { useUserStore } from '@/store/userStore';
 import { useKidStore } from '@/store/kidStore';
-
 import { logoutAll } from '@/services/logout';
 
 interface SettingsScreensProps {
@@ -15,9 +13,7 @@ interface SettingsScreensProps {
 
 const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Devices'>>();
-  
   const user = useUserStore( s => s.user )
-
   const handleLogout = async () => {
       try {
         await logoutAll();
@@ -53,8 +49,6 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
   );
 };
 
-
-
 export default SettingsScreen;
 
 const styles = StyleSheet.create({
@@ -62,7 +56,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     padding: 24,
-
   },
   componentHeaderContainer: {
     flexDirection: 'row',

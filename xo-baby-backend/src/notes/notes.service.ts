@@ -48,8 +48,6 @@ export class NotesService {
 
     const snapshot = await firestoreQuery.get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
-
-    // return []
   }
 
   async update(id: string, dto: UpdateNoteDto, userId: string) {

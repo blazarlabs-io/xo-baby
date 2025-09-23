@@ -3,21 +3,16 @@ import { View, Text, Image,  StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
 import { ROLE_LABELS, UserRole } from '../../constants/roles';
 import { AuthStackParamList } from '../../types/navigation';
-
-
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'RoleSelection'>;
 
 const RoleSelectionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-
   const handleSelectRole = (role: UserRole) => {
     navigation.navigate('Welcome');
   };
-
   const ROLE_IMAGES: Record<UserRole, any> = {
     parent: require('../../../assets/common/parent.jpg'),
     medical: require('../../../assets/common/medical.jpg'),

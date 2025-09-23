@@ -1,12 +1,12 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // Screens
-import HomeScreen from '@/screens/home/HomeScreen';
-import RealTimeDataScreen from '@/screens/kids/RealTimeDataScreen';
-import DevelopmentScreen from '@/screens/kids/DevelopmentScreen';
-import TasksScreen from '@/screens/kids/TasksScreen';
-import NotesScreen from '@/screens/kids/NotesScreen';
+import HomeScreen from "@/screens/home/HomeScreen";
+import RealTimeDataScreen from "@/screens/kids/RealTimeDataScreen";
+import DevelopmentScreen from "@/screens/kids/DevelopmentScreen";
+import TasksScreen from "@/screens/kids/TasksScreen";
+import NotesScreen from "@/screens/kids/NotesScreen";
 
 export type HomeStackParamList = {
   Home: { focusKidId?: string } | undefined;

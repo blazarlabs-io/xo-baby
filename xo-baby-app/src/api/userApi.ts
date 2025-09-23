@@ -1,6 +1,6 @@
-import api from './axios';
+import api from "./axios";
 
-interface CreateUserPayload {
+export interface CreateUserPayload {
   firstName: string;
   lastName: string;
   email: string;
@@ -8,6 +8,6 @@ interface CreateUserPayload {
 }
 
 export const createUser = async (data: CreateUserPayload) => {
-  const response = await api.post('/users/create', data);
+  const response = await api.post("/users/create", data);
   return response.data;
 };

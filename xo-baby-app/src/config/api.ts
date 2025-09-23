@@ -1,21 +1,21 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
-import { auth } from './firebase';
-import { useUserStore } from '../store/userStore';
+import axios from "axios";
+import { Platform } from "react-native";
+import { auth } from "./firebase";
+import { useUserStore } from "../store/userStore";
 
 const DEV_HOST = Platform.select({
-  android: '64.227.35.231',
-  ios: 'localhost',
-  default: 'localhost',
+  android: "64.227.35.231",
+  ios: "localhost",
+  default: "localhost",
 });
-const BASE_URL = __DEV__
-  ? `http://${DEV_HOST}:3000`
-  : (process.env.EXPO_PUBLIC_API_URL as string);
+
+// Use the same server for both dev and production for now
+const BASE_URL = `http://64.227.35.231:3000`;
 
 export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 300000, // 5 minutes default timeout
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 // attach token
@@ -29,7 +29,7 @@ let isRefreshing = false;
 let queue: { resolve: (t: string) => void; reject: (e: any) => void }[] = [];
 
 function resolveQueue(err: any, token: string | null) {
-  queue.forEach(p => (err ? p.reject(err) : p.resolve(token as string)));
+  queue.forEach((p) => (err ? p.reject(err) : p.resolve(token as string)));
   queue = [];
 }
 
@@ -53,14 +53,21 @@ api.interceptors.response.use(
 
       try {
         const user = auth.currentUser;
-        if (!user) throw new Error('Not authenticated');
+        if (!user) throw new Error("Not authenticated");
 
         // force-refresh the Firebase ID token
         const newToken = await user.getIdToken(true);
 
         // update store
         const store = useUserStore.getState();
-        store.setUser({ ...(store.user ?? { uid: user.uid, email: user.email ?? '' }), token: newToken });
+        store.setUser({
+          ...(store.user ?? {
+            uid: user.uid,
+            email: user.email ?? "",
+            role: "parent" as const,
+          }),
+          token: newToken,
+        });
 
         resolveQueue(null, newToken);
 

@@ -58,7 +58,6 @@ export const useKidStore = create<KidStore>()(
           set((state) => {
             const exists = state.kids.some((k) => k.id === kid.id);
             if (exists) return state;
-            console.log('🏪 Adding kid:', kid.firstName, kid.lastName);
             return { kids: [...state.kids, kid] };
           }),
 
@@ -66,13 +65,10 @@ export const useKidStore = create<KidStore>()(
           set((state) => {
             const currentIds = new Set(state.kids.map((k) => k.id));
             const filtered = newKids.filter((k) => !currentIds.has(k.id));
-            console.log('🏪 Adding kids:', filtered.length, 'new kids');
             return { kids: [...state.kids, ...filtered] };
           }),
 
         setKids: (kids: Kid[]) => {
-          console.log('🏪 setKids called with:', kids.length, 'kids');
-          console.log('🏪 Kids being set:', kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName })));
           set({ kids: [...kids] }); // Create a new array to ensure reactivity
         },
 
@@ -81,12 +77,9 @@ export const useKidStore = create<KidStore>()(
             const { getMyKids, clearKidsCache } = await import('../api/kidApi');
             clearKidsCache(); // Clear any cached requests
             const kids = await getMyKids(token, true); // Force refresh
-            console.log('🔄 refreshKids received from API:', kids?.length || 0, 'kids');
             set({ kids: kids ? [...kids] : [] }); // Ensure new array reference
-            console.log('🔄 Successfully refreshed kids from backend:', kids?.length || 0);
           } catch (error) {
             console.error('❌ Failed to refresh kids:', error);
-            // Don't clear kids on error, keep existing data
           }
         },
 
@@ -96,13 +89,11 @@ export const useKidStore = create<KidStore>()(
           })),
 
         clearKids: () => {
-          console.log('🧹 Clearing all kids from store');
           set({ kids: [] });
         },
       }),
       {
         name: 'kids-storage',
-        // Use simpler storage without custom implementation to avoid issues
         storage: {
           getItem: async (name: string) => {
             try {

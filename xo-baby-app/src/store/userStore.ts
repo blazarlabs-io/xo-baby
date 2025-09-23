@@ -1,8 +1,6 @@
 import { create } from 'zustand'
 import { persist, devtools } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Role
 import { UserRole } from '../constants/roles'
 
 export interface User {
@@ -12,14 +10,12 @@ export interface User {
   role: UserRole
 }
 
-
 interface UserStore {
   user: User | null;
   setUser: (user: User) => void;
   clearUser: () => void;
   updateToken: (token: string) => void;
 }
-
 
 export const useUserStore = create<UserStore>()(
   devtools(
@@ -28,7 +24,6 @@ export const useUserStore = create<UserStore>()(
         user: null,
         setUser: (user) => set({ user }),
         clearUser: () => set({ user: null }),
-        // Only updates the token while preserving other fields
         updateToken: (token) =>
         set((state) =>
           state.user

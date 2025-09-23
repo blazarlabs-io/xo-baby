@@ -1,4 +1,4 @@
-import { initialWindowMetrics } from 'react-native-safe-area-context';
+import { initialWindowMetrics } from "react-native-safe-area-context";
 
 export const safeArea = {
   top: initialWindowMetrics?.insets.top ?? 0,

@@ -1,37 +1,37 @@
-import api from './axios'
+import api from "./axios";
 
 export type NoteCategory =
-  | 'Health & Wellness'
-  | 'Feeding'
-  | 'Sleep'
-  | 'Milestones'
-  | 'Diaper & Potty'
-  | 'Emotions & Behavior';
+  | "Health & Wellness"
+  | "Feeding"
+  | "Sleep"
+  | "Milestones"
+  | "Diaper & Potty"
+  | "Emotions & Behavior";
 
 /** Payload for creating a new note */
 export interface CreateNotePayload {
-  date: string             // ISO date, e.g. '2025-07-15'
-  description: string      // Note text
-  category: NoteCategory
-  kidId: string            // Associated kid’s ID
+  date: string; // ISO date, e.g. '2025-07-15'
+  description: string; // Note text
+  category: NoteCategory;
+  kidId: string; // Associated kid’s ID
 }
 
 /** DTO for filtering / fetching notes */
 export interface GetNotesParams {
-  kidId?: string         // optional filter by child
-  category?: NoteCategory
-  limit?: number
+  kidId?: string; // optional filter by child
+  category?: NoteCategory;
+  limit?: number;
 }
 
 /** Represents a note returned from the API */
 export interface Note {
-  id: string
-  date: string
-  description: string
-  category: NoteCategory
-  kidId: string
-  createdAt: string
-  updatedAt?: string
+  id: string;
+  date: string;
+  description: string;
+  category: NoteCategory;
+  kidId: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 /**
@@ -41,13 +41,11 @@ export const createNote = async (
   token: string,
   data: CreateNotePayload
 ): Promise<Note> => {
-  const res = await api.post<Note>(
-    '/notes/create',
-    data,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  return res.data
-}
+  const res = await api.post<Note>("/notes/create", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
 /**
  * Fetch notes, optionally filtering by kidId or category
@@ -56,15 +54,12 @@ export const getNotes = async (
   token: string,
   params: GetNotesParams = {}
 ): Promise<Note[]> => {
-  const res = await api.get<Note[]>(
-    '/notes/get-all',
-    {
-      headers: { Authorization: `Bearer ${token}` },
-      params,
-    }
-  )
-  return res.data
-}
+  const res = await api.get<Note[]>("/notes/get-all", {
+    headers: { Authorization: `Bearer ${token}` },
+    params,
+  });
+  return res.data;
+};
 
 /**
  * Update an existing note
@@ -72,15 +67,13 @@ export const getNotes = async (
 export const updateNote = async (
   token: string,
   noteId: string,
-  updates: Partial<Omit<CreateNotePayload, 'kidId'>>
+  updates: Partial<Omit<CreateNotePayload, "kidId">>
 ): Promise<Note> => {
-  const res = await api.patch<Note>(
-    `/notes/update/${noteId}`,
-    updates,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
-  return res.data
-}
+  const res = await api.patch<Note>(`/notes/update/${noteId}`, updates, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
 /**
  * Delete a note by ID
@@ -92,6 +85,6 @@ export const deleteNote = async (
   const res = await api.delete<{ success: boolean }>(
     `/notes/delete/${noteId}`,
     { headers: { Authorization: `Bearer ${token}` } }
-  )
-  return res.data
-}
+  );
+  return res.data;
+};

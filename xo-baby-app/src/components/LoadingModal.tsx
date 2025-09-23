@@ -1,44 +1,46 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from "react";
+import { View, Text, StyleSheet, Modal, ActivityIndicator } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface LoadingModalProps {
   visible: boolean;
-  stage: 'blockchain' | 'encrypting' | 'uploading' | 'finalizing';
+  stage: "blockchain" | "encrypting" | "uploading" | "finalizing";
 }
 
 export default function LoadingModal({ visible, stage }: LoadingModalProps) {
   const getStageInfo = () => {
     switch (stage) {
-      case 'blockchain':
+      case "blockchain":
         return {
-          title: 'Creating Blockchain Identity',
-          description: 'Setting up wallet and creating child ID on Midnight network...',
-          estimatedTime: '~1 minute'
+          title: "Creating Blockchain Identity",
+          description:
+            "Setting up wallet and creating child ID on Midnight network...",
+          estimatedTime: "~1 minute",
         };
-      case 'encrypting':
+      case "encrypting":
         return {
-          title: 'Encrypting Data',
-          description: 'Securing your child\'s information with AES encryption...',
-          estimatedTime: '~10 seconds'
+          title: "Encrypting Data",
+          description:
+            "Securing your child's information with AES encryption...",
+          estimatedTime: "~10 seconds",
         };
-      case 'uploading':
+      case "uploading":
         return {
-          title: 'Uploading to IPFS',
-          description: 'Storing encrypted data on decentralized storage...',
-          estimatedTime: '~15 seconds'
+          title: "Uploading to IPFS",
+          description: "Storing encrypted data on decentralized storage...",
+          estimatedTime: "~15 seconds",
         };
-      case 'finalizing':
+      case "finalizing":
         return {
-          title: 'Finalizing',
-          description: 'Creating NFT and completing setup...',
-          estimatedTime: '~30 seconds'
+          title: "Finalizing",
+          description: "Creating NFT and completing setup...",
+          estimatedTime: "~30 seconds",
         };
       default:
         return {
-          title: 'Processing',
-          description: 'Please wait...',
-          estimatedTime: ''
+          title: "Processing",
+          description: "Please wait...",
+          estimatedTime: "",
         };
     }
   };
@@ -46,13 +48,9 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
   const stageInfo = getStageInfo();
 
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-    >
+    <Modal visible={visible} transparent={true} animationType="fade">
       <View style={styles.overlay}>
-        <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.modal}>
+        <LinearGradient colors={["#E2F3F3", "#E2FFFF"]} style={styles.modal}>
           <View style={styles.content}>
             <ActivityIndicator size="large" color="#31CECE" />
 
@@ -70,13 +68,11 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
                 <View
                   style={[
                     styles.progressFill,
-                    { width: getProgressWidth(stage) }
+                    { width: getProgressWidth(stage) },
                   ]}
                 />
               </View>
-              <Text style={styles.progressText}>
-                {getProgressText(stage)}
-              </Text>
+              <Text style={styles.progressText}>{getProgressText(stage)}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -87,38 +83,48 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
 
 const getProgressWidth = (stage: string) => {
   switch (stage) {
-    case 'blockchain': return '25%';
-    case 'encrypting': return '50%';
-    case 'uploading': return '75%';
-    case 'finalizing': return '100%';
-    default: return '0%';
+    case "blockchain":
+      return "25%";
+    case "encrypting":
+      return "50%";
+    case "uploading":
+      return "75%";
+    case "finalizing":
+      return "100%";
+    default:
+      return "0%";
   }
 };
 
 const getProgressText = (stage: string) => {
   switch (stage) {
-    case 'blockchain': return 'Step 1 of 4';
-    case 'encrypting': return 'Step 2 of 4';
-    case 'uploading': return 'Step 3 of 4';
-    case 'finalizing': return 'Step 4 of 4';
-    default: return 'Starting...';
+    case "blockchain":
+      return "Step 1 of 4";
+    case "encrypting":
+      return "Step 2 of 4";
+    case "uploading":
+      return "Step 3 of 4";
+    case "finalizing":
+      return "Step 4 of 4";
+    default:
+      return "Starting...";
   }
 };
 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modal: {
-    width: '85%',
+    width: "85%",
     maxWidth: 350,
     borderRadius: 20,
     padding: 30,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -128,49 +134,49 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   content: {
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#222128',
+    fontWeight: "bold",
+    color: "#222128",
     marginTop: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   timeEstimate: {
     fontSize: 12,
-    color: '#31CECE',
+    color: "#31CECE",
     marginTop: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   progressContainer: {
-    width: '100%',
+    width: "100%",
     marginTop: 25,
   },
   progressBar: {
-    width: '100%',
+    width: "100%",
     height: 6,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
     borderRadius: 3,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
-    backgroundColor: '#31CECE',
+    height: "100%",
+    backgroundColor: "#31CECE",
     borderRadius: 3,
   },
   progressText: {
     fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginTop: 8,
   },
 });

@@ -8,9 +8,7 @@ import type { AuthStackParamList } from '../../types/navigation';
 import { useKidStore } from '../../store/kidStore';
 import { useUserStore } from '../../store/userStore';
 import type { UserRole } from '@/constants/roles';
-
 import * as WebBrowser from 'expo-web-browser';
-
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 
@@ -19,7 +17,6 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function WelcomeScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'Welcome'>>();
-
     const kids = useKidStore((state) => state.kids);
     const setUser = useUserStore.getState().setUser;
     const user = useUserStore((state) => state.user);
@@ -107,13 +104,10 @@ export default function WelcomeScreen() {
         });
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
-        console.log(' User logged in with Google:', user);
-
       } catch (error) {
         console.error(' Google Sign-In error:', error);
       }
     };
-    
 
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
@@ -140,8 +134,6 @@ export default function WelcomeScreen() {
           <Text style={styles.socialText}>Sign In With Google</Text>
         </View>
       </Pressable>
-
-
 
       <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%' }} >
         <Text style={styles.signupText}> Don't have an account? </Text>

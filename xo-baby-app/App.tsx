@@ -6,11 +6,8 @@ import { attachAuthTokenListener } from './src/auth/attachAuthTokenListener';
 
 export default function App() {
 
-  // Fonts
   const fontsLoaded = useCustomFonts()
 
-
-  // Start Firebase token listener once on app mount
   useEffect(() => {
     const unsubscribe = attachAuthTokenListener();
     return () => unsubscribe(); // cleanup on unmount / fast refresh

@@ -9,16 +9,11 @@ const DEVICE = { id: 'xo-AxS83Eg1', name: 'Mi Pulse Monitor S1 (A7:3C)' };
 
 export default function DevicesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-
-  // Setează "true" dacă vrei să pornească deja conectat
   const [isConnected, setIsConnected] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
-
   const isOnline = isConnected; // online/offline depinde de isConnected
-
   const onEdit = () => navigation.navigate('DeviceItem', { kidId: DEVICE.id });
-
   const onConnect = () => {
     if (isConnecting || isConnected) return;
     setIsConnecting(true);

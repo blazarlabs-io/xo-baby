@@ -4,9 +4,6 @@ import * as CryptoJS from 'crypto-js';
 @Injectable()
 export class EncryptionService {
   private readonly logger = new Logger(EncryptionService.name);
-  /**
-   * Generate a random AES key (256-bit)
-   */
   generateAESKey(): string {
     try {
       const key = CryptoJS.lib.WordArray.random(256 / 8).toString();
@@ -18,9 +15,7 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Encrypt data using AES-256 encryption with additional security
-   */
+  //Encryption
   encrypt(data: string, key: string): string {
     try {
       if (!data) {
@@ -50,9 +45,8 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Decrypt data using AES-256 decryption
-   */
+
+  //Decryption
   decrypt(encryptedData: string, key: string): string {
     try {
       if (!encryptedData) {
@@ -110,9 +104,8 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Encrypt object data (converts to JSON first) with medical data validation
-   */
+
+  //encrypt object data
   encryptObject(data: any, key: string): string {
     try {
       if (!data) {
@@ -142,9 +135,7 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Decrypt to object (parses JSON after decryption) with validation
-   */
+//decrypt to object
   decryptToObject(encryptedData: string, key: string): any {
     try {
       const decryptedString = this.decrypt(encryptedData, key);
@@ -177,9 +168,6 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Generate a secure hash for data integrity verification
-   */
   generateDataHash(data: string): string {
     try {
       const hash = CryptoJS.SHA256(data).toString();
@@ -191,9 +179,6 @@ export class EncryptionService {
     }
   }
 
-  /**
-   * Verify data integrity using hash
-   */
   verifyDataHash(data: string, expectedHash: string): boolean {
     try {
       const actualHash = this.generateDataHash(data);

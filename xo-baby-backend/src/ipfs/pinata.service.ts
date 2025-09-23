@@ -32,16 +32,10 @@ export class PinataService {
     };
   }
 
-  /**
-   * Check if Pinata is properly configured
-   */
   private isConfigured(): boolean {
     return !!(this.config.apiKey && this.config.secretApiKey);
   }
 
-  /**
-   * Upload JSON data to Pinata
-   */
   async uploadJSON(data: any): Promise<string> {
     if (!this.isConfigured()) {
       throw new Error('Pinata API credentials not configured');
@@ -71,9 +65,6 @@ export class PinataService {
     }
   }
 
-  /**
-   * Upload string data to Pinata
-   */
   async uploadString(data: string): Promise<string> {
     if (!this.isConfigured()) {
       throw new Error('Pinata API credentials not configured');
@@ -112,9 +103,6 @@ export class PinataService {
     }
   }
 
-  /**
-   * Upload file buffer to Pinata
-   */
   async uploadFile(buffer: Buffer, filename: string): Promise<string> {
     if (!this.isConfigured()) {
       throw new Error('Pinata API credentials not configured');
@@ -147,9 +135,6 @@ export class PinataService {
     }
   }
 
-  /**
-   * Retrieve data from Pinata gateway
-   */
   async getData(hash: string): Promise<string> {
     try {
       this.logger.log(`📥 Retrieving data from Pinata gateway: ${hash}`);
@@ -175,16 +160,10 @@ export class PinataService {
     }
   }
 
-  /**
-   * Get Pinata gateway URL for a hash
-   */
   getGatewayUrl(hash: string): string {
     return `${this.config.gateway}/ipfs/${hash}`;
   }
 
-  /**
-   * Pin an existing IPFS hash to Pinata
-   */
   async pinHash(hash: string): Promise<void> {
     if (!this.isConfigured()) {
       throw new Error('Pinata API credentials not configured');
@@ -214,9 +193,6 @@ export class PinataService {
     }
   }
 
-  /**
-   * Test Pinata connection
-   */
   async testConnection(): Promise<boolean> {
     if (!this.isConfigured()) {
       return false;

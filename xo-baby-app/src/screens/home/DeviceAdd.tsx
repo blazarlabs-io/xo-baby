@@ -1,27 +1,20 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, Image, Pressable, ScrollView, Animated } from 'react-native';
-// Styles
 import { styles } from './styles/DevicesScreen.styles'
-// Navigation
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../../types/navigation';
 
 const DeviceAddScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'DeviceAdd'>>();
-
-  // control searching state: false at mount, turns true after 3 seconds
   const [isSearching, setIsSearching] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => setIsSearching(true), 1500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Base and max sizes to ensure animation stays within 240x240
   const BASE_CIRCLE_SIZE = 80;
   const MAX_CIRCLE_SIZE = BASE_CIRCLE_SIZE * 3; // 240px
-
-  // Animated values for three circles
   const circleAnims = [
     useRef(new Animated.Value(0)).current,
     useRef(new Animated.Value(0)).current,
@@ -61,7 +54,6 @@ const DeviceAddScreen = () => {
           <Text style={styles.realTimeText}>Add New Device</Text>
         </View>
       </View>
-      
       <View style={styles.bluetoothCont}>
         <View style={styles.animationWrapper}>
           {isSearching ? (
@@ -116,8 +108,6 @@ const DeviceAddScreen = () => {
     </View>
   );
 };
-
-
 
 export default DeviceAddScreen;
 
