@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Keyboard, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RouteProp } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { createUser } from '../../../api/userApi';
 import { useUserStore } from '../../../store/userStore';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../../config/firebase';
+import { ROLE_LABELS } from '../../../constants/roles';
 
 export default function SignupConfirmPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'SignupConfirmPasswordScreen'>>();
@@ -18,7 +19,7 @@ export default function SignupConfirmPasswordScreen() {
   
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const { name, email, password } = route.params;
-  const setUser = useUserStore((state) => state.setUser);
+  const { setUser, selectedRole, clearSelectedRole } = useUserStore();
 
   const [firstName, ...rest] = name.trim().split(' ');
   const lastName = rest.join(' ');
@@ -26,12 +27,17 @@ export default function SignupConfirmPasswordScreen() {
   const handleConfirm = async () => {
     if (passwordConfirm.trim() === password) {
       Keyboard.dismiss();
+      
+      // Use selectedRole or default to parent
+      const userRole = selectedRole || 'parent';
+      
       try {
         const response = await createUser({
           firstName,
           lastName,
           email,
           password,
+          role: userRole,
         });
 
         // get JWT token
@@ -42,8 +48,11 @@ export default function SignupConfirmPasswordScreen() {
           uid: response.uid,
           email: response.email,
           token: idToken,
-          role: 'parent', // Default role, can be updated later
+          role: userRole,
         });
+
+        // Clear the temporary selected role
+        clearSelectedRole();
 
       } catch (err) {
         console.error('User creation failed:', err);
@@ -56,44 +65,54 @@ export default function SignupConfirmPasswordScreen() {
 
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
-      <View style={{ height: 24, flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-        <View style={styles.backBtn}><Text>Back</Text></View>
-        <View style={styles.headerText}><Text>Create Account</Text></View>
-      </View>
-      <View style={{marginTop: 24, justifyContent: 'center', alignItems: 'center'}}>
-        <View style={{ gap: 8, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          <View style={styles.progressPointActive} ></View>
-          <View style={styles.progressPointActive}></View>
-          <View style={styles.progressPointActive}></View>
-          <View style={styles.progressPointActive}></View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{ height: 24, flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
+          <View style={styles.backBtn}><Text>Back</Text></View>
+          <View style={styles.headerText}><Text>Create Account</Text></View>
         </View>
-      </View>
-      <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Confirm password</Text>
-      </View>
-      <TextInput
-        style={[
-          styles.input,
-          Platform.select({
-            android: { paddingVertical: 8, textAlignVertical: 'center' }, // avoid clipping
-          }),
-        ]}
-        placeholder="********"
-        secureTextEntry
-        value={passwordConfirm}
-        onChangeText={setPasswordConfirm}
-        onSubmitEditing={handleConfirm}
-        returnKeyType="done"
-      />
+        <View style={{marginTop: 24, justifyContent: 'center', alignItems: 'center'}}>
+          <View style={{ gap: 8, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.progressPointActive} ></View>
+            <View style={styles.progressPointActive}></View>
+            <View style={styles.progressPointActive}></View>
+            <View style={styles.progressPointActive}></View>
+          </View>
+        </View>
+        
+        {/* Show selected role */}
+        <View style={{ marginTop: 24, marginBottom: 16, alignItems: 'center' }}>
+          <Text style={styles.roleIndicatorText}>
+            Creating account as: {ROLE_LABELS[selectedRole || 'parent']}
+          </Text>
+        </View>
+        
+        <View style={{ marginTop: 24, maxWidth: 172 }}>
+          <Text style={styles.title}>Confirm password</Text>
+        </View>
+        <TextInput
+          style={[
+            styles.input,
+            Platform.select({
+              android: { paddingVertical: 8, textAlignVertical: 'center' }, // avoid clipping
+            }),
+          ]}
+          placeholder="********"
+          secureTextEntry
+          value={passwordConfirm}
+          onChangeText={setPasswordConfirm}
+          onSubmitEditing={handleConfirm}
+          returnKeyType="done"
+        />
 
-      <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
-        <Pressable style={styles.button} onPress={handleConfirm}>
-          <Text style={styles.buttonText}>Next</Text>
-        </Pressable>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
+        <View style={{ marginTop: 40, alignItems: 'center', paddingBottom: 100 }}>
+          <Pressable style={styles.button} onPress={handleConfirm}>
+            <Text style={styles.buttonText}>Create Account</Text>
+          </Pressable>
+          <Pressable onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -125,4 +144,10 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: 'white', fontSize: 16, fontWeight: '600' },
   backText: { textAlign: 'center', marginTop: 10, color: '#999' },
+  roleIndicatorText: {
+    fontSize: 16,
+    color: '#31CECE',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

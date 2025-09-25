@@ -12,9 +12,12 @@ export interface User {
 
 interface UserStore {
   user: User | null;
+  selectedRole: UserRole | null; // Temporary role storage for auth flow
   setUser: (user: User) => void;
   clearUser: () => void;
   updateToken: (token: string) => void;
+  setSelectedRole: (role: UserRole) => void;
+  clearSelectedRole: () => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -22,6 +25,7 @@ export const useUserStore = create<UserStore>()(
     persist(
       (set) => ({
         user: null,
+        selectedRole: null,
         setUser: (user) => set({ user }),
         clearUser: () => set({ user: null }),
         updateToken: (token) =>
@@ -30,6 +34,8 @@ export const useUserStore = create<UserStore>()(
             ? { user: { ...state.user, token } }
             : state
         ),
+        setSelectedRole: (role) => set({ selectedRole: role }),
+        clearSelectedRole: () => set({ selectedRole: null }),
       }),
       {
         name: 'user-storage',

@@ -11,13 +11,340 @@ import { PinataService } from '../ipfs/pinata.service';
 import { getDataFromChildNFT } from '../midnight/index';
 import { bytesToString } from 'src/midnight/api';
 
+// Add cache interface
+interface BlockchainDataCache {
+  [childId: string]: {
+    data: any;
+    timestamp: number;
+    expiryTime: number;
+  };
+}
+
+// Add wallet connection pool interface
+interface WalletConnection {
+  config: any;
+  logger: any;
+  lastUsed: number;
+  isInUse: boolean;
+}
+
 @Injectable()
 export class KidService {
+  // Add blockchain data cache (5 minute cache)
+  private blockchainCache: BlockchainDataCache = {};
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_RETRY_ATTEMPTS = 3;
+  private readonly RETRY_DELAY_BASE = 2000; // 2 seconds (increased from 1 second)
+  
+  // Add wallet connection pooling
+  private walletConnection: WalletConnection | null = null;
+  private readonly WALLET_CONNECTION_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+  private isProcessingBlockchain = false;
+
   constructor(
     private readonly firebase: FirebaseService,
     private readonly encryptionService: EncryptionService,
     private readonly pinataService: PinataService,
   ) {}
+
+  // Sleep function for retry delays
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Get or create wallet connection
+  private async getWalletConnection(): Promise<WalletConnection> {
+    const now = Date.now();
+    
+    // Check if we have a valid connection
+    if (this.walletConnection && 
+        !this.walletConnection.isInUse && 
+        (now - this.walletConnection.lastUsed) < this.WALLET_CONNECTION_TIMEOUT) {
+      this.walletConnection.lastUsed = now;
+      this.walletConnection.isInUse = true;
+      console.log('🔗 Reusing existing wallet connection');
+      return this.walletConnection;
+    }
+
+    // Create new connection
+    console.log('🆕 Creating new wallet connection');
+    const config = new TestnetRemoteConfig();
+    const logger = await createLogger(config.logDir);
+    
+    this.walletConnection = {
+      config,
+      logger,
+      lastUsed: now,
+      isInUse: true,
+    };
+    
+    return this.walletConnection;
+  }
+
+  // Release wallet connection
+  private releaseWalletConnection(): void {
+    if (this.walletConnection) {
+      this.walletConnection.isInUse = false;
+      this.walletConnection.lastUsed = Date.now();
+      console.log('🔓 Released wallet connection');
+    }
+  }
+
+  // Process all blockchain data with sequential calls and shared wallet
+  private async processAllBlockchainData(uniqueKids: any[]): Promise<any[]> {
+    const decryptedKidsData: any[] = [];
+    
+    // Wait for any existing blockchain processing to complete
+    while (this.isProcessingBlockchain) {
+      console.log('⏳ Waiting for existing blockchain processing to complete...');
+      await this.sleep(1000);
+    }
+    
+    this.isProcessingBlockchain = true;
+    let walletConnection: WalletConnection | null = null;
+    
+    try {
+      walletConnection = await this.getWalletConnection();
+      
+      // Process kids sequentially with shared wallet connection
+      for (let index = 0; index < uniqueKids.length; index++) {
+        const kid = uniqueKids[index];
+        const childId = (kid as any).childId || kid.id;
+
+        try {
+          const blockchainData = await this.getBlockchainDataWithSharedWallet(
+            childId,
+            walletConnection,
+          );
+
+          const processedData = this.processBlockchainData(blockchainData, kid.id);
+          decryptedKidsData.push(processedData);
+          
+          // Add delay between requests to avoid overwhelming the network
+          if (index < uniqueKids.length - 1) {
+            await this.sleep(1000); // 1 second delay between requests
+          }
+        } catch (error) {
+          console.error(
+            `❌ Error getting blockchain data for kid ${childId}:`,
+            error,
+          );
+          decryptedKidsData.push({
+            kidId: kid.id,
+            '1': null, // ipfsHash
+            '2': null, // aesKey
+            blockchainError: error.message,
+          });
+        }
+      }
+      
+      return decryptedKidsData;
+    } finally {
+      if (walletConnection) {
+        this.releaseWalletConnection();
+      }
+      this.isProcessingBlockchain = false;
+    }
+  }
+
+  // Get cached blockchain data or fetch from blockchain with shared wallet
+  private async getBlockchainDataWithSharedWallet(
+    childId: string,
+    walletConnection: WalletConnection,
+  ): Promise<any> {
+    const now = Date.now();
+    
+    // Check if we have valid cached data
+    if (this.blockchainCache[childId] && now < this.blockchainCache[childId].expiryTime) {
+      console.log(`📋 Using cached blockchain data for child: ${childId}`);
+      return this.blockchainCache[childId].data;
+    }
+
+    // Fetch from blockchain with retry logic using shared wallet
+    let lastError: any;
+    for (let attempt = 1; attempt <= this.MAX_RETRY_ATTEMPTS; attempt++) {
+      try {
+        console.log(`📋 Fetching blockchain data for child: ${childId} (attempt ${attempt})`);
+        
+        const blockchainData = await getDataFromChildNFT(
+          walletConnection.config,
+          walletConnection.logger,
+          process.env.CONTRACT_ADDRESS as string,
+          process.env.PRIVATE_KEY as string,
+          childId,
+        );
+
+        // Cache the successful result
+        this.blockchainCache[childId] = {
+          data: blockchainData,
+          timestamp: now,
+          expiryTime: now + this.CACHE_DURATION,
+        };
+
+        return blockchainData;
+      } catch (error) {
+        lastError = error;
+        const errorMessage = error.message || JSON.stringify(error);
+        console.error(`❌ Attempt ${attempt} failed for child ${childId}:`, errorMessage);
+        
+        // Check for specific error types that shouldn't be retried
+        if (this.isNonRetryableError(error)) {
+          console.log(`🚫 Non-retryable error detected, stopping retries for child ${childId}`);
+          break;
+        }
+        
+        if (attempt < this.MAX_RETRY_ATTEMPTS) {
+          const delay = this.RETRY_DELAY_BASE * Math.pow(2, attempt - 1); // Exponential backoff
+          console.log(`⏳ Waiting ${delay}ms before retry...`);
+          await this.sleep(delay);
+        }
+      }
+    }
+
+    // All retries failed, throw the last error
+    throw lastError;
+  }
+
+  // Get cached blockchain data or fetch from blockchain (deprecated - use shared wallet version)
+  private async getBlockchainDataWithCache(
+    childId: string,
+    config: any,
+    logger: any,
+  ): Promise<any> {
+    const now = Date.now();
+    
+    // Check if we have valid cached data
+    if (this.blockchainCache[childId] && now < this.blockchainCache[childId].expiryTime) {
+      console.log(`📋 Using cached blockchain data for child: ${childId}`);
+      return this.blockchainCache[childId].data;
+    }
+
+    // Fetch from blockchain with retry logic
+    let lastError: any;
+    for (let attempt = 1; attempt <= this.MAX_RETRY_ATTEMPTS; attempt++) {
+      try {
+        console.log(`📋 Fetching blockchain data for child: ${childId} (attempt ${attempt})`);
+        
+        const blockchainData = await getDataFromChildNFT(
+          config,
+          logger,
+          process.env.CONTRACT_ADDRESS as string,
+          process.env.PRIVATE_KEY as string,
+          childId,
+        );
+
+        // Cache the successful result
+        this.blockchainCache[childId] = {
+          data: blockchainData,
+          timestamp: now,
+          expiryTime: now + this.CACHE_DURATION,
+        };
+
+        return blockchainData;
+      } catch (error) {
+        lastError = error;
+        const errorMessage = error.message || JSON.stringify(error);
+        console.error(`❌ Attempt ${attempt} failed for child ${childId}:`, errorMessage);
+        
+        // Check for specific error types that shouldn't be retried
+        if (this.isNonRetryableError(error)) {
+          console.log(`🚫 Non-retryable error detected, stopping retries for child ${childId}`);
+          break;
+        }
+        
+        if (attempt < this.MAX_RETRY_ATTEMPTS) {
+          const delay = this.RETRY_DELAY_BASE * Math.pow(2, attempt - 1); // Exponential backoff
+          console.log(`⏳ Waiting ${delay}ms before retry...`);
+          await this.sleep(delay);
+        }
+      }
+    }
+
+    // All retries failed, throw the last error
+    throw lastError;
+  }
+
+  // Check if error is non-retryable (e.g., invalid child ID, permission errors)
+  private isNonRetryableError(error: any): boolean {
+    const errorStr = JSON.stringify(error).toLowerCase();
+    const message = (error.message || '').toLowerCase();
+    
+    // Add patterns for non-retryable errors
+    const nonRetryablePatterns = [
+      'invalid child id',
+      'child not found',
+      'permission denied',
+      'unauthorized',
+      'invalid token',
+      'invalid signature'
+    ];
+    
+    return nonRetryablePatterns.some(pattern => 
+      errorStr.includes(pattern) || message.includes(pattern)
+    );
+  }
+
+  // Process blockchain data safely
+  private processBlockchainData(blockchainData: any, childId: string): any {
+    let decryptedKidData = {};
+
+    if (
+      blockchainData &&
+      Array.isArray(blockchainData) &&
+      blockchainData.length > 0
+    ) {
+      blockchainData.forEach((value: any, valueIndex: number) => {
+        if (value instanceof Uint8Array) {
+          const stringValue = bytesToString(value);
+          decryptedKidData[valueIndex] = stringValue;
+        } else {
+          decryptedKidData[valueIndex] = value;
+        }
+      });
+    } else {
+      decryptedKidData = {
+        '1': null, // ipfsHash
+        '2': null, // aesKey
+      };
+    }
+
+    return {
+      kidId: childId,
+      ...decryptedKidData,
+    };
+  }
+
+  // Clear blockchain cache (useful for testing or when data changes)
+  public clearBlockchainCache(): void {
+    console.log('🗑️ Clearing blockchain cache');
+    this.blockchainCache = {};
+    this.clearWalletConnection();
+  }
+
+  // Clear wallet connection
+  private clearWalletConnection(): void {
+    if (this.walletConnection) {
+      console.log('🗑️ Clearing wallet connection');
+      this.walletConnection = null;
+    }
+  }
+
+  // Clear expired cache entries
+  private clearExpiredCache(): void {
+    const now = Date.now();
+    Object.keys(this.blockchainCache).forEach(childId => {
+      if (now >= this.blockchainCache[childId].expiryTime) {
+        delete this.blockchainCache[childId];
+      }
+    });
+    
+    // Also clear wallet connection if it's expired
+    if (this.walletConnection && 
+        !this.walletConnection.isInUse && 
+        (now - this.walletConnection.lastUsed) >= this.WALLET_CONNECTION_TIMEOUT) {
+      this.clearWalletConnection();
+    }
+  }
 
   async createKid(dto: CreateKidDto) {
     try {
@@ -159,45 +486,56 @@ export class KidService {
   }
 
   async getKidsByUserToken(token: string) {
+    // Clear expired cache entries to prevent memory buildup
+    this.clearExpiredCache();
+    
     const decoded = await this.firebase.getAuth().verifyIdToken(token);
     const uid = decoded.uid;
-    const parentSnapshot = await this.firebase
-      .getFirestore()
-      .collection('kids')
-      .where('parentId', '==', uid)
-      .get();
+    
+    // Get user profile to determine role
+    const userDoc = await this.firebase.getFirestore().collection('users').doc(uid).get();
+    const userRole = userDoc.exists ? userDoc.data()?.role || 'parent' : 'parent';
 
-    let kids = parentSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      userRole: 'parent',
-    }));
+    let kids: any[] = [];
 
-    const adminSnapshot = await this.firebase
-      .getFirestore()
-      .collection('kids')
-      .where('adminId', '==', uid)
-      .get();
+    // Get kids based on user role
+    if (userRole === 'parent') {
+      const parentSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('parentId', '==', uid)
+        .get();
 
-    let adminKids = adminSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      userRole: 'admin',
-    }));
-    kids = [...kids, ...adminKids];
+      kids = parentSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'parent',
+      }));
+    } else if (userRole === 'medical') {
+      const doctorSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        .where('doctorId', '==', uid)
+        .get();
 
-    const doctorSnapshot = await this.firebase
-      .getFirestore()
-      .collection('kids')
-      .where('doctorId', '==', uid)
-      .get();
+      kids = doctorSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'medical',
+      }));
+    } else if (userRole === 'admin') {
+      const adminSnapshot = await this.firebase
+        .getFirestore()
+        .collection('kids')
+        // .where('adminId', '==', uid)
+        .get();
 
-    const doctorKids = doctorSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      userRole: 'doctor',
-    }));
-    kids = [...kids, ...doctorKids];
+      kids = adminSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        userRole: 'admin',
+      }));
+    }
 
     const uniqueKids = kids.filter(
       (kid, index, self) => index === self.findIndex((t) => t.id === kid.id),
@@ -206,63 +544,13 @@ export class KidService {
     if (uniqueKids.length === 0) {
       return [];
     }
-    const config = new TestnetRemoteConfig();
-    const logger = await createLogger(config.logDir);
-    const decryptedKidsData: any[] = [];
 
-    for (let index = 0; index < uniqueKids.length; index++) {
-      const kid = uniqueKids[index];
-      const childId = (kid as any).childId || kid.id;
+    console.log('------------------ unique kids ----------------')
+    console.log(uniqueKids)
+    console.log('------------------ unique kids ----------------')
 
-      try {
-        const decyptedDataInfo = await getDataFromChildNFT(
-          config,
-          logger,
-          process.env.CONTRACT_ADDRESS as string,
-          process.env.PRIVATE_KEY as string,
-          childId,
-        );
-
-        let decryptedKidData = {};
-
-        if (
-          decyptedDataInfo &&
-          Array.isArray(decyptedDataInfo) &&
-          decyptedDataInfo.length > 0
-        ) {
-          decyptedDataInfo.forEach((value: any, valueIndex: number) => {
-            if (value instanceof Uint8Array) {
-              const stringValue = bytesToString(value);
-              decryptedKidData[valueIndex] = stringValue;
-            } else {
-              decryptedKidData[valueIndex] = value;
-            }
-          });
-        } else {
-          decryptedKidData = {
-            '1': null, // ipfsHash
-            '2': null, // aesKey
-          };
-        }
-
-        const kidBlockchainData = {
-          kidId: kid.id,
-          ...decryptedKidData,
-        };
-        decryptedKidsData.push(kidBlockchainData);
-      } catch (error) {
-        console.error(
-          `❌ Error getting blockchain data for kid ${childId}:`,
-          error,
-        );
-        decryptedKidsData.push({
-          kidId: kid.id,
-          '1': null, // ipfsHash
-          '2': null, // aesKey
-          blockchainError: error.message,
-        });
-      }
-    }
+    // Use shared wallet connection for all blockchain operations
+    const decryptedKidsData = await this.processAllBlockchainData(uniqueKids);
 
     const completeKidsData = await Promise.all(
       decryptedKidsData.map(
@@ -289,15 +577,17 @@ export class KidService {
                 congenitalAnomalies: [],
                 avatarUrl: '',
                 createdAt: (kid as any).createdAt,
-                vitals: (kid as any).vitals,
-                weightHistory: (kid as any).weightHistory || [],
-                heightHistory: (kid as any).heightHistory || [],
-                headCircumferenceHistory:
-                  (kid as any).headCircumferenceHistory || [],
+                // Role-based data access
+                vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),
+                weightHistory: kid.userRole === 'admin' ? [] : ((kid as any).weightHistory || []),
+                heightHistory: kid.userRole === 'admin' ? [] : ((kid as any).heightHistory || []),
+                headCircumferenceHistory: kid.userRole === 'admin' ? [] : ((kid as any).headCircumferenceHistory || []),
                 userRole: kid.userRole,
-                canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+                canEdit: kid.userRole === 'parent',
                 canDelete: kid.userRole === 'admin',
-                canViewVitals: true,
+                canViewVitals: kid.userRole !== 'admin',
+                canViewMedicalData: kid.userRole === 'parent' || kid.userRole === 'medical',
+                blockchainError: decryptedData.blockchainError || 'No blockchain data available',
               };
             }
 
@@ -336,15 +626,16 @@ export class KidService {
               congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
               avatarUrl: decryptedKidData.avatarUrl || '',
               createdAt: (kid as any).createdAt,
-              vitals: (kid as any).vitals || {},
-              weightHistory: (kid as any).weightHistory || [],
-              heightHistory: (kid as any).heightHistory || [],
-              headCircumferenceHistory:
-                (kid as any).headCircumferenceHistory || [],
+              // Role-based data access
+              vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),
+              weightHistory: kid.userRole === 'admin' ? [] : ((kid as any).weightHistory || []),
+              heightHistory: kid.userRole === 'admin' ? [] : ((kid as any).heightHistory || []),
+              headCircumferenceHistory: kid.userRole === 'admin' ? [] : ((kid as any).headCircumferenceHistory || []),
               userRole: kid.userRole,
-              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              canEdit: kid.userRole === 'parent',
               canDelete: kid.userRole === 'admin',
-              canViewVitals: true,
+              canViewVitals: kid.userRole !== 'admin',
+              canViewMedicalData: kid.userRole === 'parent' || kid.userRole === 'medical',
             };
 
             return result;
@@ -367,15 +658,16 @@ export class KidService {
               congenitalAnomalies: [],
               avatarUrl: '',
               createdAt: (kid as any).createdAt,
-              vitals: (kid as any).vitals,
-              weightHistory: (kid as any).weightHistory || [],
-              heightHistory: (kid as any).heightHistory || [],
-              headCircumferenceHistory:
-                (kid as any).headCircumferenceHistory || [],
+              // Role-based data access
+              vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),
+              weightHistory: kid.userRole === 'admin' ? [] : ((kid as any).weightHistory || []),
+              heightHistory: kid.userRole === 'admin' ? [] : ((kid as any).heightHistory || []),
+              headCircumferenceHistory: kid.userRole === 'admin' ? [] : ((kid as any).headCircumferenceHistory || []),
               userRole: kid.userRole,
-              canEdit: kid.userRole === 'parent' || kid.userRole === 'admin',
+              canEdit: kid.userRole === 'parent',
               canDelete: kid.userRole === 'admin',
-              canViewVitals: true,
+              canViewVitals: kid.userRole !== 'admin',
+              canViewMedicalData: kid.userRole === 'parent' || kid.userRole === 'medical',
               error: error.message,
             };
           }

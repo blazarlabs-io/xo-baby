@@ -26,6 +26,25 @@ export class KidController {
     return this.kidService.getKidsByUserToken(idToken);
   }
 
+  @Post('clear-cache')
+  async clearBlockchainCache(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+    
+    // Only allow admin users to clear cache
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required');
+    }
+    
+    this.kidService.clearBlockchainCache();
+    return { message: 'Blockchain cache cleared successfully' };
+  }
+
   @Get(':id/weight')
   async getKidWeight(
     @Param('id') kidId: string,

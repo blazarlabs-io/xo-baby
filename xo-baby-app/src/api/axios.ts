@@ -1,1 +1,2 @@
-export { api as default } from '@/config/api';
+import { api } from '../config/api';
+export default api;

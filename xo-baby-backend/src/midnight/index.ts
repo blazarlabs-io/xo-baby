@@ -221,8 +221,7 @@ export const createChildId = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
         }
       } catch (e) {
         // Silent error handling
@@ -314,8 +313,7 @@ export const generateNFTId = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
         }
       } catch (e) {
         // Silent error handling
@@ -408,8 +406,7 @@ export const generateRoleBasedNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
         }
       } catch (e) {
         // Silent error handling
@@ -498,8 +495,8 @@ export const getRoleFromNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
+          
         }
       } catch (e) {
         // Silent error handling
@@ -587,8 +584,8 @@ export const generateChildNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
+          
         }
       } catch (e) {
         // Silent error handling
@@ -677,8 +674,7 @@ export const getDataFromChildNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
         }
       } catch (e) {
         // Silent error handling
@@ -762,8 +758,8 @@ export const removeRoleNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
+          
         }
       } catch (e) {
         // Silent error handling
@@ -848,8 +844,8 @@ export const removeChildNFT = async (
       try {
         if (env !== undefined) {
           await env.down();
-          logger.info('Goodbye');
-          process.exit(0);
+          logger.info('Environment cleaned up');
+          
         }
       } catch (e) {
         // Silent error handling

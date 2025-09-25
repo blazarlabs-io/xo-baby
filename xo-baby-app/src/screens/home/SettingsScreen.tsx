@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../../types/navigation';
@@ -8,10 +8,10 @@ import { useKidStore } from '@/store/kidStore';
 import { logoutAll } from '@/services/logout';
 
 interface SettingsScreensProps {
-  kidId: string;
+  kidId?: string;
 }
 
-const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
+const SettingsScreen = ({ kidId} : SettingsScreensProps = {}) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Devices'>>();
   const user = useUserStore( s => s.user )
   const handleLogout = async () => {
@@ -47,7 +47,7 @@ const SettingsScreen = ({ kidId} : SettingsScreensProps) => {
       
     </View>
   );
-};
+}
 
 export default SettingsScreen;
 

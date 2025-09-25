@@ -42,6 +42,7 @@ export default function KidProfileCard({
     useNavigation<NativeStackNavigationProp<AppStackParamList, "KidProfile">>();
   const user = useUserStore((state) => state.user);
   const token = user?.token || "";
+  const userRole = user?.role || 'parent';
   const kid = useKidStore((state) => state.kids.find((k) => k.id === kidId));
 
   console.log(
@@ -154,18 +155,20 @@ export default function KidProfileCard({
       <UpcomingTasks kidID={kidId} />
       <Notes kidID={kidId} />
 
-      <Pressable
-        onPress={() => navigation.navigate("AddKidName")}
-        style={styles.buttonAdd}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Image
-            source={require("../../../assets/home-parent/baby.png")}
-            style={{ width: 24, height: 24 }}
-          />
-          <Text style={styles.addKidText}>Add Kid</Text>
-        </View>
-      </Pressable>
+      {userRole !== 'medical' && (
+        <Pressable
+          onPress={() => navigation.navigate("AddKidName")}
+          style={styles.buttonAdd}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Image
+              source={require("../../../assets/home-parent/baby.png")}
+              style={{ width: 24, height: 24 }}
+            />
+            <Text style={styles.addKidText}>Add Kid</Text>
+          </View>
+        </Pressable>
+      )}
     </>
   );
 

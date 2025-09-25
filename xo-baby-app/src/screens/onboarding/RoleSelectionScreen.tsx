@@ -5,14 +5,22 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ROLE_LABELS, UserRole } from '../../constants/roles';
 import { AuthStackParamList } from '../../types/navigation';
+import { useUserStore } from '../../store/userStore';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'RoleSelection'>;
 
 const RoleSelectionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { setSelectedRole } = useUserStore();
+
   const handleSelectRole = (role: UserRole) => {
+    // Store the selected role temporarily
+    setSelectedRole(role);
+    
+    // Navigate to welcome screen
     navigation.navigate('Welcome');
   };
+
   const ROLE_IMAGES: Record<UserRole, any> = {
     parent: require('../../../assets/common/parent.jpg'),
     medical: require('../../../assets/common/medical.jpg'),

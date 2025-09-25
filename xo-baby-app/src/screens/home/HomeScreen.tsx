@@ -1,94 +1,43 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, Pressable, ActivityIndicator } from 'react-native';
-import { styles } from './styles/HomeScreen.styles';
-import api from '../../api/axios'
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator, Pressable, Image } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { HomeStackParamList } from '../../navigation/HomeStack';
 import type { AppStackParamList } from '../../types/navigation';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
-import NoKidsPlaceholder from './NoKidsPlaceholder'
 import KidSlider from '../../components/Kid/KidSlider';
-import { getMyKids } from '../../api/kidApi';
-import type { HomeStackParamList } from '@/navigation/HomeStack';
-import { useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
+import NoKidsPlaceholder from './NoKidsPlaceholder';
+import { styles } from './styles/HomeScreen.styles';
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
+  const homeNavigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const appNavigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<RouteProp<HomeStackParamList, 'Home'>>();
   const focusKidId = route.params?.focusKidId;
+  
   const [isLoading, setIsLoading] = useState(false);
-  const fetchRequestRef = useRef<Promise<any> | null>(null);
-  const lastTokenRef = useRef<string | null>(null);
+  
   const kids = useKidStore((state) => state.kids);
   const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
+  const userRole = user?.role || 'parent';
 
   useEffect(() => {
-    console.log('🔄 Kids state changed in HomeScreen:', {
-      count: kids.length,
-      kids: kids.map(k => ({ id: k.id, firstName: k.firstName, lastName: k.lastName }))
-    });
-  }, [kids]);
-
-  useEffect(() => {
-    let isMounted = true; // Track if component is still mounted
-
     const fetchKids = async () => {
-      const currentToken = user?.token;
-      if (!currentToken) {
-        if (isMounted) {
-          useKidStore.getState().clearKids();
-        }
-        return;
-      }
-
-      if (currentToken === lastTokenRef.current && fetchRequestRef.current) {
-        return fetchRequestRef.current;
-      }
-
-      if (isLoading) {
-        return;
-      }
-
-      if (isMounted) {
-        setIsLoading(true);
-      }
-      lastTokenRef.current = currentToken;
-
+      if (!user?.token) return;
+      
+      setIsLoading(true);
       try {
-        const requestPromise = getMyKids(currentToken);
-        fetchRequestRef.current = requestPromise;
-        const kids = await requestPromise;
-        if (isMounted) {
-          console.log('📊 Kids data details:', {
-            isArray: Array.isArray(kids),
-            length: kids?.length,
-            allKids: kids?.map((k: any) => ({ id: k.id, firstName: k.firstName, lastName: k.lastName }))
-          });
-
-          const kidsToSet = kids || [];
-          useKidStore.getState().setKids(kidsToSet);
-          const storeKids = useKidStore.getState().kids;
-          setIsLoading(false);
-        }
+        await refreshKids(user.token);
       } catch (error) {
-        if (isMounted) {
-          console.error('❌ Failed to fetch kids:', error);
-          useKidStore.getState().clearKids();
-          setIsLoading(false);
-        }
+        console.error('❌ Error fetching kids:', error);
       } finally {
-        fetchRequestRef.current = null;
+        setIsLoading(false);
       }
     };
 
     fetchKids();
-
-    return () => {
-      isMounted = false;
-    };
   }, [user?.token]); // Only depend on token, not entire user object
 
   const shouldShowLoading = isLoading && kids.length === 0;
@@ -118,17 +67,24 @@ export default function HomeScreen() {
     }
   };
 
+  const handleAddKid = () => {
+    // Navigate to AddKidName using the app navigation
+    appNavigation.navigate('AddKidName');
+  };
+
   return (
     <View style={styles.container}>
       {kids.length === 0 ? (
         <>
-          <NoKidsPlaceholder onAdd={() => navigation.navigate('AddKidName')} />
-          <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.addNewKidButton}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-              <Text style={styles.addKidText}>Add first Kid</Text>
-            </View>
-          </Pressable>
+          <NoKidsPlaceholder onAdd={handleAddKid} />
+          {userRole === 'parent' && (
+            <Pressable onPress={handleAddKid} style={styles.addNewKidButton}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
+                <Text style={styles.addKidText}>Add first Kid</Text>
+              </View>
+            </Pressable>
+          )}
         </>
       ) : (
         <>

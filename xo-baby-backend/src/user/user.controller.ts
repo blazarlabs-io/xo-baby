@@ -1,7 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Get, Put, Param, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { UserService } from './user.service';
 import { Headers, UnauthorizedException } from '@nestjs/common';
+import { FirebaseAuthGuard } from '../auth/auth.guard';
 
 @Controller('users')
 export class UserController {
@@ -22,5 +24,21 @@ export class UserController {
     return this.userService.verifyIdToken(idToken);
   }
 
+  @UseGuards(FirebaseAuthGuard)
+  @Put(':uid/role')
+  async updateRole(@Param('uid') uid: string, @Body() dto: UpdateRoleDto) {
+    return this.userService.updateUserRole(uid, dto);
+  }
 
+  @UseGuards(FirebaseAuthGuard)
+  @Get(':uid/profile')
+  async getProfile(@Param('uid') uid: string) {
+    return this.userService.getUserProfile(uid);
+  }
+
+  @UseGuards(FirebaseAuthGuard)
+  @Get('medical-personnel')
+  async getMedicalPersonnel() {
+    return this.userService.getAllMedicalPersonnel();
+  }
 }
