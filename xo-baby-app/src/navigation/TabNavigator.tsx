@@ -17,10 +17,16 @@ import { useUserStore } from "@/store/userStore";
 const Tab = createBottomTabNavigator();
 
 export default function TabNavigator() {
-  const role = useUserStore((s) => s.user?.role) || "parent";
+  const user = useUserStore((s) => s.user);
+  const role = user?.role || "parent";
+  
+  // Debug logging
+  console.log("🔍 TabNavigator - User:", user);
+  console.log("🔍 TabNavigator - Role:", role);
 
   return (
     <Tab.Navigator
+      key={`tab-${role}`} // Force re-render when role changes
       screenOptions={{
         headerShown: false,
       }}

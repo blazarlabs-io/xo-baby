@@ -38,19 +38,39 @@ export default function LoginPasswordScreen() {
           
           if (response.ok) {
             const userProfile = await response.json();
-            setUser({
+            console.log("🔍 Login - User Profile from backend:", userProfile);
+            console.log("🔍 Login - Selected Role:", selectedRole);
+            
+            const finalRole = userProfile.role || selectedRole || 'parent';
+            console.log("🔍 Login - Final Role:", finalRole);
+            
+            const userData = {
               uid: user.uid,
               email: user.email ?? '',
               token: token,
-              role: userProfile.role || selectedRole || 'parent',
-            });
+              role: finalRole,
+            };
+            
+            console.log("🔍 Login - Setting user data:", userData);
+            setUser(userData);
+            
+            // Verify the user was set correctly
+            setTimeout(() => {
+              const currentUser = useUserStore.getState().user;
+              console.log("🔍 Login - User after setting:", currentUser);
+            }, 100);
+            
           } else {
+            console.log("🔍 Login - Backend response not OK, using fallback role");
+            const fallbackRole = selectedRole || 'parent';
+            console.log("🔍 Login - Using fallback role:", fallbackRole);
+            
             // Fallback to selected role or default
             setUser({
               uid: user.uid,
               email: user.email ?? '',
               token: token,
-              role: selectedRole || 'parent',
+              role: fallbackRole,
             });
           }
           
@@ -58,12 +78,16 @@ export default function LoginPasswordScreen() {
           clearSelectedRole();
         } catch (profileError) {
           console.warn('Failed to fetch user profile:', profileError);
+          console.log("🔍 Login - Profile fetch error, using fallback role");
+          const fallbackRole = selectedRole || 'parent';
+          console.log("🔍 Login - Using fallback role:", fallbackRole);
+          
           // Fallback to selected role or default
           setUser({
             uid: user.uid,
             email: user.email ?? '',
             token: token,
-            role: selectedRole || 'parent',
+            role: fallbackRole,
           });
           
           // Clear the temporary selected role

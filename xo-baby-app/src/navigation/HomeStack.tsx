@@ -22,13 +22,21 @@ export type HomeStackParamList = {
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 export default function HomeStack() {
-  const role = useUserStore((s) => s.user?.role) || "parent";
+  const user = useUserStore((s) => s.user);
+  const role = user?.role || "parent";
+  
+  // Debug logging
+  console.log("🔍 HomeStack - User:", user);
+  console.log("🔍 HomeStack - Role:", role);
   
   // Determine initial screen based on user role
   const initialRouteName = role === "medical" ? "MedicalDashboard" : "Home";
+  
+  console.log("🔍 HomeStack - Initial Route:", initialRouteName);
 
   return (
     <Stack.Navigator 
+      key={`home-${role}`} // Force re-render when role changes
       screenOptions={{ headerShown: false }}
       initialRouteName={initialRouteName}
     >

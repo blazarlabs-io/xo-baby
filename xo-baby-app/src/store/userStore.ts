@@ -23,17 +23,22 @@ interface UserStore {
 export const useUserStore = create<UserStore>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         user: null,
         selectedRole: null,
-        setUser: (user) => set({ user }),
+        setUser: (user) => {
+          console.log("🔍 UserStore - Setting user:", user);
+          set({ user });
+        },
         clearUser: () => set({ user: null }),
         updateToken: (token) =>
-        set((state) =>
-          state.user
-            ? { user: { ...state.user, token } }
-            : state
-        ),
+          set((state) => {
+            if (state.user) {
+              console.log("🔍 UserStore - Updating token, preserving role:", state.user.role);
+              return { user: { ...state.user, token } };
+            }
+            return state;
+          }),
         setSelectedRole: (role) => set({ selectedRole: role }),
         clearSelectedRole: () => set({ selectedRole: null }),
       }),
@@ -42,10 +47,13 @@ export const useUserStore = create<UserStore>()(
         storage: {
           getItem: async (name) => {
             const value = await AsyncStorage.getItem(name);
-            return value ? JSON.parse(value) : null; // parsed
+            const parsed = value ? JSON.parse(value) : null;
+            console.log("🔍 UserStore - Loading from storage:", parsed);
+            return parsed;
           },
           setItem: async (name, value) => {
-            await AsyncStorage.setItem(name, JSON.stringify(value)); // stringified
+            console.log("🔍 UserStore - Saving to storage:", value);
+            await AsyncStorage.setItem(name, JSON.stringify(value));
           },
           removeItem: async (name) => {
             await AsyncStorage.removeItem(name);
