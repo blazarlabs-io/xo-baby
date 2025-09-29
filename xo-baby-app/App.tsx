@@ -9,6 +9,7 @@ export default function App() {
   const fontsLoaded = useCustomFonts()
 
   useEffect(() => {
+    // Attach Firebase auth listener
     const unsubscribe = attachAuthTokenListener();
     return () => unsubscribe(); // cleanup on unmount / fast refresh
   }, []);

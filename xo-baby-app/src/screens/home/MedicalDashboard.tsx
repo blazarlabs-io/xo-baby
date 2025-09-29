@@ -91,7 +91,7 @@ export default function MedicalDashboard() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#4ECDC4" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading patients...</Text>
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading kids...</Text>
       </View>
     );
   }

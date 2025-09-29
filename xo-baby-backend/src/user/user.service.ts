@@ -27,6 +27,38 @@ export class UserService {
     return { uid: userRecord.uid, email: dto.email, role: dto.role };
   }
 
+  async createGoogleUser(data: {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  }) {
+    try {
+      // Check if user already exists in Firestore
+      const userDoc = await this.firebase.getFirestore().collection('users').doc(data.uid).get();
+      
+      if (userDoc.exists) {
+        throw new Error('User already exists');
+      }
+
+      // Save user profile in Firestore with role
+      await this.firebase.getFirestore().collection('users').doc(data.uid).set({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        uid: data.uid,
+        role: data.role,
+        createdAt: new Date().toISOString(),
+      });
+
+      return { uid: data.uid, email: data.email, role: data.role };
+    } catch (error) {
+      console.error('Error creating Google user:', error);
+      throw error;
+    }
+  }
+
   async updateUserRole(uid: string, dto: UpdateRoleDto) {
     try {
       const userDoc = await this.firebase.getFirestore().collection('users').doc(uid).get();

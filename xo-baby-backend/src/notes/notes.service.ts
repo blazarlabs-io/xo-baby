@@ -12,15 +12,32 @@ export class NotesService {
     private readonly kidService: KidService,
   ) { }
 
-  private async ensureOwnership(kidId: string, userId: string) {
+  private async ensureAccess(kidId: string, userId: string) {
     const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== userId) {
-      throw new ForbiddenException("You are not this child's parent.");
+    if (!kid) {
+      throw new NotFoundException(`Kid with id ${kidId} not found`);
     }
+
+    // Get user profile to determine role
+    const userDoc = await this.firebaseService.getFirestore().collection('users').doc(userId).get();
+    const userRole = userDoc.exists ? userDoc.data()?.role || 'parent' : 'parent';
+
+    // Check access based on role and relationships
+    const hasAccess = 
+      userRole === 'admin' ||                    // Admin can access all kids
+      kid.parentId === userId ||                 // Parent of the kid
+      (kid as any).doctorId === userId ||        // Doctor assigned to the kid
+      (kid as any).adminId === userId;           // Admin assigned to the kid
+
+    if (!hasAccess) {
+      throw new ForbiddenException("You don't have permission to access this child's notes.");
+    }
+
+    return { kid, userRole };
   }
 
   async create(dto: CreateNoteDto, userId: string) {
-    await this.ensureOwnership(dto.kidId, userId);
+    await this.ensureAccess(dto.kidId, userId);
     const data = {
       ...dto,
       createdAt: new Date().toISOString(),
@@ -34,7 +51,7 @@ export class NotesService {
 
   async findAll(query: GetNotesDto, userId: string) {
     if (query.kidId) {
-      await this.ensureOwnership(query.kidId, userId);
+      await this.ensureAccess(query.kidId, userId);
     }
     const collection = this.firebaseService.getFirestore().collection('notes');
     let firestoreQuery: FirebaseFirestore.Query = collection;
@@ -57,7 +74,7 @@ export class NotesService {
       throw new NotFoundException(`Note with id ${id} not found`);
     }
     const note = snap.data() as any;
-    await this.ensureOwnership(note.kidId, userId);
+    await this.ensureAccess(note.kidId, userId);
 
     await docRef.update({ ...dto, updatedAt: new Date().toISOString() });
     const updated = await docRef.get();

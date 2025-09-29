@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { FirebaseService } from '../firebase/firebase.service';
 import { KidService } from '../kid/kid.service';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -11,15 +11,32 @@ export class TaskService {
     private readonly kidService: KidService,
   ) { }
 
-  private async ensureOwnership(kidId: string, userId: string) {
+  private async ensureAccess(kidId: string, userId: string) {
     const kid = await this.kidService.findById(kidId);
-    if (!kid || kid.parentId !== userId) {
-      throw new ForbiddenException("You are not this child's parent.");
+    if (!kid) {
+      throw new NotFoundException(`Kid with id ${kidId} not found`);
     }
+
+    // Get user profile to determine role
+    const userDoc = await this.firebaseService.getFirestore().collection('users').doc(userId).get();
+    const userRole = userDoc.exists ? userDoc.data()?.role || 'parent' : 'parent';
+
+    // Check access based on role and relationships
+    const hasAccess = 
+      userRole === 'admin' ||                    // Admin can access all kids
+      kid.parentId === userId ||                 // Parent of the kid
+      (kid as any).doctorId === userId ||        // Doctor assigned to the kid
+      (kid as any).adminId === userId;           // Admin assigned to the kid
+
+    if (!hasAccess) {
+      throw new ForbiddenException("You don't have permission to access this child's tasks.");
+    }
+
+    return { kid, userRole };
   }
 
   async create(createTaskDto: CreateTaskDto, userId: string) {
-    await this.ensureOwnership(createTaskDto.kidId, userId);
+    await this.ensureAccess(createTaskDto.kidId, userId);
 
     const data = {
       ...createTaskDto,
@@ -39,7 +56,7 @@ export class TaskService {
       console.log('kidId', kidId);
       console.log('limit', limit);
       if (kidId) {
-        await this.ensureOwnership(kidId, userId);
+        await this.ensureAccess(kidId, userId);
       }
 
       let query = this.firebaseService

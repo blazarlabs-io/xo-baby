@@ -14,6 +14,17 @@ export class UserController {
     return this.userService.createUser(dto);
   }
 
+  @Post('create-google')
+  async createGoogle(@Body() data: {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  }) {
+    return this.userService.createGoogleUser(data);
+  }
+
   @Post('verify-token')
   async verifyToken(@Headers('authorization') authHeader: string) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

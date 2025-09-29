@@ -10,6 +10,7 @@ const DEV_HOST = Platform.select({
 });
 
 // Use the same server for both dev and production for now
+// const BASE_URL = `https://xo-baby.blazarlabs.io`;
 const BASE_URL = `http://64.227.35.231:3000`;
 
 export const api = axios.create({
