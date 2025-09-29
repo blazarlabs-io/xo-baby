@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "xo-baby-app",
-    "slug": "xo-baby-app",
+    "slug": "xo-baby",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -42,7 +42,10 @@
               "scheme": "xo-baby-app"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -56,8 +59,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "a47c611b-cf5b-4381-9d12-013898ccdca9"
+        "projectId": "f929cd25-b511-4f2e-9eff-9c1aa29b3567"
       }
-    }
+    },
+    "owner": "daikifujii"
   }
 }
