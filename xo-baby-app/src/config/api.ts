@@ -10,27 +10,33 @@ const DEV_HOST = Platform.select({
 });
 
 // Use the same server for both dev and production for now
-// const BASE_URL = `https://xo-baby.blazarlabs.io`;
-const BASE_URL = `http://64.227.35.231:3000`;
+const BASE_URL = `https://xo-baby.blazarlabs.io`;
+// const BASE_URL = `http://64.227.35.231:3000`;
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 300000, // 5 minutes default timeout
+  timeout: 900000, // 15 minutes timeout to match nginx
   headers: { "Content-Type": "application/json" },
 });
 
 // attach token
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = useUserStore.getState().user?.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 let isRefreshing = false;
-let queue: { resolve: (t: string) => void; reject: (e: any) => void }[] = [];
+let queue: { resolve: (token: string) => void; reject: (error: any) => void }[] = [];
 
 function resolveQueue(err: any, token: string | null) {
-  queue.forEach((p) => (err ? p.reject(err) : p.resolve(token as string)));
+  queue.forEach(({ resolve, reject }) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(token!);
+    }
+  });
   queue = [];
 }
 

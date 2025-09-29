@@ -14,16 +14,39 @@ export class KidController {
 
   @Post('create')
   async createKid(@Body() dto: CreateKidDto) {
-    return this.kidService.createKid(dto);
+    console.log('📋 Kid creation request received at:', new Date().toISOString());
+    console.log('📋 Request data:', JSON.stringify(dto, null, 2));
+    console.log('📋 Request headers present, processing...');
+    
+    try {
+      const result = await this.kidService.createKid(dto);
+      console.log('✅ Kid created successfully at:', new Date().toISOString());
+      console.log('✅ Response data:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error('❌ Kid creation failed at:', new Date().toISOString());
+      console.error('❌ Error details:', error);
+      throw error;
+    }
   }
 
   @Get('my-kids')
   async getKidsByUser(@Headers('authorization') authHeader: string) {
+    console.log('📋 Get my kids request received');
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing or invalid Authorization header');
     }
     const idToken = authHeader.replace('Bearer ', '');
-    return this.kidService.getKidsByUserToken(idToken);
+    
+    try {
+      const result = await this.kidService.getKidsByUserToken(idToken);
+      console.log(`✅ Found ${result?.length || 0} kids`);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to get kids:', error);
+      throw error;
+    }
   }
 
   @Post('clear-cache')

@@ -492,14 +492,32 @@ export class KidService {
     const decoded = await this.firebase.getAuth().verifyIdToken(token);
     const uid = decoded.uid;
     
+    console.log(`🔍 Getting kids for user: ${uid}, email: ${decoded.email}`);
+    
     // Get user profile to determine role
     const userDoc = await this.firebase.getFirestore().collection('users').doc(uid).get();
-    const userRole = userDoc.exists ? userDoc.data()?.role || 'parent' : 'parent';
+    let userRole = 'parent';
+    
+    if (userDoc.exists) {
+      userRole = userDoc.data()?.role || 'parent';
+    } else {
+      // Create user record if it doesn't exist (for medical personnel)
+      console.log(`⚠️ User ${uid} not found in users collection, creating with parent role`);
+      await this.firebase.getFirestore().collection('users').doc(uid).set({
+        uid: uid,
+        email: decoded.email || '',
+        role: 'parent',
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    console.log(`👤 User role: ${userRole}, exists: ${userDoc.exists}`);
 
     let kids: any[] = [];
 
     // Get kids based on user role
     if (userRole === 'parent') {
+      console.log(`🔍 Searching for kids with parentId: ${uid}`);
       const parentSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -511,7 +529,9 @@ export class KidService {
         ...doc.data(),
         userRole: 'parent',
       }));
+      console.log(`👶 Found ${kids.length} kids as parent`);
     } else if (userRole === 'medical') {
+      console.log(`🔍 Searching for kids with doctorId: ${uid}`);
       const doctorSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -523,7 +543,9 @@ export class KidService {
         ...doc.data(),
         userRole: 'medical',
       }));
+      console.log(`👶 Found ${kids.length} kids as medical personnel`);
     } else if (userRole === 'admin') {
+      console.log(`🔍 Getting all kids for admin`);
       const adminSnapshot = await this.firebase
         .getFirestore()
         .collection('kids')
@@ -535,6 +557,7 @@ export class KidService {
         ...doc.data(),
         userRole: 'admin',
       }));
+      console.log(`👶 Found ${kids.length} kids as admin`);
     }
 
     const uniqueKids = kids.filter(

@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../../types/navigation";
 import { useKidStore } from "../../../store/kidStore";
 import { createKid } from "../../../api/kidApi";
+import { api } from "../../../config/api";
 import { useUserStore } from "../../../store/userStore";
 import LoadingModal from "../../../components/LoadingModal";
 import TransactionSuccessModal from "../../../components/TransactionSuccessModal";
@@ -89,6 +90,8 @@ export default function AddKidAvatarScreen() {
 
     try {
       console.log("Starting kid creation process...");
+      console.log("🔍 API Base URL:", api.defaults.baseURL);
+      console.log("🔍 Current config check - if you see this, the new code is loaded");
 
       // Start the API call
       const createKidPromise = createKid({
@@ -118,7 +121,7 @@ export default function AddKidAvatarScreen() {
               return "finalizing";
           }
         });
-      }, 30000); // Change stage every 30 seconds
+      }, 60000); // Change stage every 30 seconds
 
       setProgressInterval(interval);
 
@@ -184,15 +187,34 @@ export default function AddKidAvatarScreen() {
       ) {
         errorMessage =
           "Network connection issue. Please check your internet connection and try again.";
-      } else if (error.message?.includes("timeout")) {
+      } else if (
+        error.message?.includes("timeout") ||
+        error.code === "ECONNABORTED"
+      ) {
         errorMessage =
-          "The operation is taking longer than expected. Please try again.";
+          "The blockchain operation is taking longer than expected. This can happen during network congestion. Please try again or contact support if the issue persists.";
       } else if (error.response?.status === 500) {
         errorMessage =
           "Server error occurred. Please try again in a few minutes.";
+      } else if (error.response?.status === 404) {
+        errorMessage =
+          "Service temporarily unavailable. The backend is processing blockchain operations. Please wait a moment and try again.";
+      } else if (error.response?.status === 502 || error.response?.status === 503) {
+        errorMessage =
+          "Server is temporarily unavailable. Please try again in a few minutes.";
       }
 
-      Alert.alert("Error", errorMessage, [{ text: "OK" }]);
+      Alert.alert("Error", errorMessage, [
+        { text: "OK" },
+        {
+          text: "Retry",
+          onPress: () => {
+            // Reset state and try again
+            setIsCreating(false);
+            setTimeout(() => handleCreateKid(), 1000);
+          }
+        }
+      ]);
     } finally {
       // Clean up any remaining interval
       if (progressInterval) {

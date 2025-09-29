@@ -14,8 +14,9 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
         return {
           title: "Creating Blockchain Identity",
           description:
-            "Setting up wallet and creating child ID on Midnight network...",
-          estimatedTime: "~1 minute",
+            "Setting up wallet and creating child ID on Midnight network. This process involves complex cryptographic operations and blockchain transactions.",
+          estimatedTime: "~3-5 minutes",
+          additionalInfo: "Please keep the app open during this process."
         };
       case "encrypting":
         return {
@@ -23,24 +24,28 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
           description:
             "Securing your child's information with AES encryption...",
           estimatedTime: "~10 seconds",
+          additionalInfo: ""
         };
       case "uploading":
         return {
           title: "Uploading to IPFS",
           description: "Storing encrypted data on decentralized storage...",
-          estimatedTime: "~15 seconds",
+          estimatedTime: "~15-30 seconds",
+          additionalInfo: ""
         };
       case "finalizing":
         return {
           title: "Finalizing",
-          description: "Creating NFT and completing setup...",
-          estimatedTime: "~30 seconds",
+          description: "Creating NFT and completing blockchain registration...",
+          estimatedTime: "~1-2 minutes",
+          additionalInfo: "Almost done! Please wait while we finalize everything."
         };
       default:
         return {
           title: "Processing",
           description: "Please wait...",
           estimatedTime: "",
+          additionalInfo: ""
         };
     }
   };
@@ -63,6 +68,12 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
               </Text>
             )}
 
+            {stageInfo.additionalInfo && (
+              <Text style={styles.additionalInfo}>
+                {stageInfo.additionalInfo}
+              </Text>
+            )}
+
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
                 <View
@@ -74,6 +85,14 @@ export default function LoadingModal({ visible, stage }: LoadingModalProps) {
               </View>
               <Text style={styles.progressText}>{getProgressText(stage)}</Text>
             </View>
+
+            {stage === "blockchain" && (
+              <View style={styles.warningContainer}>
+                <Text style={styles.warningText}>
+                  ⚠️ Blockchain operations may take several minutes. Please be patient and keep the app open.
+                </Text>
+              </View>
+            )}
           </View>
         </LinearGradient>
       </View>
@@ -157,6 +176,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: "500",
   },
+  additionalInfo: {
+    fontSize: 11,
+    color: "#888",
+    marginTop: 6,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
   progressContainer: {
     width: "100%",
     marginTop: 25,
@@ -178,5 +204,19 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     marginTop: 8,
+  },
+  warningContainer: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: "rgba(255, 193, 7, 0.1)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 193, 7, 0.3)",
+  },
+  warningText: {
+    fontSize: 11,
+    color: "#d68910",
+    textAlign: "center",
+    lineHeight: 16,
   },
 });

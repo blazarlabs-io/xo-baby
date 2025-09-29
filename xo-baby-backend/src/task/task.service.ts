@@ -12,8 +12,11 @@ export class TaskService {
   ) { }
 
   private async ensureAccess(kidId: string, userId: string) {
+    console.log(`🔍 Task access check - kidId: ${kidId}, userId: ${userId}`);
+    
     const kid = await this.kidService.findById(kidId);
     if (!kid) {
+      console.log(`❌ Kid not found: ${kidId}`);
       throw new NotFoundException(`Kid with id ${kidId} not found`);
     }
 
@@ -21,14 +24,20 @@ export class TaskService {
     const userDoc = await this.firebaseService.getFirestore().collection('users').doc(userId).get();
     const userRole = userDoc.exists ? userDoc.data()?.role || 'parent' : 'parent';
 
+    console.log(`👤 User role: ${userRole}, Kid parentId: ${kid.parentId}`);
+
     // Check access based on role and relationships
     const hasAccess = 
       userRole === 'admin' ||                    // Admin can access all kids
       kid.parentId === userId ||                 // Parent of the kid
       (kid as any).doctorId === userId ||        // Doctor assigned to the kid
-      (kid as any).adminId === userId;           // Admin assigned to the kid
+      (kid as any).adminId === userId ||         // Admin assigned to the kid
+      userRole === 'medical';                    // Medical personnel can access all kids
+
+    console.log(`🔐 Access granted: ${hasAccess}`);
 
     if (!hasAccess) {
+      console.log(`❌ Access denied for user ${userId} to kid ${kidId}`);
       throw new ForbiddenException("You don't have permission to access this child's tasks.");
     }
 
