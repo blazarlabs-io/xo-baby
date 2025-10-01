@@ -134,7 +134,7 @@ export default function AdminDashboard() {
                         {kid.avatarUrl ? (
                           <Image source={{ uri: kid.avatarUrl }} style={styles.avatarImage} />
                         ) : (
-                          <Image source={require('../../../assets/kids/avatar-boy.png')} style={styles.avatarImage} />
+                          <Image source={require('../../../assets/kids/avatar-boy-outline.png')} style={styles.avatarImage} />
                         )}
                       </View>
 
@@ -163,25 +163,26 @@ export default function AdminDashboard() {
                     <View style={styles.kidVitals}>
                       <View style={styles.vitalItem}>
                         <View style={styles.heartIcon}>
-                          <Text style={styles.heartSymbol}>♥</Text>
+                          <Image source={require('../../../assets/home-parent/heart.png')} style={styles.heartIcon} />
+                          {/* <Text style={styles.heartSymbol}>♥</Text> */}
                         </View>
                         <Text style={styles.vitalValue}>140</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.tempIcon}>
-                          <Text style={styles.tempSymbol}>🌡</Text>
+                          <Image source={require('../../../assets/home-parent/thermometer.png')} style={styles.tempIcon} />
                         </View>
                         <Text style={styles.vitalValue}>36.2</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.oxygenIcon}>
-                          <Text style={styles.oxygenSymbol}>💧</Text>
+                          <Image source={require('../../../assets/home-parent/lungs.png')} style={styles.oxygenIcon} />
                         </View>
                         <Text style={styles.vitalValue}>52</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.healthIcon}>
-                          <Text style={styles.healthSymbol}>⭕</Text>
+                          <Image source={require('../../../assets/home-parent/O2.png')} style={styles.healthIcon} />
                         </View>
                         <Text style={styles.vitalValue}>98%</Text>
                       </View>
@@ -379,8 +380,8 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#4ECDC4',
+    // borderWidth: 2,
+    // borderColor: '#4ECDC4',
   },
   kidInfo: {
     flex: 1,
@@ -567,11 +568,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heartIcon: {
-    width: 24,
-    height: 24,
+    // width: 24,
+    // height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFE0E0',
+    // backgroundColor: '#FFE0E0',
     borderRadius: 12,
   },
   heartSymbol: {
@@ -579,11 +580,11 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
   },
   tempIcon: {
-    width: 24,
-    height: 24,
+    // width: 24,
+    // height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#E0E0FF',
+    // backgroundColor: '#E0E0FF',
     borderRadius: 12,
   },
   tempSymbol: {
@@ -591,11 +592,11 @@ const styles = StyleSheet.create({
     color: '#6B6BFF',
   },
   oxygenIcon: {
-    width: 24,
-    height: 24,
+    // width: 24,
+    // height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#E0FFE0',
+    // backgroundColor: '#E0FFE0',
     borderRadius: 12,
   },
   oxygenSymbol: {
@@ -603,11 +604,11 @@ const styles = StyleSheet.create({
     color: '#6BFF6B',
   },
   healthIcon: {
-    width: 24,
-    height: 24,
+    // width: 24,
+    // height: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#E0E0E0',
+    // backgroundColor: '#E0E0E0',
     borderRadius: 12,
   },
   healthSymbol: {

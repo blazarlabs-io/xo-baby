@@ -1,0 +1,47 @@
+{
+    "project_info": {
+      "project_number": "278376901127",
+      "project_id": "xo-baby-blockchain",
+      "storage_bucket": "xo-baby-blockchain.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:278376901127:android:5a7d0cb119355370d718a2",
+          "android_client_info": {
+            "package_name": "com.xobaby.android"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "278376901127-7q9p5vicj0sicgg8fg91a0kuv8s5n1vr.apps.googleusercontent.com",
+            "client_type": 1,
+            "android_info": {
+              "package_name": "com.xobaby.android",
+              "certificate_hash": "addf52450eacc4837ad614f76069d5f88c750bee"
+            }
+          },
+          {
+            "client_id": "278376901127-8mgjhm39opqjdpiqrs7imb64vuj1qqpc.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyDTqPVB75iX6Lte_X7o5-19TylGJ9fwXhk"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "278376901127-8mgjhm39opqjdpiqrs7imb64vuj1qqpc.apps.googleusercontent.com",
+                "client_type": 3
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }

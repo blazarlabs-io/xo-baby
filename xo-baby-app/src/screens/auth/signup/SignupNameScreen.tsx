@@ -228,7 +228,7 @@ export default function SignupNameScreen() {
       />
 
       {/* Google Sign Up Button */}
-      {/* <View style={styles.googleSignUpContainer}>
+      <View style={styles.googleSignUpContainer}>
         <Pressable style={styles.socialButton} onPress={handleGoogleSignUp}>
           <View style={styles.socialButtonContent}>
             <Image
@@ -239,7 +239,7 @@ export default function SignupNameScreen() {
             <Text style={styles.socialText}>Sign Up With Google</Text>
           </View>
         </Pressable>
-      </View> */}
+      </View>
 
       <View
         style={{
@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    backgroundColor: "white",
   },
   socialButtonContent: {
     flexDirection: "row",

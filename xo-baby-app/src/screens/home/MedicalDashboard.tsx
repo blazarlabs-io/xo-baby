@@ -131,7 +131,7 @@ export default function MedicalDashboard() {
                       <Image source={{ uri: kid.avatarUrl }} style={styles.avatar} />
                     ) : (
                       <View style={styles.avatarPlaceholder}>
-                        <Image source={require('../../../assets/kids/avatar-boy.png')} style={styles.avatar} />
+                        <Image source={require('../../../assets/kids/avatar-boy-outline.png')} style={styles.avatar} />
                       </View>
                     )}
                   </View>
@@ -166,7 +166,8 @@ export default function MedicalDashboard() {
                   {/* Heart Rate */}
                   <View style={styles.vitalItem}>
                     <View style={styles.heartIcon}>
-                      <Text style={styles.heartSymbol}>♥</Text>
+                      <Image source={require('../../../assets/home-parent/heart.png')} style={styles.heartIcon} />
+                      {/* <Text style={styles.heartSymbol}>♥</Text> */}
                     </View>
                     <Text style={styles.vitalValue}>
                       {kid.vitals?.heartRate || 140}
@@ -176,7 +177,7 @@ export default function MedicalDashboard() {
                   {/* Temperature */}
                   <View style={styles.vitalItem}>
                     <View style={styles.tempIcon}>
-                      <Text style={styles.tempSymbol}>🌡</Text>
+                      <Image source={require('../../../assets/home-parent/thermometer.png')} style={styles.tempIcon} />
                     </View>
                     <Text style={styles.vitalValue}>
                       {kid.vitals?.temperature || 36.2}
@@ -186,7 +187,7 @@ export default function MedicalDashboard() {
                   {/* Oxygen */}
                   <View style={styles.vitalItem}>
                     <View style={styles.oxygenIcon}>
-                      <Text style={styles.oxygenSymbol}>💧</Text>
+                      <Image source={require('../../../assets/home-parent/lungs.png')} style={styles.oxygenIcon} />
                     </View>
                     <Text style={styles.vitalValue}>
                       {kid.vitals?.oximetry || 52}
@@ -196,7 +197,7 @@ export default function MedicalDashboard() {
                   {/* Overall Health */}
                   <View style={styles.vitalItem}>
                     <View style={styles.healthIcon}>
-                      <Text style={styles.healthSymbol}>⭕</Text>
+                      <Image source={require('../../../assets/home-parent/O2.png')} style={styles.healthIcon} />
                     </View>
                     <Text style={styles.vitalValue}>98%</Text>
                   </View>
@@ -272,12 +273,13 @@ const styles = StyleSheet.create({
   avatarContainer: {
     alignSelf: 'flex-start',
   },
+
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    borderWidth: 3,
-    borderColor: '#4ECDC4',
+    // borderWidth: 3,
+    // borderColor: '#4ECDC4',
   },
   avatarPlaceholder: {
     width: 60,
@@ -373,10 +375,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   heartIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFE7E7',
+    // width: 32,
+    // height: 32,
+    // borderRadius: 16,
+    // backgroundColor: '#FFE7E7',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -385,10 +387,10 @@ const styles = StyleSheet.create({
     color: '#FF4444',
   },
   tempIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF3E0',
+    // width: 32,
+    // height: 32,
+    // borderRadius: 16,
+    // backgroundColor: '#FFF3E0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -396,10 +398,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   oxygenIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E3F2FD',
+    // width: 32,
+    // height: 32,
+    // borderRadius: 16,
+    // backgroundColor: '#E3F2FD',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -407,10 +409,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   healthIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F5E8',
+    // width: 32,
+    // height: 32,
+    // borderRadius: 16,
+    // backgroundColor: '#E8F5E8',
     justifyContent: 'center',
     alignItems: 'center',
   },

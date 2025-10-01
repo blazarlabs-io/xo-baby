@@ -2,78 +2,65 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import Constants from 'expo-constants';
 
-// Complete the auth session for Expo Go
+// Complete the auth session
 WebBrowser.maybeCompleteAuthSession();
-
-// Discovery document for Google OAuth
-const discovery = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://www.googleapis.com/oauth2/v4/token',
-  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
-};
 
 export const signInWithGoogle = async () => {
   try {
-    // Get the client ID from environment variables
-    const clientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+    // For native Android builds, use Android Client ID
+    // For web/Expo Go, use Web Client ID
+    const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+    
+    // Use Android Client ID if available (for native builds)
+    const clientId = androidClientId || webClientId;
     
     if (!clientId) {
-      throw new Error('Google Web Client ID not found. Please add EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to your environment variables.');
+      throw new Error('Google Client ID not found. Please add EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID or EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to your environment variables.');
     }
 
-    // Determine redirect URI based on the environment
-    let redirectUri: string;
-    
-    // Check if running in a development build or standalone app
-    const isStandalone = Constants.executionEnvironment === 'standalone';
-    
-    if (isStandalone) {
-      // For development builds or standalone apps, use custom scheme
-      redirectUri = AuthSession.makeRedirectUri({
-        scheme: 'xo-baby-app',
-        path: 'auth',
-      });
-    } else {
-      // For Expo Go, use the proxy service
-      redirectUri = AuthSession.makeRedirectUri();
-    }
+    console.log('🔍 Starting Google authentication...');
+    console.log('🔍 Using Client ID type:', androidClientId ? 'Android' : 'Web');
 
-    console.log('🔍 Google Auth - Execution Environment:', Constants.executionEnvironment);
-    console.log('🔍 Google Auth - Is Standalone:', isStandalone);
+    // For Android Client ID, use reverse client ID format
+    // For Web Client ID, use Expo proxy
+    const redirectUri = androidClientId 
+      ? `com.googleusercontent.apps.${androidClientId.split('-')[0]}:/oauth2redirect`
+      : AuthSession.makeRedirectUri();
+
     console.log('🔍 Google Auth - Using redirect URI:', redirectUri);
 
-    // Configure the request with proper parameters for Google OAuth 2.0 compliance
+    // Use implicit flow (Token response) which doesn't require client secret
     const request = new AuthSession.AuthRequest({
       clientId: clientId,
-      scopes: ['openid', 'profile', 'email'],
-      responseType: AuthSession.ResponseType.IdToken,
+      scopes: ['profile', 'email', 'openid'],
       redirectUri: redirectUri,
-      extraParams: {
-        nonce: Math.random().toString(36).substring(2, 15),
-        prompt: 'select_account',
-      },
+      responseType: AuthSession.ResponseType.Token,
+      usePKCE: false,
     });
 
-    console.log('🔍 Google Auth - Request configured with secure parameters');
+    console.log('🔍 Google Auth - Using implicit flow (no client secret needed)...');
 
     // Prompt the user to authenticate
-    const result = await request.promptAsync(discovery);
+    const result = await request.promptAsync({
+      authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+    });
 
-    console.log('🔍 Google Auth - Authentication result:', result.type);
+    console.log('🔍 Google Auth - Authentication result:', result?.type);
 
-    if (result.type === 'success') {
-      const { id_token } = result.params;
+    if (result?.type === 'success') {
+      const { id_token, access_token } = result.params;
       
       if (!id_token) {
+        console.error('Response params:', result.params);
         throw new Error('No ID token received from Google');
       }
 
       console.log('🔍 Google Auth - ID token received successfully');
 
-      // Create Firebase credential with the Google ID token
-      const googleCredential = GoogleAuthProvider.credential(id_token);
+      // Create Firebase credential
+      const googleCredential = GoogleAuthProvider.credential(id_token, access_token);
 
       // Sign in with Firebase
       const userCredential = await signInWithCredential(auth, googleCredential);

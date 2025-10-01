@@ -1,20 +1,106 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Pressable, Keyboard, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../types/navigation';
 import { Platform } from 'react-native';
+import { useUserStore } from '../../../store/userStore';
+import { signInWithGoogle } from '../../../services/googleSignIn';
 
 
 export default function LoginEmailScreen() {
   const [email, setEmail] = useState('');
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'LoginEmail'>>();
+  const { setUser } = useUserStore();
 
   const handleNext = () => {
     if (email.trim()) {
       Keyboard.dismiss();
       navigation.navigate('LoginPassword', { email });
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      console.log('🔍 Starting Google Login...');
+
+      const result = await signInWithGoogle();
+      const { user: firebaseUser, userInfo } = result;
+
+      console.log('🔍 Google Login successful:', {
+        firebaseUser: firebaseUser.uid,
+        email: firebaseUser.email,
+        userInfo,
+      });
+
+      // Get the Firebase token
+      const token = await firebaseUser.getIdToken();
+
+      // Verify user exists in backend
+      try {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/users/verify-token`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (response.ok) {
+          const userProfile = await response.json();
+          console.log('🔍 Google Login - User profile loaded:', userProfile);
+
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            token: token,
+            role: userProfile.role || 'parent',
+          });
+
+          Alert.alert(
+            'Login Successful!',
+            `Welcome back, ${userProfile.firstName || 'User'}!`,
+            [{ text: 'OK' }]
+          );
+        } else {
+          // User doesn't exist - redirect to sign-up
+          console.log('🔍 Google Login - User not found, please sign up first');
+
+          Alert.alert(
+            'Account Not Found',
+            'No account found with this Google email. Please sign up first.',
+            [{ text: 'OK' }]
+          );
+        }
+      } catch (profileError) {
+        console.warn('Failed to verify user profile:', profileError);
+
+        // Fallback: set user with default role
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          token: token,
+          role: 'parent',
+        });
+
+        Alert.alert(
+          'Login Successful!',
+          'Logged in with Google.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error: any) {
+      console.error('Google Login error:', error);
+      Alert.alert(
+        'Google Login Failed',
+        error.message ||
+          'An error occurred during Google Login. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -50,6 +136,20 @@ export default function LoginEmailScreen() {
         returnKeyType="done"
       />
 
+      {/* Google Login Button */}
+      <View style={styles.googleLoginContainer}>
+        <Pressable style={styles.socialButton} onPress={handleGoogleLogin}>
+          <View style={styles.socialButtonContent}>
+            <Image
+              source={require('../../../../assets/common/google-icon.png')}
+              style={styles.socialIcon}
+              resizeMode="cover"
+            />
+            <Text style={styles.socialText}>Login With Google</Text>
+          </View>
+        </Pressable>
+      </View>
+
       <View style={{ position: 'absolute', bottom: 24, left: 0, right: 0, alignItems: 'center' }}>
         <Pressable style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>Next</Text>
@@ -79,6 +179,42 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 18,
     color: '#CACACA',
+  },
+  googleLoginContainer: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  socialButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: '#DCE3E3',
+    marginVertical: 5,
+    width: '90%',
+    maxWidth: 320,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    backgroundColor: 'white',
+  },
+  socialButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    position: 'relative',
+  },
+  socialIcon: {
+    width: 15,
+    height: 15,
+    position: 'absolute',
+    left: 5,
+  },
+  socialText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   button: {
     backgroundColor: '#31CECE',
