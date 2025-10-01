@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../../navigation/HomeStack';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
+import type { Kid } from '../../store/kidStore';
 import api from '../../api/axios';
 
 export default function AdminDashboard() {
@@ -47,6 +48,11 @@ export default function AdminDashboard() {
     console.log('Personnel pressed:', personnelId);
   };
 
+  // Get kids managed by a specific doctor
+  const getKidsByDoctorId = (doctorId: string): Kid[] => {
+    return kids.filter(kid => kid.doctorId === doctorId);
+  };
+
   // Calculate age from birth date
   const calculateAge = (birthDate: string) => {
     if (!birthDate) return 'Unknown age';
@@ -83,7 +89,7 @@ export default function AdminDashboard() {
         {/* My Facility Header */}
         <View style={styles.facilityHeader}>
           <Image 
-            source={require('../../../assets/home-parent/baby.png')} 
+            source={require('../../../assets/facility/hospital.png')} 
             style={styles.facilityIcon}
           />
           <Text style={styles.facilityTitle}>My Facility</Text>
@@ -94,12 +100,12 @@ export default function AdminDashboard() {
           <View style={styles.hospitalCard}>
             <View style={styles.hospitalImageContainer}>
               <Image
-                source={require('../../../assets/common/medical.jpg')}
+                source={require('../../../assets/facility/facility.png')}
                 style={styles.hospitalImage}
               />
               <View style={styles.hospitalIconOverlay}>
                 <Image
-                  source={require('../../../assets/home-parent/baby.png')}
+                  source={require('../../../assets/facility/facility-logo.png')}
                   style={styles.hospitalIconSmall}
                 />
               </View>
@@ -213,40 +219,65 @@ export default function AdminDashboard() {
               </View>
             ) : (
               <>
-                {medicalPersonnel.slice(0, 2).map((person) => (
-                  <Pressable
-                    key={person.uid}
-                    style={styles.personnelCard}
-                    onPress={() => handlePersonnelPress(person.uid)}
-                  >
-                    <View style={styles.personnelMainRow}>
-                      <View style={styles.personnelAvatar}>
-                        <View style={styles.doctorAvatarPlaceholder}>
-                          <Text style={styles.avatarText}>
-                            {person.firstName?.[0]}{person.lastName?.[0]}
+                {medicalPersonnel.map((person) => {
+                  const managedKids = getKidsByDoctorId(person.uid);
+                  
+                  return (
+                    <Pressable
+                      key={person.uid}
+                      style={styles.personnelCard}
+                      onPress={() => handlePersonnelPress(person.uid)}
+                    >
+                      <View style={styles.personnelMainRow}>
+                        <View style={styles.personnelAvatar}>
+                          <View style={styles.doctorAvatarPlaceholder}>
+                            <Image source={require('../../../assets/common/user-doctor.png')} style={styles.avatarImage} />
+                          </View>
+                        </View>
+                        
+                        <View style={styles.personnelInfo}>
+                          <Text style={styles.personnelName}>
+                            Dr. {person.firstName} {person.lastName}
+                          </Text>
+                          <Text style={styles.personnelEmail}>
+                            {person.email}
                           </Text>
                         </View>
-                      </View>
-                      
-                      <View style={styles.personnelInfo}>
-                        <Text style={styles.personnelName}>
-                          Dr. {person.firstName} {person.lastName}
-                        </Text>
-                        <Text style={styles.personnelEmail}>
-                          {person.email}
-                        </Text>
-                      </View>
 
-                      <View style={styles.personnelStatus}>
-                        <View style={styles.activeStatusDot} />
-                        <Text style={styles.activeStatusText}>Active</Text>
-                        <View style={styles.personnelBadge}>
-                          <Text style={styles.badgeText}>👩‍⚕️</Text>
+                        <View style={styles.personnelStatus}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <View style={styles.activeStatusDot} />
+                            <Text style={styles.activeStatusText}>Active</Text>
+                          </View>
+                          {managedKids.length > 0 && (
+                            <View style={styles.activeKidsContainer}>
+                              {managedKids.slice(0, 3).map((kid, index) => (
+                                <View 
+                                  key={kid.id} 
+                                  style={[
+                                    styles.activeKidAvatar,
+                                    index > 0 && { marginLeft: -10 }
+                                  ]}
+                                >
+                                  {kid.avatarUrl ? (
+                                    <Image source={{ uri: kid.avatarUrl }} style={styles.activeKidAvatarImage} />
+                                  ) : (
+                                    <Image source={require('../../../assets/kids/avatar-boy-outline.png')} style={styles.activeKidAvatarImage} />
+                                  )}
+                                </View>
+                              ))}
+                              {managedKids.length > 3 && (
+                                <View style={[styles.activeKidAvatar, styles.moreKidsIndicator, { marginLeft: -10 }]}>
+                                  <Text style={styles.moreKidsText}>+{managedKids.length - 3}</Text>
+                                </View>
+                              )}
+                            </View>
+                          )}
                         </View>
                       </View>
-                    </View>
-                  </Pressable>
-                ))}
+                    </Pressable>
+                  );
+                })}
                 
                 {/* New Personnel Button */}
                 <Pressable style={styles.newPersonnelButton}>
@@ -495,6 +526,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6B6B',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#31CECE',
   },
   avatarText: {
     fontSize: 20,
@@ -515,21 +548,19 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   personnelStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
+    flexDirection: 'column',
+    alignItems: 'flex-end',
   },
   activeStatusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#4ECDC4',
-    marginRight: 6,
   },
   activeStatusText: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 10,
+    fontSize: 12,
+    color: '#4ECDC4',
+    fontWeight: '600',
   },
   personnelBadge: {
     backgroundColor: '#E0E0E0',
@@ -614,5 +645,33 @@ const styles = StyleSheet.create({
   healthSymbol: {
     fontSize: 18,
     color: '#666',
+  },
+  activeKidsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  activeKidAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#F5F5F5',
+    overflow: 'hidden',
+  },
+  activeKidAvatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  moreKidsIndicator: {
+    backgroundColor: '#4ECDC4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  moreKidsText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 }); 
