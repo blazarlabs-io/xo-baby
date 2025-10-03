@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../../navigation/HomeStack';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
+import AvatarImage from '../../components/Kid/AvatarImage';
 
 export default function MedicalDashboard() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
@@ -127,13 +128,11 @@ export default function MedicalDashboard() {
                 <View style={styles.mainContentRow}>
                   {/* Kid Avatar */}
                   <View style={styles.avatarContainer}>
-                    {kid.avatarUrl ? (
-                      <Image source={{ uri: kid.avatarUrl }} style={styles.avatar} />
-                    ) : (
-                      <View style={styles.avatarPlaceholder}>
-                        <Image source={require('../../../assets/kids/avatar-boy-outline.png')} style={styles.avatar} />
-                      </View>
-                    )}
+                    <AvatarImage
+                      avatarUrl={kid.avatarUrl}
+                      gender={kid.gender}
+                      style={styles.avatar}
+                    />
                   </View>
 
                   {/* Kid Info (Name, Age, Status) */}

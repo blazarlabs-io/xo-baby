@@ -44,8 +44,9 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "^2.1.0",
-    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-express": "^11.1.6",
     "@react-native-async-storage/async-storage": "^2.1.2",
+    "@types/multer": "^2.0.0",
     "@types/ws": "^8.18.1",
     "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
@@ -56,6 +57,7 @@
     "firebase-admin": "^13.4.0",
     "ipfs-http-client": "^56.0.3",
     "midnight-cli": "^1.0.7",
+    "multer": "^2.0.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "ws": "^8.18.3"

@@ -1,0 +1,71 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║   ⚠️  CRITICAL: YOU MUST SETUP YOUR GATEWAY NOW  ⚠️                ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+PUBLIC GATEWAYS ARE BLOCKED:
+  ❌ gateway.pinata.cloud → 403 Forbidden  
+  ❌ ipfs.io → Cloudflare blocked
+  ❌ All public gateways → Rate limited/blocked
+
+═══════════════════════════════════════════════════════════════════
+
+✅ SOLUTION: Use YOUR Dedicated Pinata Gateway (FREE)
+
+═══════════════════════════════════════════════════════════════════
+
+📋 3 STEPS (2 MINUTES):
+
+┌────────────────────────────────────────────────────────────────┐
+│ STEP 1: Get Your Gateway                                       │
+│                                                                │
+│ 1. Open: https://app.pinata.cloud/gateway                    │
+│ 2. Copy your URL (like: https://xxx-xxx-xxx-123.mypinata.cloud) │
+└────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────┐
+│ STEP 2: Create .env File                                       │
+│                                                                │
+│ Run this command (replace with YOUR values):                  │
+│                                                                │
+│ cd /root/apps/xo-baby/xo-baby-app                            │
+│ cat > .env << 'EOF'                                           │
+│ PINATA_API_KEY=your_key_here                                  │
+│ PINATA_SECRET_API_KEY=your_secret_here                        │
+│ PINATA_GATEWAY=https://your-gateway.mypinata.cloud            │
+│ EOF                                                            │
+└────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────┐
+│ STEP 3: Restart App                                           │
+│                                                                │
+│ cd /root/apps/xo-baby/xo-baby-app                            │
+│ rm -rf node_modules/.cache .expo                              │
+│ npm start                                                      │
+└────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════
+
+📍 Where to Get Everything:
+
+  API Keys:    https://app.pinata.cloud/developers/api-keys
+  Gateway URL: https://app.pinata.cloud/gateway
+  
+═══════════════════════════════════════════════════════════════════
+
+✅ AFTER SETUP - What You'll See:
+
+  Console shows: "✅ Gateway URL: https://your-gateway.mypinata.cloud/ipfs/QmXxxx..."
+  Avatars load successfully!
+  No more 403 errors!
+
+═══════════════════════════════════════════════════════════════════
+
+⏱️  TIME: 2 minutes
+💰 COST: FREE
+🎯 RESULT: Works forever, never blocked!
+
+═══════════════════════════════════════════════════════════════════
+
+For detailed guide, see: SETUP_GATEWAY_NOW.md 

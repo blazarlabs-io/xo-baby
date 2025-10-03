@@ -10,6 +10,8 @@ import DevicesStack from "./DevicesStack"; // Devices Stack screens
 import SettingsScreen from "@/screens/home/SettingsScreen";
 import MedicalDashboard from "@/screens/home/MedicalDashboard";
 import AdminDashboard from "@/screens/home/AdminDashboard";
+import PersonnelScreen from "@/screens/home/PersonnelScreen";
+import KidsListScreen from "@/screens/home/KidsListScreen";
 
 // store
 import { useUserStore } from "@/store/userStore";
@@ -55,10 +57,21 @@ export default function TabNavigator() {
       {role === "admin" && (
         <>
           <Tab.Screen 
-            name="MyKids" 
+            name="MyFacility" 
             component={AdminDashboard}
-            options={{ title: "Dashboard" }}
+            options={{ title: "My Facility" }}
           />
+          <Tab.Screen 
+            name="Kids" 
+            component={KidsListScreen}
+            options={{ title: "Kids" }}
+          />
+          <Tab.Screen 
+            name="Personnel" 
+            component={PersonnelScreen}
+            options={{ title: "Personnel" }}
+          />
+          <Tab.Screen name="Devices" component={DevicesStack} />
           <Tab.Screen name="Settings" component={SettingsScreen} />
         </>
       )}

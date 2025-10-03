@@ -13,6 +13,7 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { RouteProp } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../../types/navigation";
 import { useKidStore } from "../../../store/kidStore";
@@ -21,6 +22,7 @@ import { api } from "../../../config/api";
 import { useUserStore } from "../../../store/userStore";
 import LoadingModal from "../../../components/LoadingModal";
 import TransactionSuccessModal from "../../../components/TransactionSuccessModal";
+import { uploadAvatar } from "../../../services/pinataServices";
 
 export default function AddKidAvatarScreen() {
   const navigation =
@@ -41,6 +43,9 @@ export default function AddKidAvatarScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [transactionHash, setTransactionHash] = useState<string>("");
   const [createdKidId, setCreatedKidId] = useState<string>("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [selectedAvatarType, setSelectedAvatarType] = useState<'boy' | 'girl' | 'custom' | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Handle success modal close and navigation
   const handleSuccessModalClose = () => {
@@ -82,6 +87,70 @@ export default function AddKidAvatarScreen() {
     anomalies,
   } = route.params;
 
+  // Request permissions on mount
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== 'web') {
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (cameraStatus !== 'granted' || libraryStatus !== 'granted') {
+          Alert.alert(
+            'Permission Required',
+            'We need camera and photo library permissions to let you choose an avatar.'
+          );
+        }
+      }
+    })();
+  }, []);
+
+  // Handle predefined avatar selection
+  const handlePredefinedAvatar = (type: 'boy' | 'girl') => {
+    setSelectedAvatarType(type);
+    setSelectedAvatar(null); // Clear custom avatar if selecting predefined
+  };
+
+  // Handle image selection from library
+  const handleChooseFromLibrary = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setSelectedAvatar(imageUri);
+        setSelectedAvatarType('custom');
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image from library');
+    }
+  };
+
+  // Handle taking a photo
+  const handleTakePhoto = async () => {
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setSelectedAvatar(imageUri);
+        setSelectedAvatarType('custom');
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo');
+    }
+  };
+
   const handleCreateKid = async () => {
     if (isCreating) return;
 
@@ -93,6 +162,31 @@ export default function AddKidAvatarScreen() {
       console.log("🔍 API Base URL:", api.defaults.baseURL);
       console.log("🔍 Current config check - if you see this, the new code is loaded");
 
+      // Upload avatar to IPFS if custom avatar is selected
+      let avatarUrl = "";
+      if (selectedAvatarType === 'custom' && selectedAvatar) {
+        try {
+          console.log("📤 Uploading avatar to IPFS...");
+          setLoadingStage("uploading");
+          const uploadResult = await uploadAvatar(selectedAvatar);
+          avatarUrl = uploadResult.gatewayUrl;
+          console.log("✅ Avatar uploaded successfully:", avatarUrl);
+        } catch (error) {
+          console.error("Failed to upload avatar:", error);
+          Alert.alert(
+            "Avatar Upload Failed",
+            "Failed to upload avatar image. The kid will be created with a default avatar.",
+            [{ text: "Continue", onPress: () => {} }]
+          );
+        }
+      } else if (selectedAvatarType === 'boy') {
+        avatarUrl = "default-boy";
+      } else if (selectedAvatarType === 'girl') {
+        avatarUrl = "default-girl";
+      }
+
+      setLoadingStage("blockchain");
+
       // Start the API call
       const createKidPromise = createKid({
         firstName,
@@ -103,7 +197,7 @@ export default function AddKidAvatarScreen() {
         ethnicity,
         location,
         congenitalAnomalies: anomalies,
-        avatarUrl: "",
+        avatarUrl: avatarUrl,
         parentId: user?.uid || "R5YlNjanoRQTkDOuayTGTqZQZEs1",
       });
 
@@ -277,51 +371,78 @@ export default function AddKidAvatarScreen() {
       </View>
       <View style={styles.content}>
         <Text style={styles.contentTitle}>Choose Avatar</Text>
+        
+        {/* Show selected custom avatar if available */}
+        {selectedAvatar && selectedAvatarType === 'custom' && (
+          <View style={styles.selectedAvatarContainer}>
+            <Image
+              source={{ uri: selectedAvatar }}
+              style={styles.selectedAvatarImage}
+            />
+          </View>
+        )}
+        
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
+          <Pressable 
+            style={[
+              styles.avatar,
+              selectedAvatarType === 'girl' && styles.avatarSelected
+            ]}
+            onPress={() => handlePredefinedAvatar('girl')}
+          >
             <Image
               source={require("../../../../assets/kids/avatar-girl.png")}
               style={{ width: 48, height: 48, borderRadius: 80 }}
             />
-          </View>
-          <View style={styles.avatar}>
+          </Pressable>
+          <Pressable 
+            style={[
+              styles.avatar,
+              selectedAvatarType === 'boy' && styles.avatarSelected
+            ]}
+            onPress={() => handlePredefinedAvatar('boy')}
+          >
             <Image
               source={require("../../../../assets/kids/avatar-boy.png")}
               style={{ width: 48, height: 48, borderRadius: 80 }}
             />
-          </View>
+          </Pressable>
         </View>
         <Text style={[styles.contentTitle, { marginTop: 4, color: "#7c768a" }]}>
           Or
         </Text>
-        <View
+        <Pressable
           style={{
             flexDirection: "row",
             alignItems: "center",
             gap: 4,
             marginTop: 16,
           }}
+          onPress={handleChooseFromLibrary}
+          disabled={isUploadingAvatar}
         >
           <Image
             source={require("../../../../assets/common/image.png")}
             style={{ width: 16, height: 16 }}
           />
           <Text style={styles.uploadImageText}>Choose from library</Text>
-        </View>
-        <View
+        </Pressable>
+        <Pressable
           style={{
             flexDirection: "row",
             alignItems: "center",
             gap: 4,
             marginTop: 12,
           }}
+          onPress={handleTakePhoto}
+          disabled={isUploadingAvatar}
         >
           <Image
             source={require("../../../../assets/common/device-camera.png")}
             style={{ width: 16, height: 16 }}
           />
           <Text style={styles.uploadImageText}>Take a photo</Text>
-        </View>
+        </Pressable>
       </View>
 
       <View
@@ -432,6 +553,24 @@ const styles = StyleSheet.create({
   avatar: {
     paddingHorizontal: 6,
     paddingVertical: 6,
+  },
+  avatarSelected: {
+    borderWidth: 3,
+    borderColor: "#31CECE",
+    borderRadius: 80,
+  },
+  selectedAvatarContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    marginBottom: 16,
+  },
+  selectedAvatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#31CECE",
   },
   uploadImageText: {
     fontSize: 14,

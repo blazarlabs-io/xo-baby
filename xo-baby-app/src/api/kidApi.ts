@@ -84,6 +84,9 @@ export const getMyKids = async (token: string, forceRefresh: boolean = false) =>
   }).then(response => {
     requestCache.delete(cacheKey);
     console.log('✅ getMyKids request successful:', response.data);
+    if (response.data && response.data.length > 0) {
+      console.log('🖼️ First kid avatarUrl from API:', response.data[0].avatarUrl);
+    }
     return response.data;
   }).catch(error => {
     requestCache.delete(cacheKey);

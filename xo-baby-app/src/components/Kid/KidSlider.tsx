@@ -24,6 +24,7 @@ export default function KidSlider({ kids, initialKidId }: Props) {
       id: k.id,
       firstName: k.firstName,
       lastName: k.lastName,
+      avatarUrl: k.avatarUrl,
     })),
     initialKidId,
   });

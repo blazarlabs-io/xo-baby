@@ -55,7 +55,9 @@ export default function KidProfileCard({
     "🏪 All kids in store:",
     useKidStore
       .getState()
-      .kids.map((k) => ({ id: k.id, firstName: k.firstName }))
+      .kids.map((k) => ({ id: k.id, 
+        firstName: k.firstName,
+        avatarUrl: k.avatarUrl }))
   );
 
   const insets = useSafeAreaInsets();

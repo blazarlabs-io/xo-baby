@@ -368,6 +368,11 @@ export class KidService {
       }
 
       const aesKey = this.encryptionService.generateAESKey();
+      
+
+      console.log('🔍 Avatar URL:', dto.avatarUrl);
+      console.log('🔍 Avatar URL type:', typeof dto.avatarUrl);
+      
       const kidDataForEncryption = {
         ...dto,
         createdAt: new Date().toISOString(),
@@ -410,8 +415,9 @@ export class KidService {
         parentId: dto.parentId,
         adminId: dto.adminId || null,
         doctorId: dto.doctorId || null,
-        createdAt: new Date().toISOString(),
         nftTxHash: nftTxHash, // Store only the transaction hash string
+        avatarUrl: dto.avatarUrl || '',
+        createdAt: new Date().toISOString(),
         vitals: {
           heartRate: 0,
           oximetry: 0,
@@ -427,6 +433,8 @@ export class KidService {
         heightHistory: [],
         headCircumferenceHistory: [],
       };
+
+      console.log('💾 Saving kid to Firestore with avatarUrl:', kidData.avatarUrl);
 
       if (!kidData.childId) {
         throw new Error('childId is required but is undefined');
@@ -457,7 +465,8 @@ export class KidService {
           ethnicity: kidDataForEncryption.ethnicity,
           location: kidDataForEncryption.location,
           congenitalAnomalies: kidDataForEncryption.congenitalAnomalies,
-          avatarUrl: kidDataForEncryption.avatarUrl,
+          // avatarUrl: kidDataForEncryption.avatarUrl,
+          avatarUrl: dto.avatarUrl || '',
           createdAt: new Date().toISOString(),
           nftTxHash: nftTxHash,
           vitals: {
@@ -530,6 +539,7 @@ export class KidService {
         userRole: 'parent',
       }));
       console.log(`👶 Found ${kids.length} kids as parent`);
+      console.log('🔍 First kid avatarUrl from Firestore:', kids[0]?.avatarUrl);
     } else if (userRole === 'medical') {
       console.log(`🔍 Searching for kids with doctorId: ${uid}`);
       const doctorSnapshot = await this.firebase
@@ -590,15 +600,15 @@ export class KidService {
                 parentId: (kid as any).parentId,
                 adminId: (kid as any).adminId,
                 doctorId: (kid as any).doctorId,
-                firstName: 'Unknown',
-                lastName: 'Unknown',
-                birthDate: '',
-                gender: 'Unknown',
-                bloodType: '',
-                ethnicity: '',
-                location: '',
-                congenitalAnomalies: [],
-                avatarUrl: '',
+                firstName: (kid as any).firstName || 'Unknown',
+                lastName: (kid as any).lastName || 'Unknown',
+                birthDate: (kid as any).birthDate || '',
+                gender: (kid as any).gender || 'Unknown',
+                bloodType: (kid as any).bloodType || '',
+                ethnicity: (kid as any).ethnicity || '',
+                location: (kid as any).location || '',
+                congenitalAnomalies: (kid as any).congenitalAnomalies || [],
+                avatarUrl: (kid as any).avatarUrl || '',
                 createdAt: (kid as any).createdAt,
                 // Role-based data access
                 vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),
@@ -639,15 +649,15 @@ export class KidService {
               parentId: (kid as any).parentId,
               adminId: (kid as any).adminId,
               doctorId: (kid as any).doctorId,
-              firstName: decryptedKidData.firstName || 'Unknown',
-              lastName: decryptedKidData.lastName || 'Unknown',
-              birthDate: decryptedKidData.birthDate || '',
-              gender: decryptedKidData.gender || 'Unknown',
-              bloodType: decryptedKidData.bloodType || '',
-              ethnicity: decryptedKidData.ethnicity || '',
-              location: decryptedKidData.location || '',
-              congenitalAnomalies: decryptedKidData.congenitalAnomalies || [],
-              avatarUrl: decryptedKidData.avatarUrl || '',
+              firstName: decryptedKidData.firstName || (kid as any).firstName || 'Unknown',
+              lastName: decryptedKidData.lastName || (kid as any).lastName || 'Unknown',
+              birthDate: decryptedKidData.birthDate || (kid as any).birthDate || '',
+              gender: decryptedKidData.gender || (kid as any).gender || 'Unknown',
+              bloodType: decryptedKidData.bloodType || (kid as any).bloodType || '',
+              ethnicity: decryptedKidData.ethnicity || (kid as any).ethnicity || '',
+              location: decryptedKidData.location || (kid as any).location || '',
+              congenitalAnomalies: decryptedKidData.congenitalAnomalies || (kid as any).congenitalAnomalies || [],
+              avatarUrl: decryptedKidData.avatarUrl || (kid as any).avatarUrl || '',
               createdAt: (kid as any).createdAt,
               // Role-based data access
               vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),
@@ -661,6 +671,12 @@ export class KidService {
               canViewMedicalData: kid.userRole === 'parent' || kid.userRole === 'medical',
             };
 
+            console.log(`🖼️ Avatar URL for ${result.firstName}:`, {
+              fromBlockchain: decryptedKidData.avatarUrl,
+              fromFirestore: (kid as any).avatarUrl,
+              final: result.avatarUrl
+            });
+
             return result;
           } catch (error) {
             console.error(`❌ Error processing kid ${index + 1}:`, error);
@@ -671,15 +687,15 @@ export class KidService {
               parentId: (kid as any).parentId,
               adminId: (kid as any).adminId,
               doctorId: (kid as any).doctorId,
-              firstName: 'Error Loading',
-              lastName: 'Error Loading',
-              birthDate: '',
-              gender: 'Unknown',
-              bloodType: '',
-              ethnicity: '',
-              location: '',
-              congenitalAnomalies: [],
-              avatarUrl: '',
+              firstName: (kid as any).firstName || 'Error Loading',
+              lastName: (kid as any).lastName || 'Error Loading',
+              birthDate: (kid as any).birthDate || '',
+              gender: (kid as any).gender || 'Unknown',
+              bloodType: (kid as any).bloodType || '',
+              ethnicity: (kid as any).ethnicity || '',
+              location: (kid as any).location || '',
+              congenitalAnomalies: (kid as any).congenitalAnomalies || [],
+              avatarUrl: (kid as any).avatarUrl || '',
               createdAt: (kid as any).createdAt,
               // Role-based data access
               vitals: kid.userRole === 'admin' ? {} : ((kid as any).vitals || {}),

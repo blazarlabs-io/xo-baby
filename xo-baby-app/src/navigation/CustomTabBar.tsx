@@ -16,9 +16,21 @@ const TAB_HEIGHT = 93;
 
 // map each route key to its inactive/active image assets
 const ICON_MAP: Record<string, { inactive: any; active: any }> = {
+  MyFacility: {
+    inactive: require("../../assets/home-parent/tabs/hospital.png"),
+    active: require("../../assets/home-parent/tabs/hospital-active.png"),
+  },
   MyKids: {
     inactive: require("../../assets/home-parent/tabs/kid.png"),
     active: require("../../assets/home-parent/tabs/kid-active.png"),
+  },
+  Kids: {
+    inactive: require("../../assets/home-parent/tabs/kid.png"),
+    active: require("../../assets/home-parent/tabs/kid-active.png"),
+  },
+  Personnel: {
+    inactive: require("../../assets/home-parent/tabs/personal.png"),
+    active: require("../../assets/home-parent/tabs/personal-active.png"),
   },
   Devices: {
     inactive: require("../../assets/home-parent/tabs/device.png"),
@@ -74,8 +86,11 @@ export default function CustomTabBar({
           const label =
             typeof route.name === "string"
               ? {
+                  MyFacility: "My Facility",
                   MyKids: "My Kids",
-                  Devices: "My Devices",
+                  Kids: "Kids",
+                  Personnel: "Personnel",
+                  Devices: "Devices",
                   Settings: "Settings",
                 }[route.name] || route.name
               : route.name;

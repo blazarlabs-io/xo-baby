@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
-import AvatarGirl from "../../../assets/kids/avatar-girl-large.svg";
 import { useKidStore } from "../../store/kidStore";
+import AvatarImage from "./AvatarImage";
 
 interface AvatarHeaderProps {
   kidID: string;
@@ -16,12 +16,16 @@ export default function AvatarHeader({ kidID }: AvatarHeaderProps) {
     "found kid:",
     kid ? `${kid.firstName} ${kid.lastName}` : "NOT FOUND"
   );
-
+  console.log('🔍 Avatar URL:', kid?.avatarUrl);
   return (
     <View style={styles.container}>
       <View style={styles.avatarWrapper}>
         <View style={styles.avatarBorder}>
-          <AvatarGirl width={92} height={92} />
+          <AvatarImage
+            avatarUrl={kid?.avatarUrl}
+            gender={kid?.gender}
+            style={{ width: 92, height: 92, borderRadius: 46 }}
+          />
         </View>
       </View>
       <View style={styles.avatarBackground}>
@@ -62,6 +66,7 @@ const styles = StyleSheet.create({
     height: 102,
     justifyContent: "center",
     alignItems: "center",
+    // 
     backgroundColor: "#31CECE",
     borderRadius: 102,
     padding: 5,
