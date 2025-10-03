@@ -9,6 +9,7 @@ import AddKidEthnicityScreen from "../screens/kids/AddKid/AddKidEthnicityScreen"
 import AddKidLocationScreen from "../screens/kids/AddKid/AddKidLocationScreen";
 import AddKidAnomaliesScreen from "../screens/kids/AddKid/AddKidAnomaliesScreen";
 import AddKidAvatarScreen from "../screens/kids/AddKid/AddKidAvatarScreen";
+import KidDetailsScreen from "../screens/home/KidDetailsScreen";
 
 import TabNavigator from "./TabNavigator";
 
@@ -19,6 +20,9 @@ export default function AppStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {/* Tab-based root navigator */}
       <Stack.Screen name="Tabs" component={TabNavigator} />
+
+      {/* Kid Details Screen */}
+      <Stack.Screen name="KidDetails" component={KidDetailsScreen} />
 
       {/* Add-Kid flow screens */}
       <Stack.Screen name="AddKid" component={AddKidNameScreen} />

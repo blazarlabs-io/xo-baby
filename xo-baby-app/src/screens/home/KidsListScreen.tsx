@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { HomeStackParamList } from '../../navigation/HomeStack';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
 import AvatarImage from '../../components/Kid/AvatarImage';
 
 export default function KidsListScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<any>();
   const [isLoading, setIsLoading] = useState(false);
   const kids = useKidStore((state) => state.kids);
   const refreshKids = useKidStore((state) => state.refreshKids);
@@ -32,7 +30,7 @@ export default function KidsListScreen() {
   }, [user?.token, refreshKids]);
 
   const handleKidPress = (kidId: string) => {
-    navigation.navigate('RealTimeData', { kidId });
+    navigation.navigate('KidDetails', { kidId });
   };
 
   const calculateAge = (birthDate: string) => {
@@ -87,15 +85,19 @@ export default function KidsListScreen() {
                   onPress={() => handleKidPress(kid.id)}
                 >
                   {/* Main Content Row: Avatar + Kid Info + Status */}
-                  <View style={styles.kidMainRow}>
-                    {/* Kid Avatar */}
-                    <View style={styles.kidAvatar}>
-                      <AvatarImage
-                        avatarUrl={kid.avatarUrl}
-                        gender={kid.gender}
-                        style={styles.avatarImage}
-                      />
-                    </View>
+                    <View style={styles.kidMainRow}>
+                      {/* Kid Avatar */}
+                      <View style={styles.kidAvatar}>
+                        <View style={styles.avatarWrapper}>
+                          <View style={styles.avatarBorder}>
+                            <AvatarImage
+                              avatarUrl={kid.avatarUrl}
+                              gender={kid.gender}
+                              style={styles.avatarImage}
+                            />
+                          </View>
+                        </View>
+                      </View>
 
                     {/* Kid Info (Name + Age) */}
                     <View style={styles.kidInfo}>
@@ -205,10 +207,28 @@ const styles = StyleSheet.create({
   kidAvatar: {
     alignSelf: 'flex-start',
   },
+  avatarWrapper: {
+    width: 64,
+    height: 64,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#31CECE',
+    borderRadius: 32,
+    padding: 3,
+  },
+  avatarBorder: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 29,
+    padding: 2,
+    width: 58,
+    height: 58,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   avatarImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
   },
   kidInfo: {
     flex: 1,

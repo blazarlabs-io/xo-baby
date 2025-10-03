@@ -1,5 +1,5 @@
 // kid.controller.ts
-import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body, Delete } from '@nestjs/common';
 import { KidService } from './kid.service';
 import { UserService } from '../user/user.service';
 import { CreateKidDto } from './dto/create-kid.dto';
@@ -176,5 +176,35 @@ export class KidController {
     const user = await this.userService.verifyIdToken(token);
 
     return this.kidService.updateHeight(kidId, user.uid, dto.height, dto.date);
+  }
+
+  @Delete(':id')
+  async deleteKid(
+    @Param('id') kidId: string,
+    @Headers('authorization') authHeader: string
+  ) {
+    console.log('🗑️ Delete kid request received');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+
+    // Check if user has admin role
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required to delete kids');
+    }
+
+    try {
+      await this.kidService.deleteKid(kidId);
+      console.log(`✅ Kid ${kidId} deleted successfully`);
+      return { message: 'Kid deleted successfully', kidId };
+    } catch (error) {
+      console.error('❌ Failed to delete kid:', error);
+      throw error;
+    }
   }
 }

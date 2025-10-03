@@ -817,4 +817,23 @@ export class KidService {
     const history = kid.heightHistory || [];
     return { kidId: kidId, heightHistory: history };
   }
+
+  async deleteKid(kidId: string) {
+    const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      throw new UnauthorizedException('Kid not found');
+    }
+
+    // Delete the kid document from Firestore
+    await docRef.delete();
+
+    // Clear any cached data for this kid
+    if (this.blockchainCache[kidId]) {
+      delete this.blockchainCache[kidId];
+    }
+
+    return { success: true, message: 'Kid deleted successfully' };
+  }
 }

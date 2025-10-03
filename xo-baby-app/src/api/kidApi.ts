@@ -130,3 +130,14 @@ export const updateKidWeight = async (
   return response.data;
 };
 
+// DELETE a kid account
+export const deleteKid = async (kidId: string, token: string) => {
+  const response = await api.delete(`/kid/${kidId}`, {
+    timeout: 300000, // 5 minutes for regular operations
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+

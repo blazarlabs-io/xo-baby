@@ -9,8 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { HomeStackParamList } from "../../navigation/HomeStack";
+import { CommonActions } from "@react-navigation/native";
 import { useUserStore } from "../../store/userStore";
 import { useKidStore } from "../../store/kidStore";
 import type { Kid } from "../../store/kidStore";
@@ -18,8 +17,15 @@ import api from "../../api/axios";
 import AvatarImage from "../../components/Kid/AvatarImage";
 
 export default function AdminDashboard() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<any>();
+  
+  const navigateToTab = (tabName: string) => {
+    navigation.dispatch(
+      CommonActions.navigate({
+        name: tabName,
+      })
+    );
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [medicalPersonnel, setMedicalPersonnel] = useState<any[]>([]);
   const kids = useKidStore((state) => state.kids);
@@ -60,8 +66,8 @@ export default function AdminDashboard() {
   }, [user?.token, refreshKids]);
 
   const handleKidPress = (kidId: string) => {
-    // Admin can view kid details but without medical data
-    navigation.navigate("RealTimeData", { kidId });
+    // Navigate to Kid Details screen
+    navigation.navigate("KidDetails", { kidId });
   };
 
   const handlePersonnelPress = (personnelId: string) => {
@@ -160,6 +166,9 @@ export default function AdminDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Kids</Text>
+            <Pressable onPress={() => navigateToTab('Kids')}>
+              <Text style={styles.seeAllButton}>See All</Text>
+            </Pressable>
           </View>
 
           <View style={styles.sectionContent}>
@@ -268,6 +277,9 @@ export default function AdminDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Personnel</Text>
+            <Pressable onPress={() => navigateToTab('Personnel')}>
+              <Text style={styles.seeAllButton}>See All</Text>
+            </Pressable>
           </View>
 
           <View style={styles.sectionContent}>
@@ -476,7 +488,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#222128",
   },
-
+  seeAllButton: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4ECDC4",
+  },
   sectionContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
