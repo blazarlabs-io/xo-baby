@@ -10,6 +10,8 @@ import AddKidLocationScreen from "../screens/kids/AddKid/AddKidLocationScreen";
 import AddKidAnomaliesScreen from "../screens/kids/AddKid/AddKidAnomaliesScreen";
 import AddKidAvatarScreen from "../screens/kids/AddKid/AddKidAvatarScreen";
 import KidDetailsScreen from "../screens/home/KidDetailsScreen";
+import DoctorDetailsScreen from "../screens/home/DoctorDetailsScreen";
+import UnassignedKidsScreen from "../screens/home/UnassignedKidsScreen";
 
 import TabNavigator from "./TabNavigator";
 
@@ -23,6 +25,12 @@ export default function AppStack() {
 
       {/* Kid Details Screen */}
       <Stack.Screen name="KidDetails" component={KidDetailsScreen} />
+
+      {/* Doctor Details Screen */}
+      <Stack.Screen name="DoctorDetails" component={DoctorDetailsScreen} />
+
+      {/* Unassigned Kids Screen */}
+      <Stack.Screen name="UnassignedKids" component={UnassignedKidsScreen} />
 
       {/* Add-Kid flow screens */}
       <Stack.Screen name="AddKid" component={AddKidNameScreen} />

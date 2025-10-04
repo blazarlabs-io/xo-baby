@@ -818,6 +818,35 @@ export class KidService {
     return { kidId: kidId, heightHistory: history };
   }
 
+  async updateKidDoctorAssignment(kidId: string, doctorId: string | null) {
+    console.log(`🔄 Updating kid ${kidId} doctor assignment to:`, doctorId);
+    
+    const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      console.log(`❌ Kid ${kidId} not found`);
+      throw new UnauthorizedException('Kid not found');
+    }
+
+    console.log(`📝 Updating kid ${kidId} with doctorId:`, doctorId);
+    
+    // Update the doctorId field
+    await docRef.update({
+      doctorId: doctorId,
+      updatedAt: new Date().toISOString(),
+    });
+
+    console.log(`✅ Kid ${kidId} doctor assignment updated successfully`);
+
+    // Clear any cached data for this kid
+    if (this.blockchainCache[kidId]) {
+      delete this.blockchainCache[kidId];
+    }
+
+    return { success: true, message: 'Kid doctor assignment updated successfully' };
+  }
+
   async deleteKid(kidId: string) {
     const docRef = this.firebase.getFirestore().collection('kids').doc(kidId);
     const doc = await docRef.get();

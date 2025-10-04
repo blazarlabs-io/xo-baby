@@ -141,7 +141,7 @@ export default function AdminDashboard() {
             <View style={styles.facilityIconWrapper}>
               <View style={styles.facilityIconBorder}>
                 <Image
-                  source={require("../../../assets/facility/facility-logo.png")}
+                  source={require("../../../assets/facility/facilities.png")}
                   style={styles.facilityIconLarge}
                 />
               </View>
@@ -442,8 +442,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   facilityIconLarge: {
-    width: 92,
-    height: 92,
+    width: 84,
+    height: 84,
     resizeMode: "contain",
   },
   facilityBackground: {

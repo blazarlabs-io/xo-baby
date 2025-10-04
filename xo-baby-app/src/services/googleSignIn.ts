@@ -2,38 +2,34 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import Constants from 'expo-constants';
 
 // Complete the auth session
 WebBrowser.maybeCompleteAuthSession();
 
 export const signInWithGoogle = async () => {
   try {
-    // For native Android builds, use Android Client ID
-    // For web/Expo Go, use Web Client ID
-    const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-    const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+    // Get Web Client ID from app.json configuration
+    const webClientId = Constants.expoConfig?.extra?.googleWebClientId;
     
-    // Use Android Client ID if available (for native builds)
-    const clientId = androidClientId || webClientId;
-    
-    if (!clientId) {
-      throw new Error('Google Client ID not found. Please add EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID or EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to your environment variables.');
+    if (!webClientId) {
+      throw new Error('Google Web Client ID not found. Please add googleWebClientId to your app.json extra configuration.');
     }
 
     console.log('🔍 Starting Google authentication...');
-    console.log('🔍 Using Client ID type:', androidClientId ? 'Android' : 'Web');
+    console.log('🔍 Using Web Client ID for Expo Go/emulator');
+    console.log('🔍 Web Client ID:', webClientId);
 
-    // For Android Client ID, use reverse client ID format
-    // For Web Client ID, use Expo proxy
-    const redirectUri = androidClientId 
-      ? `com.googleusercontent.apps.${androidClientId.split('-')[0]}:/oauth2redirect`
-      : AuthSession.makeRedirectUri();
+    // For Expo Go, use the Expo proxy redirect URI
+    const redirectUri = AuthSession.makeRedirectUri({
+      scheme: 'exp',
+    });
 
     console.log('🔍 Google Auth - Using redirect URI:', redirectUri);
 
     // Use implicit flow (Token response) which doesn't require client secret
     const request = new AuthSession.AuthRequest({
-      clientId: clientId,
+      clientId: webClientId,
       scopes: ['profile', 'email', 'openid'],
       redirectUri: redirectUri,
       responseType: AuthSession.ResponseType.Token,

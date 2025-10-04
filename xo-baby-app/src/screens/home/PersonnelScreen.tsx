@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Image, StyleSheet } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
 import type { Kid } from '../../store/kidStore';
@@ -7,9 +8,11 @@ import api from '../../api/axios';
 import AvatarImage from '../../components/Kid/AvatarImage';
 
 export default function PersonnelScreen() {
+  const navigation = useNavigation<any>();
   const [isLoading, setIsLoading] = useState(false);
   const [medicalPersonnel, setMedicalPersonnel] = useState<any[]>([]);
   const kids = useKidStore((state) => state.kids);
+  const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
 
   useEffect(() => {
@@ -30,8 +33,32 @@ export default function PersonnelScreen() {
     fetchPersonnel();
   }, [user?.token]);
 
+  // Refresh kids data when screen comes into focus (e.g., returning from assignment screen)
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshData = async () => {
+        if (user?.token) {
+          try {
+            await refreshKids(user.token);
+          } catch (error) {
+            console.error('Error refreshing kids:', error);
+          }
+        }
+      };
+      refreshData();
+    }, [user?.token, refreshKids])
+  );
+
   const handlePersonnelPress = (personnelId: string) => {
-    console.log('Personnel pressed:', personnelId);
+    const doctor = medicalPersonnel.find(person => person.uid === personnelId);
+    if (doctor) {
+      navigation.navigate('DoctorDetails', { doctor });
+    }
+  };
+
+  const handleAssignKids = (doctorId: string) => {
+    console.log('Navigating to UnassignedKids with doctorId:', doctorId);
+    navigation.navigate('UnassignedKids', { doctorId });
   };
 
   const getKidsByDoctorId = (doctorId: string): Kid[] => {
@@ -52,6 +79,10 @@ export default function PersonnelScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
+          <Image
+            source={require("../../../assets/home-parent/tabs/personal-active.png")}
+            style={styles.headerIcon}
+          />
           <Text style={styles.headerTitle}>Personnel</Text>
         </View>
 
@@ -121,6 +152,17 @@ export default function PersonnelScreen() {
                         )}
                       </View>
                     </View>
+
+                    {/* Assign Button */}
+                    <Pressable
+                      style={styles.assignButton}
+                      onPress={() => handleAssignKids(person.uid)}
+                    >
+                      <View style={styles.assignButtonIcon}>
+                        <Image source={require('../../../assets/home-parent/tabs/kid-active.png')} style={styles.assignButtonIconImage} />
+                      </View>
+                      <Text style={styles.assignButtonText}>Assign Kids</Text>
+                    </Pressable>
                   </Pressable>
                 );
               })}
@@ -152,6 +194,14 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: '#F8FFFE',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIcon: {
+    width: 24,
+    height: 24,
   },
   headerTitle: {
     fontSize: 24,
@@ -223,55 +273,89 @@ const styles = StyleSheet.create({
   },
   personnelName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#222128',
+    fontWeight: "bold",
+    color: "#222128",
     marginBottom: 4,
   },
   personnelEmail: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   personnelStatus: {
-    flexDirection: 'column',
-    alignItems: 'flex-end',
+    flexDirection: "column",
+    alignItems: "flex-end",
   },
   activeStatusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4ECDC4',
+    backgroundColor: "#4ECDC4",
   },
   activeStatusText: {
     fontSize: 12,
-    color: '#4ECDC4',
-    fontWeight: '600',
+    color: "#4ECDC4",
+    fontWeight: "600",
+  },
+  assignButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderRadius: 50,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: "#4ECDC4",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    gap: 8,
+  },
+  assignButtonIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: "#4ECDC4",
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  assignButtonIconImage: {
+    width: 12,
+    height: 12,
+    tintColor: "#4ECDC4",
+  },
+  assignButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4ECDC4",
   },
   newPersonnelButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: 'transparent',
     borderRadius: 50,
     borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#4ECDC4',
+    borderStyle: "dashed",
+    borderColor: "#4ECDC4",
     paddingVertical: 16,
     marginTop: 16,
   },
   newPersonnelIcon: {
     width: 24,
     height: 24,
-    tintColor: '#4ECDC4',
+    tintColor: "#4ECDC4",
     marginRight: 8,
   },
   newPersonnelText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#4ECDC4',
+    fontWeight: "600",
+    color: "#4ECDC4",
   },
   activeKidsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 8,
   },
   activeKidAvatar: {
@@ -279,22 +363,22 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
-    backgroundColor: '#F5F5F5',
-    overflow: 'hidden',
+    borderColor: "#FFFFFF",
+    backgroundColor: "#F5F5F5",
+    overflow: "hidden",
   },
   activeKidAvatarImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   moreKidsIndicator: {
-    backgroundColor: '#4ECDC4',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#4ECDC4",
+    justifyContent: "center",
+    alignItems: "center",
   },
   moreKidsText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
-}); 
+});

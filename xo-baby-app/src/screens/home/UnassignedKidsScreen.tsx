@@ -1,45 +1,72 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   Image,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useUserStore } from "../../store/userStore";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { useKidStore } from "../../store/kidStore";
+import { useUserStore } from "../../store/userStore";
+import type { Kid } from "../../store/kidStore";
 import AvatarImage from "../../components/Kid/AvatarImage";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import Feather from "@expo/vector-icons/Feather";
+import api from "../../api/axios";
 
-export default function KidsListScreen() {
-  const navigation = useNavigation<any>();
-  const [isLoading, setIsLoading] = useState(false);
+export default function UnassignedKidsScreen() {
+  const route = useRoute<any>();
+  const navigation = useNavigation();
+  const { doctorId } = route.params;
+
+  console.log('UnassignedKidsScreen received doctorId:', doctorId);
+
   const kids = useKidStore((state) => state.kids);
-  const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
-
-  useEffect(() => {
-    const fetchKids = async () => {
-      if (!user?.token) return;
-
-      setIsLoading(true);
-      try {
-        await refreshKids(user.token);
-      } catch (error) {
-        console.error("Error fetching kids:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchKids();
-  }, [user?.token, refreshKids]);
+  const refreshKids = useKidStore((state) => state.refreshKids);
+  
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleKidPress = (kidId: string) => {
-    navigation.navigate("KidDetails", { kidId });
+    Alert.alert(
+      "Assign Kid",
+      "Are you sure you want to assign this kid to the doctor?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Assign",
+          onPress: async () => {
+            setIsLoading(true);
+            try {
+              console.log('Assigning kid:', kidId, 'to doctor:', doctorId);
+              // Assign kid to doctor
+              const response = await api.put(`/kid/${kidId}/assign-doctor`, { doctorId });
+              console.log('Assignment response:', response.data);
+              // Refresh kids list
+              if (user?.token) {
+                await refreshKids(user.token);
+              }
+              Alert.alert("Success", "Kid has been assigned to the doctor");
+              navigation.goBack();
+            } catch (error: any) {
+              console.error("Error assigning kid:", error);
+              console.error("Error response:", error.response?.data);
+              console.error("Error status:", error.response?.status);
+              Alert.alert("Error", "Failed to assign kid to doctor");
+            } finally {
+              setIsLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const getUnassignedKids = (): Kid[] => {
+    return kids.filter(kid => !kid.doctorId || kid.doctorId === null);
   };
 
   const calculateAge = (birthDate: string) => {
@@ -64,18 +91,13 @@ export default function KidsListScreen() {
     }
   };
 
+  const unassignedKids = getUnassignedKids();
+
   if (isLoading) {
     return (
-      <View
-        style={[
-          styles.container,
-          { justifyContent: "center", alignItems: "center" },
-        ]}
-      >
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#4ECDC4" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: "#666" }}>
-          Loading kids...
-        </Text>
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Assigning kid...</Text>
       </View>
     );
   }
@@ -88,22 +110,33 @@ export default function KidsListScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Image
-            source={require("../../../assets/home-parent/tabs/kid-active.png")}
-            style={styles.headerIcon}
-          />
-          <Text style={styles.headerTitle}>My Kids</Text>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Feather name="chevron-left" size={24} color="#222128" />
+          </Pressable>
+          <Text style={styles.headerTitle}>Assign Kids</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Kids List */}
+        {/* Unassigned Kids List */}
         <View style={styles.content}>
-          {kids.length === 0 ? (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Unassigned Kids ({unassignedKids.length})
+            </Text>
+          </View>
+
+          {unassignedKids.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No kids registered</Text>
+              <Text style={styles.emptyStateText}>
+                No unassigned kids available
+              </Text>
             </View>
           ) : (
             <>
-              {kids.map((kid) => (
+              {unassignedKids.map((kid) => (
                 <Pressable
                   key={kid.id}
                   style={styles.kidCard}
@@ -184,6 +217,17 @@ export default function KidsListScreen() {
                       <Text style={styles.vitalValue}>98%</Text>
                     </View>
                   </View>
+
+                  {/* Assign Button */}
+                  <Pressable
+                    style={styles.assignButton}
+                    onPress={() => handleKidPress(kid.id)}
+                  >
+                    <View style={styles.assignButtonIcon}>
+                      <Feather name="plus" size={16} color="#4ECDC4" />
+                    </View>
+                    <Text style={styles.assignButtonText}>Assign</Text>
+                  </Pressable>
                 </Pressable>
               ))}
             </>
@@ -207,25 +251,39 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: "#F8FFFE",
-    alignItems: "center",
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
+  backButton: {
+    width: 32,
+    height: 32,
     justifyContent: "center",
-    gap: 8,
+    alignItems: "center",
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#CACACA",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#222128",
+    textAlign: "center",
   },
   content: {
     paddingHorizontal: 20,
     paddingBottom: 100,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#222128",
   },
   emptyState: {
     flex: 1,
@@ -369,8 +427,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 12,
   },
-  headerIcon: {
-    width: 24,
-    height: 24,
+  assignButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderRadius: 50,
+    borderWidth: 2,
+    borderStyle: "dashed",
+    borderColor: "#4ECDC4",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    gap: 8,
+  },
+  assignButtonIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: "#4ECDC4",
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  assignButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4ECDC4",
   },
 });

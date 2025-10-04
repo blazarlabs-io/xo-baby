@@ -145,5 +145,45 @@ export class UserService {
       throw new UnauthorizedException('Invalid ID token');
     }
   }
+
+  async disableUser(uid: string) {
+    try {
+      const userRef = this.firebase.getFirestore().collection('users').doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Update user to disabled status
+      await userRef.update({
+        disabled: true,
+        disabledAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      return { success: true, message: 'User account disabled successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to disable user account');
+    }
+  }
+
+  async deleteUser(uid: string) {
+    try {
+      const userRef = this.firebase.getFirestore().collection('users').doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Delete the user document from Firestore
+      await userRef.delete();
+
+      return { success: true, message: 'User account deleted successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to delete user account');
+    }
+  }
   
 }

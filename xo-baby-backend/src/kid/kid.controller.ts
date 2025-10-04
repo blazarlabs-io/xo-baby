@@ -1,5 +1,5 @@
 // kid.controller.ts
-import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body, Delete, Put } from '@nestjs/common';
 import { KidService } from './kid.service';
 import { UserService } from '../user/user.service';
 import { CreateKidDto } from './dto/create-kid.dto';
@@ -176,6 +176,37 @@ export class KidController {
     const user = await this.userService.verifyIdToken(token);
 
     return this.kidService.updateHeight(kidId, user.uid, dto.height, dto.date);
+  }
+
+  @Put(':id/assign-doctor')
+  async updateKidDoctorAssignment(
+    @Param('id') kidId: string,
+    @Headers('authorization') authHeader: string,
+    @Body() body: { doctorId: string | null }
+  ) {
+    console.log('👨‍⚕️ Update kid doctor assignment request received');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+
+    // Check if user has admin role
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required to update kid assignments');
+    }
+
+    try {
+      await this.kidService.updateKidDoctorAssignment(kidId, body.doctorId);
+      console.log(`✅ Kid ${kidId} doctor assignment updated successfully`);
+      return { message: 'Kid doctor assignment updated successfully', kidId, doctorId: body.doctorId };
+    } catch (error) {
+      console.error('❌ Failed to update kid doctor assignment:', error);
+      throw error;
+    }
   }
 
   @Delete(':id')

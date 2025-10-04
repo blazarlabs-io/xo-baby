@@ -63,7 +63,9 @@
     "extra": {
       "eas": {
         "projectId": "f929cd25-b511-4f2e-9eff-9c1aa29b3567"
-      }
+      },
+      "googleWebClientId": "278376901127-8mgjhm39opqjdpiqrs7imb64vuj1qqpc.apps.googleusercontent.com",
+      "apiUrl": "https://xo-baby.blazarlabs.io"
     },
     "owner": "daikifujii"
   }

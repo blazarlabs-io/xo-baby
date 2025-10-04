@@ -15,6 +15,7 @@ import { useKidStore } from "../../store/kidStore";
 import { useUserStore } from "../../store/userStore";
 import { deleteKid } from "../../api/kidApi";
 import AvatarImage from "../../components/Kid/AvatarImage";
+import Feather from '@expo/vector-icons/Feather';
 
 export default function KidDetailsScreen() {
   const route = useRoute<any>();
@@ -107,7 +108,9 @@ export default function KidDetailsScreen() {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Text style={styles.backButtonText}>←</Text>
+            {/* <Text style={styles.backButtonText}>  */}
+            <Feather name="chevron-left" size={24} color="#222128" />
+            {/* </Text> */}
           </Pressable>
           <Text style={styles.headerTitle}>Kid Details</Text>
           <View style={{ width: 40 }} />
@@ -247,15 +250,18 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+    // opacity: 0,
+    borderWidth: 1,
+    borderColor: "#CACACA",
+    // backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
   backButtonText: {
-    fontSize: 24,
+    fontSize: 16,
     color: "#222128",
   },
   headerTitle: {

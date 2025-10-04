@@ -108,7 +108,12 @@ export default function MedicalDashboard() {
         <Text style={styles.headerTitle}>My Kids</Text>
       </View>
 
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContentContainer}
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+      >
         {kids.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateTitle}>No Patients Assigned</Text>
@@ -156,8 +161,6 @@ export default function MedicalDashboard() {
                       {calculateAge(kid.birthDate)}
                     </Text>
                   </View>
-
-                  {/* Remove the separate status section since it's now combined */}
                 </View>
 
                 {/* Vitals Row - Full Width at Bottom */}
@@ -166,7 +169,6 @@ export default function MedicalDashboard() {
                   <View style={styles.vitalItem}>
                     <View style={styles.heartIcon}>
                       <Image source={require('../../../assets/home-parent/heart.png')} style={styles.heartIcon} />
-                      {/* <Text style={styles.heartSymbol}>♥</Text> */}
                     </View>
                     <Text style={styles.vitalValue}>
                       {kid.vitals?.heartRate || 140}
@@ -235,12 +237,17 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
   },
+  scrollContentContainer: {
+    flexGrow: 1,
+    paddingBottom: 100, // Add bottom padding to ensure content is scrollable
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
     paddingTop: 100,
+    minHeight: 400, // Ensure minimum height for proper centering
   },
   emptyStateTitle: {
     fontSize: 20,
@@ -256,6 +263,7 @@ const styles = StyleSheet.create({
   },
   kidsContainer: {
     paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 20,
   },
   kidCard: {

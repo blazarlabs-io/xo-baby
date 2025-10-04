@@ -16,6 +16,7 @@ import type { AuthStackParamList } from "../../../types/navigation";
 import { Platform } from "react-native";
 import { useUserStore } from "../../../store/userStore";
 import { signInWithGoogle } from "../../../services/googleSignIn";
+import Constants from 'expo-constants';
 
 export default function SignupNameScreen() {
   const [name, setName] = useState("");
@@ -50,8 +51,9 @@ export default function SignupNameScreen() {
 
       // Check if user already exists in backend
       try {
+        const apiUrl = Constants.expoConfig?.extra?.apiUrl || 'https://xo-baby.blazarlabs.io';
         const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/users/verify-token`,
+          `${apiUrl}/users/verify-token`,
           {
             method: "POST",
             headers: {
@@ -81,7 +83,7 @@ export default function SignupNameScreen() {
 
           // Create user profile in backend
           const createResponse = await fetch(
-            `${process.env.EXPO_PUBLIC_API_URL}/users/create-google`,
+            `${apiUrl}/users/create-google`,
             {
               method: "POST",
               headers: {
