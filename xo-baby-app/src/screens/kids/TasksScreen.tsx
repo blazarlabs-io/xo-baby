@@ -32,6 +32,22 @@ export default function TasksScreen() {
 
   if (!kid) return <Text>Kid not found</Text>;
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return "Unknown age";
+
+    const birth = new Date(birthDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birth.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(diffDays / 7);
+
+    if (weeks < 4) {
+      return `${diffDays} days`;
+    } else if (weeks < 52) {
+      const months = Math.floor(weeks / 4);
+      return `${months} ${months === 1 ? "month" : "months"}`;
+  };
+  }
   return (
     <LinearGradient
       colors={["#E2F3F3", "#E2FFFF"]}
@@ -61,7 +77,7 @@ export default function TasksScreen() {
             <Text style={styles.kidName}>
               {kid.firstName} {kid.lastName}
             </Text>
-            <Text style={styles.kidAge}>8 Months</Text>
+            <Text style={styles.kidAge}>{calculateAge(kid.birthDate)}</Text>
           </View>
         </View>
         <View style={{ width: "100%", marginTop: 32 }}>

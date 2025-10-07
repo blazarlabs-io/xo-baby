@@ -13,6 +13,7 @@ import { useUserStore } from "../../store/userStore";
 import { useKidStore } from "../../store/kidStore";
 import AvatarImage from "../../components/Kid/AvatarImage";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function KidsListScreen() {
   const navigation = useNavigation<any>();
@@ -64,6 +65,42 @@ export default function KidsListScreen() {
     }
   };
 
+  // Check if there are any warnings for the kid
+  const hasWarnings = (kid: any) => {
+    const heartRate = kid.vitals?.heartRate || 140;
+    const oximetry = kid.vitals?.oximetry || 93;
+    const temperature = kid.vitals?.temperature || 36.6;
+    const battery = 90; // This would come from kid data in real implementation
+    
+    // Check for abnormal vitals
+    // Heart rate: normal range 100-160 bpm for infants
+    if (heartRate < 100 || heartRate > 160) return true;
+    
+    // Oxygen saturation: should be >= 95%
+    if (oximetry < 95) return true;
+    
+    // Temperature: normal range 36.5-37.5°C
+    if (temperature < 36.5 || temperature > 37.5) return true;
+    
+    // Battery: warn if below 20%
+    if (battery < 20) return true;
+    
+    return false;
+  };
+
+  // Check if individual vitals are abnormal
+  const isHeartRateAbnormal = (heartRate: number) => {
+    return heartRate < 100 || heartRate > 160;
+  };
+
+  const isTemperatureAbnormal = (temperature: number) => {
+    return temperature < 36.5 || temperature > 37.5;
+  };
+
+  const isOximetryAbnormal = (oximetry: number) => {
+    return oximetry < 95;
+  };
+
   if (isLoading) {
     return (
       <View
@@ -109,6 +146,19 @@ export default function KidsListScreen() {
                   style={styles.kidCard}
                   onPress={() => handleKidPress(kid.id)}
                 >
+                  {/* Warning Bell Icon */}
+                  {hasWarnings(kid) && (
+                    <View style={styles.warningBellContainer}>
+                      <View style={styles.warningBellBackground}>
+                        <MaterialCommunityIcons 
+                          name="bell-ring-outline" 
+                          size={24} 
+                          color="#FF4444" 
+                        />
+                      </View>
+                    </View>
+                  )}
+
                   {/* Main Content Row: Avatar + Kid Info + Status */}
                   <View style={styles.kidMainRow}>
                     {/* Kid Avatar */}
@@ -147,32 +197,47 @@ export default function KidsListScreen() {
 
                   {/* Vitals Row */}
                   <View style={styles.kidVitals}>
-                    <View style={styles.vitalItem}>
+                    <View style={[
+                      styles.vitalItem,
+                      isHeartRateAbnormal(kid.vitals?.heartRate || 140) && styles.vitalItemWarning
+                    ]}>
                       <View style={styles.heartIcon}>
                         <Image
                           source={require("../../../assets/home-parent/heart.png")}
                           style={styles.heartIcon}
                         />
                       </View>
-                      <Text style={styles.vitalValue}>140</Text>
+                      <Text style={styles.vitalValue}>
+                        {kid.vitals?.heartRate || 140}
+                      </Text>
                     </View>
-                    <View style={styles.vitalItem}>
+                    <View style={[
+                      styles.vitalItem,
+                      isTemperatureAbnormal(kid.vitals?.temperature || 36.6) && styles.vitalItemWarning
+                    ]}>
                       <View style={styles.tempIcon}>
                         <Image
                           source={require("../../../assets/home-parent/thermometer.png")}
                           style={styles.tempIcon}
                         />
                       </View>
-                      <Text style={styles.vitalValue}>36.2</Text>
+                      <Text style={styles.vitalValue}>
+                        {kid.vitals?.temperature || 36.6}
+                      </Text>
                     </View>
-                    <View style={styles.vitalItem}>
+                    <View style={[
+                      styles.vitalItem,
+                      isOximetryAbnormal(kid.vitals?.oximetry || 93) && styles.vitalItemWarning
+                    ]}>
                       <View style={styles.oxygenIcon}>
                         <Image
                           source={require("../../../assets/home-parent/lungs.png")}
                           style={styles.oxygenIcon}
                         />
                       </View>
-                      <Text style={styles.vitalValue}>52</Text>
+                      <Text style={styles.vitalValue}>
+                        {kid.vitals?.oximetry || 93}
+                      </Text>
                     </View>
                     <View style={styles.vitalItem}>
                       <View style={styles.healthIcon}>
@@ -336,6 +401,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  vitalItemWarning: {
+    backgroundColor: '#FFE5E5',
+    borderWidth: 1,
+    borderColor: '#FFCCCC',
   },
   vitalValue: {
     fontSize: 16,
@@ -372,5 +445,24 @@ const styles = StyleSheet.create({
   headerIcon: {
     width: 24,
     height: 24,
+  },
+  warningBellContainer: {
+    position: 'absolute',
+    top: -20,
+    right: -20,
+    zIndex: 10,
+  },
+  warningBellBackground: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFE5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF0000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

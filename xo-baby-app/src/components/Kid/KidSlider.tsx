@@ -30,7 +30,9 @@ export default function KidSlider({ kids, initialKidId }: Props) {
   });
 
   const insets = useSafeAreaInsets();
-  const availableHeight = Math.max(0, height - insets.top - insets.bottom);
+  // Account for header (40px), dots (50px), and some padding
+  const headerHeight = 40 + 50 + 16; // Title + Dots + Margins
+  const availableHeight = Math.max(0, height - insets.top - insets.bottom - headerHeight);
 
   useEffect(() => {
     if (!initialKidId || kids.length === 0) return;
@@ -52,6 +54,7 @@ export default function KidSlider({ kids, initialKidId }: Props) {
           justifyContent: "center",
           gap: 4,
           marginTop: 16,
+          height: 40,
         }}
       >
         <Image

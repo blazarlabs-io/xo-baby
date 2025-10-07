@@ -23,6 +23,29 @@ export default function RealTimeDataScreen() {
 
   if (!kid) return <Text>Kid not found</Text>;
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return "Unknown age";
+
+    const birth = new Date(birthDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birth.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(diffDays / 7);
+
+    if (weeks < 4) {
+      return `${diffDays} days`;
+    } else if (weeks < 52) {
+      const months = Math.floor(weeks / 4);
+      return `${months} ${months === 1 ? "month" : "months"}`;
+    } else {
+      const years = Math.floor(weeks / 52);
+      const remainingWeeks = weeks % 52;
+      return remainingWeeks > 0
+        ? `${years}y ${remainingWeeks}w`
+        : `${years} years`;
+    }
+  };
+
   return (
     <LinearGradient
       colors={["#E2F3F3", "#E2FFFF"]}
@@ -50,7 +73,7 @@ export default function RealTimeDataScreen() {
             <Text style={styles.kidName}>
               {kid.firstName} {kid.lastName}
             </Text>
-            <Text style={styles.kidAge}>1 Months</Text>
+            <Text style={styles.kidAge}>{calculateAge(kid.birthDate)}</Text>
           </View>
           <View style={styles.statusContainer}>
             <View style={styles.statusDot} />

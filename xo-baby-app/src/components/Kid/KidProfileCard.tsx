@@ -177,17 +177,19 @@ export default function KidProfileCard({
   return (
     <LinearGradient
       colors={["#E2F3F3", "#E2FFFF"]}
-      style={{ width: "100%", height }}
+      style={{ width: "100%", height, flex: 1 }}
     >
       <FlatList
         data={[{ key: "content" }]}
         renderItem={() => null}
         keyExtractor={(i) => i.key}
         ListHeaderComponent={Header}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         keyboardShouldPersistTaps="handled"
+        bounces={true}
+        scrollEnabled={true}
       />
     </LinearGradient>
   );
