@@ -21,6 +21,8 @@ import RealTimeDataWidget from "./RealTimeDataWidget";
 import Development, { DevelopmentItem } from "./Development";
 import UpcomingTasks from "./UpcomingTasks";
 import Notes from "./Notes";
+import DoctorDiagnosis from "./DoctorDiagnosis";
+import Vaccination from "./Vaccination";
 // API
 import {
   getWeightRecords,
@@ -155,6 +157,8 @@ export default function KidProfileCard({
         data={developmentItems}
       />
       <UpcomingTasks kidID={kidId} />
+      <DoctorDiagnosis kidID={kidId} />
+      <Vaccination kidID={kidId} />
       <Notes kidID={kidId} />
 
       {userRole !== 'medical' && (
