@@ -19,14 +19,8 @@ export const signInWithGoogle = async () => {
     }
 
     const redirectUri = AuthSession.makeRedirectUri({
-      native: "https://auth.expo.io/@daikifujii/xo-baby",
+      scheme: "xo-baby-app",
     });
-
-    console.log("✅ Web Client ID:", webClientId);
-    console.log("✅ Redirect URI:", redirectUri);
-    console.log("⚠️  IMPORTANT: Add this redirect URI to Google Cloud Console:");
-    console.log("   👉 Credentials > Web Client > Authorized redirect URIs");
-    console.log("   👉 Add: xo-baby-app://redirect");
 
     const discovery = {
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
@@ -35,24 +29,18 @@ export const signInWithGoogle = async () => {
 
     const request = new AuthSession.AuthRequest({
       clientId: webClientId,
-      scopes: ["profile", "email", "openid"],
+      scopes: ["openid", "profile", "email"],
       redirectUri: redirectUri,
-      responseType: AuthSession.ResponseType.Token,
+      responseType: AuthSession.ResponseType.IdToken,
       usePKCE: false,
-      // extraParams: {
-      //   access_type: "offline",
-      // },
+      extraParams: {
+        access_type: "offline",
+      },
     });
-
-    console.log("🔍 Auth Request Created");
 
     const result = await request.promptAsync(discovery);
 
-    console.log("🔍 Auth Result Type:", result.type);
-
     if (result?.type === "success") {
-      console.log("✅ Authentication successful!");
-      
       const { id_token, access_token } = result.params;
 
       if (!id_token) {

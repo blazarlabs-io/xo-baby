@@ -585,9 +585,11 @@ export class KidService {
     // Use shared wallet connection for all blockchain operations
     const decryptedKidsData = await this.processAllBlockchainData(uniqueKids);
 
-    const completeKidsData = await Promise.all(
-      decryptedKidsData.map(
-        async (decryptedData: any, index: number): Promise<any> => {
+    // Process kids sequentially with delay to avoid rate limiting
+    const completeKidsData: any[] = [];
+    for (let index = 0; index < decryptedKidsData.length; index++) {
+      const decryptedData = decryptedKidsData[index];
+      const kidData = await (async (): Promise<any> => {
           try {
             const ipfsHash = decryptedData['1']; // IPFS hash
             const aesKey = decryptedData['2']; // AES key
@@ -710,9 +712,15 @@ export class KidService {
               error: error.message,
             };
           }
-        },
-      ),
-    );
+      })();
+      
+      completeKidsData.push(kidData);
+      
+      // Add delay between requests to avoid rate limiting (except for last item)
+      if (index < decryptedKidsData.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms delay
+      }
+    }
 
     // Type guard function to check if item is a valid kid object
     const isValidKidObject = (item: any): item is any => {

@@ -23,17 +23,121 @@ export class PinataService {
   private readonly logger = new Logger(PinataService.name);
   private readonly config: PinataConfig;
   private readonly baseUrl = 'https://api.pinata.cloud';
+  
+  // Cache for getData responses - never expires, always keeps as fallback
+  private readonly dataCache = new Map<string, { data: string; timestamp: number }>();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes for fresh cache
+  
+  // Rate limiting to avoid 429 errors
+  private lastRequestTime = 0;
+  private readonly MIN_REQUEST_INTERVAL = 200; // minimum 200ms between requests
 
   constructor() {
+    // Fix: Ensure gateway URL includes https://
+    const gateway = process.env.PINATA_GATEWAY || 'ivory-able-chickadee-870.mypinata.cloud';
+    const gatewayWithProtocol = gateway.startsWith('http') 
+      ? gateway 
+      : `https://${gateway}`;
+    
     this.config = {
       apiKey: process.env.PINATA_API_KEY || '',
       secretApiKey: process.env.PINATA_SECRET_API_KEY || '',
-      gateway: process.env.PINATA_GATEWAY || 'https://gateway.pinata.cloud',
+      gateway: gatewayWithProtocol,
     };
+    
+    this.logger.log(`🌐 Pinata gateway configured: ${this.config.gateway}`);
   }
 
   private isConfigured(): boolean {
     return !!(this.config.apiKey && this.config.secretApiKey);
+  }
+
+  /**
+   * Wait to respect rate limits
+   */
+  private async waitForRateLimit(): Promise<void> {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.MIN_REQUEST_INTERVAL) {
+      const delay = this.MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Retry logic with exponential backoff
+   */
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>,
+    maxRetries = 3,
+    initialDelay = 1000,
+  ): Promise<T> {
+    let lastError: any;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        
+        // Check if it's a rate limit error (429)
+        const is429 = error?.response?.status === 429 || 
+                      error?.message?.includes('429') ||
+                      error?.message?.includes('Too Many Requests');
+        
+        if (is429 && attempt < maxRetries) {
+          const delay = initialDelay * Math.pow(2, attempt);
+          this.logger.warn(
+            `⚠️  Rate limit hit (attempt ${attempt + 1}/${maxRetries + 1}). Retrying in ${delay}ms...`
+          );
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else if (attempt < maxRetries) {
+          const delay = initialDelay;
+          this.logger.warn(
+            `⚠️  Request failed (attempt ${attempt + 1}/${maxRetries + 1}). Retrying in ${delay}ms...`
+          );
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError;
+  }
+
+  /**
+   * Get data from cache if available and not expired
+   */
+  private getCachedData(hash: string, allowStale = false): string | null {
+    const cached = this.dataCache.get(hash);
+    
+    if (cached) {
+      const age = Date.now() - cached.timestamp;
+      
+      if (age < this.CACHE_TTL) {
+        this.logger.debug(`💾 Cache hit for hash: ${hash} (age: ${Math.round(age / 1000)}s)`);
+        return cached.data;
+      } else if (allowStale) {
+        // Return stale cache as fallback
+        this.logger.warn(`💾 Returning stale cache for hash: ${hash} (age: ${Math.round(age / 1000)}s)`);
+        return cached.data;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Store data in cache (never deleted - kept forever as fallback)
+   */
+  private setCachedData(hash: string, data: string): void {
+    this.dataCache.set(hash, {
+      data,
+      timestamp: Date.now(),
+    });
+    this.logger.debug(`💾 Cached data for hash: ${hash}`);
   }
 
   async uploadJSON(data: any): Promise<string> {
@@ -58,6 +162,13 @@ export class PinataService {
 
       const hash = response.data.IpfsHash;
       this.logger.log(`✅ Data uploaded to Pinata with hash: ${hash}`);
+      
+      // ⭐ IMPORTANT: Cache the uploaded data immediately!
+      // This ensures it's available even if gateway retrieval fails later
+      const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+      this.setCachedData(hash, dataString);
+      this.logger.log(`💾 Cached uploaded data for hash: ${hash}`);
+      
       return hash;
     } catch (error) {
       this.logger.error(`❌ Failed to upload to Pinata: ${error.message}`);
@@ -94,6 +205,11 @@ export class PinataService {
 
       const hash = response.data.IpfsHash;
       this.logger.log(`✅ String data uploaded to Pinata with hash: ${hash}`);
+      
+      // ⭐ Cache the uploaded data immediately
+      this.setCachedData(hash, JSON.stringify(jsonData));
+      this.logger.log(`💾 Cached uploaded string data for hash: ${hash}`);
+      
       return hash;
     } catch (error) {
       this.logger.error(
@@ -136,25 +252,68 @@ export class PinataService {
   }
 
   async getData(hash: string): Promise<string> {
-    try {
-      this.logger.log(`📥 Retrieving data from Pinata gateway: ${hash}`);
+    // 1. Check fresh cache first
+    const cachedData = this.getCachedData(hash, false);
+    if (cachedData) {
+      return cachedData;
+    }
 
-      const response = await axios.get(`${this.config.gateway}/ipfs/${hash}`, {
-        timeout: 10000,
+    // 2. Wait for rate limit
+    await this.waitForRateLimit();
+
+    // 3. Try to fetch with retry logic
+    try {
+      const data = await this.retryWithBackoff(async () => {
+        this.logger.log(`📥 Retrieving data from Pinata gateway: ${hash}`);
+
+        // Try with authentication headers first (for dedicated gateways)
+        const requestConfig: any = {
+          timeout: 10000,
+        };
+
+        // Add auth headers if credentials are configured
+        if (this.isConfigured()) {
+          requestConfig.headers = {
+            'x-pinata-gateway-token': this.config.apiKey,
+            pinata_api_key: this.config.apiKey,
+            pinata_secret_api_key: this.config.secretApiKey,
+          };
+        }
+
+        const response = await axios.get(`${this.config.gateway}/ipfs/${hash}`, requestConfig);
+
+        // If the response is JSON with a data field, extract it
+        let result: string;
+        if (typeof response.data === 'object' && response.data.data) {
+          result = response.data.data;
+        } else {
+          // Otherwise return the data as string
+          result = typeof response.data === 'string'
+            ? response.data
+            : JSON.stringify(response.data);
+        }
+
+        return result;
       });
 
-      // If the response is JSON with a data field, extract it
-      if (typeof response.data === 'object' && response.data.data) {
-        return response.data.data;
-      }
-
-      // Otherwise return the data as string
-      return typeof response.data === 'string'
-        ? response.data
-        : JSON.stringify(response.data);
+      // Cache the successful result
+      this.setCachedData(hash, data);
+      
+      return data;
     } catch (error) {
+      // 4. ⭐ FALLBACK: If request failed, try to return stale cache
+      const staleData = this.getCachedData(hash, true);
+      
+      if (staleData) {
+        this.logger.warn(
+          `⚠️  Pinata request failed but returning cached data for hash: ${hash}`
+        );
+        return staleData;
+      }
+      
+      // 5. No cache available, throw the error
       this.logger.error(
-        `❌ Failed to retrieve data from Pinata: ${error.message}`,
+        `❌ Failed to retrieve data from Pinata and no cache available: ${error.message}`,
       );
       throw new Error(`Pinata data retrieval failed: ${error.message}`);
     }
@@ -220,5 +379,28 @@ export class PinataService {
       this.logger.error(`❌ Pinata connection test failed: ${error.message}`);
       return false;
     }
+  }
+
+  /**
+   * Clear the cache (useful for testing or when data needs to be refreshed)
+   */
+  clearCache(hash?: string): void {
+    if (hash) {
+      this.dataCache.delete(hash);
+      this.logger.log(`🗑️  Cache cleared for hash: ${hash}`);
+    } else {
+      this.dataCache.clear();
+      this.logger.log(`🗑️  All cache cleared (${this.dataCache.size} entries)`);
+    }
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): { size: number; entries: string[] } {
+    return {
+      size: this.dataCache.size,
+      entries: Array.from(this.dataCache.keys()),
+    };
   }
 }
