@@ -5,6 +5,7 @@ export interface PinataConfig {
   apiKey: string;
   secretApiKey: string;
   gateway: string;
+  gatewayToken?: string;
 }
 
 export interface PinataUploadResponse {
@@ -34,7 +35,7 @@ export class PinataService {
 
   constructor() {
     // Fix: Ensure gateway URL includes https://
-    const gateway = process.env.PINATA_GATEWAY || 'ivory-able-chickadee-870.mypinata.cloud';
+    const gateway = process.env.PINATA_GATEWAY || 'harlequin-quiet-flamingo-121.mypinata.cloud';
     const gatewayWithProtocol = gateway.startsWith('http') 
       ? gateway 
       : `https://${gateway}`;
@@ -43,9 +44,11 @@ export class PinataService {
       apiKey: process.env.PINATA_API_KEY || '',
       secretApiKey: process.env.PINATA_SECRET_API_KEY || '',
       gateway: gatewayWithProtocol,
+      gatewayToken: process.env.PINATA_GATEWAY_TOKEN || 'oULXMuARhUSkROEB2tBm6_UfIrJj5ZCelqlTfhU70CjzltfMh6ul_yPsszE_dSdF',
     };
     
     this.logger.log(`🌐 Pinata gateway configured: ${this.config.gateway}`);
+    this.logger.log(`🔑 Pinata gateway token configured: ${this.config.gatewayToken ? 'Yes' : 'No'}`);
   }
 
   private isConfigured(): boolean {
@@ -266,21 +269,17 @@ export class PinataService {
       const data = await this.retryWithBackoff(async () => {
         this.logger.log(`📥 Retrieving data from Pinata gateway: ${hash}`);
 
-        // Try with authentication headers first (for dedicated gateways)
+        // Build URL with gateway token as query parameter
+        let gatewayUrl = `${this.config.gateway}/ipfs/${hash}`;
+        if (this.config.gatewayToken) {
+          gatewayUrl += `?pinataGatewayToken=${this.config.gatewayToken}`;
+        }
+
         const requestConfig: any = {
           timeout: 10000,
         };
 
-        // Add auth headers if credentials are configured
-        if (this.isConfigured()) {
-          requestConfig.headers = {
-            'x-pinata-gateway-token': this.config.apiKey,
-            pinata_api_key: this.config.apiKey,
-            pinata_secret_api_key: this.config.secretApiKey,
-          };
-        }
-
-        const response = await axios.get(`${this.config.gateway}/ipfs/${hash}`, requestConfig);
+        const response = await axios.get(gatewayUrl, requestConfig);
 
         // If the response is JSON with a data field, extract it
         let result: string;
@@ -320,7 +319,11 @@ export class PinataService {
   }
 
   getGatewayUrl(hash: string): string {
-    return `${this.config.gateway}/ipfs/${hash}`;
+    let url = `${this.config.gateway}/ipfs/${hash}`;
+    if (this.config.gatewayToken) {
+      url += `?pinataGatewayToken=${this.config.gatewayToken}`;
+    }
+    return url;
   }
 
   async pinHash(hash: string): Promise<void> {
