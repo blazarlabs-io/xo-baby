@@ -1,31 +1,50 @@
-import React from 'react';
-import { View, TouchableOpacity, Dimensions, StyleSheet, Text, Image } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { safeArea } from '../constants/safeArea';
+import React from "react";
+import {
+  View,
+  TouchableOpacity,
+  Dimensions,
+  StyleSheet,
+  Text,
+  Image,
+} from "react-native";
+import Svg, { Path } from "react-native-svg";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { safeArea } from "../constants/safeArea";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const TAB_HEIGHT = 93;
 
 // map each route key to its inactive/active image assets
 const ICON_MAP: Record<string, { inactive: any; active: any }> = {
+  MyFacility: {
+    inactive: require("../../assets/home-parent/tabs/hospital.png"),
+    active: require("../../assets/home-parent/tabs/hospital-active.png"),
+  },
   MyKids: {
-    inactive: require('../../assets/home-parent/tabs/kid.png'),
-    active: require('../../assets/home-parent/tabs/kid-active.png'),
+    inactive: require("../../assets/home-parent/tabs/kid.png"),
+    active: require("../../assets/home-parent/tabs/kid-active.png"),
+  },
+  Kids: {
+    inactive: require("../../assets/home-parent/tabs/kid.png"),
+    active: require("../../assets/home-parent/tabs/kid-active.png"),
+  },
+  Personnel: {
+    inactive: require("../../assets/home-parent/tabs/personal.png"),
+    active: require("../../assets/home-parent/tabs/personal-active.png"),
   },
   Devices: {
-    inactive: require('../../assets/home-parent/tabs/device.png'),
-    active: require('../../assets/home-parent/tabs/device-active.png'),
+    inactive: require("../../assets/home-parent/tabs/device.png"),
+    active: require("../../assets/home-parent/tabs/device-active.png"),
   },
   Settings: {
-    inactive: require('../../assets/home-parent/tabs/settings.png'),
-    active: require('../../assets/home-parent/tabs/settings-active.png'),
+    inactive: require("../../assets/home-parent/tabs/settings.png"),
+    active: require("../../assets/home-parent/tabs/settings-active.png"),
   },
 };
 
-// Path for rectangle 
+// Path for rectangle
 const createPath = () => {
-  const tl = 24; // border radius 
+  const tl = 24; // border radius
   const tr = 32; // border radius
   const h = TAB_HEIGHT;
   const w = width;
@@ -41,9 +60,13 @@ const createPath = () => {
   `;
 };
 
-export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export default function CustomTabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) {
   return (
-    <View style={[styles.container, { bottom: safeArea.bottom }]}>      
+    <View style={[styles.container, { bottom: safeArea.bottom }]}>
       <Svg width={width} height={TAB_HEIGHT} style={styles.svg}>
         <Path
           d={createPath()}
@@ -60,9 +83,17 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           const source = focused ? active : inactive;
 
           // determine label text
-          const label = typeof route.name === 'string' ?
-            { MyKids: 'My Kids', Devices: 'My Devices', Settings: 'Settings' }[route.name] || route.name
-            : route.name
+          const label =
+            typeof route.name === "string"
+              ? {
+                  MyFacility: "My Facility",
+                  MyKids: "My Kids",
+                  Kids: "Kids",
+                  Personnel: "Personnel",
+                  Devices: "Devices",
+                  Settings: "Settings",
+                }[route.name] || route.name
+              : route.name;
 
           return (
             <TouchableOpacity
@@ -73,7 +104,14 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             >
               <View style={styles.inner}>
                 <Image source={source} style={styles.icon} />
-                <Text style={[styles.label, { color: focused ? '#31cece' : '#8d8d8d' }]}>{label}</Text>
+                <Text
+                  style={[
+                    styles.label,
+                    { color: focused ? "#31cece" : "#8d8d8d" },
+                  ]}
+                >
+                  {label}
+                </Text>
               </View>
             </TouchableOpacity>
           );
@@ -85,16 +123,16 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    width: '100%',
+    position: "absolute",
+    width: "100%",
     height: TAB_HEIGHT,
-    alignItems: 'center',
+    alignItems: "center",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 32,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
+    overflow: "hidden",
+    backgroundColor: "transparent",
     // iOS shadow
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -102,16 +140,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   svg: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
-    
   },
   buttons: {
-    flexDirection: 'row',
-    width: '100%',
-    height: '100%',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    width: "100%",
+    height: "100%",
+    justifyContent: "space-around",
+    alignItems: "center",
     paddingTop: 16,
     paddingBottom: 32,
     paddingHorizontal: 16,
@@ -120,20 +157,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   inner: {
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: "column",
+    alignItems: "center",
     gap: 4,
   },
   icon: {
     width: 24,
     height: 24,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   label: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: "500",
     fontFamily: "Poppins-Medium",
-    textAlign: 'center'
+    textAlign: "center",
   },
 });

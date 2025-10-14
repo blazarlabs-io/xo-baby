@@ -1,120 +1,168 @@
-import React, { useState} from 'react';
-import { View, Text, Image, StyleSheet, Pressable, ScrollView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
-import { AppStackParamList } from '../../types/navigation';
-import { useKidStore } from '../../store/kidStore';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+} from "react-native";
+import { useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
+import { AppStackParamList } from "../../types/navigation";
+import { useKidStore } from "../../store/kidStore";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import TodayTab from "../../components/Kid/Tasks/TodayTab";
+import CalendarTab from "../../components/Kid/Tasks/CalendarTab";
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-
-import TodayTab from '../../components/Kid/Tasks/TodayTab';
-import CalendarTab from '../../components/Kid/Tasks/CalendarTab';
-
-type TasksProp = RouteProp<AppStackParamList, 'Tasks'>;
-type SelectedTab = 'today' | 'calendar';
-
+type TasksProp = RouteProp<AppStackParamList, "Tasks">;
+type SelectedTab = "today" | "calendar";
 
 export default function TasksScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'Tasks'>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList, "Tasks">>();
   const route = useRoute<TasksProp>();
   const { kidId } = route.params;
-
-  // Toggle state
-  const [selectedTab, setSelectedTab] = useState<SelectedTab>('today');
+  const [selectedTab, setSelectedTab] = useState<SelectedTab>("today");
   const selectTab = (tab: SelectedTab) => setSelectedTab(tab);
   const [modalVisible, setModalVisible] = useState(false);
-
-  const kid = useKidStore((state) =>
-    state.kids.find((k) => k.id === kidId)
-  );
+  const kid = useKidStore((state) => state.kids.find((k) => k.id === kidId));
 
   if (!kid) return <Text>Kid not found</Text>;
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return "Unknown age";
+
+    const birth = new Date(birthDate);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birth.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(diffDays / 7);
+
+    if (weeks < 4) {
+      return `${diffDays} days`;
+    } else if (weeks < 52) {
+      const months = Math.floor(weeks / 4);
+      return `${months} ${months === 1 ? "month" : "months"}`;
+  };
+  }
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', flex: 1}}>
-    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.componentHeaderContainer}>
-        <Image
-          source={require('../../../assets/home-parent/calendar.png')}
-          style={{ width: 20, height: 20 }} />
-        <Text style={styles.realTimeText}>Tasks</Text>
-      </View>
-      <View style={styles.kidCard}>
-        <View style={styles.avatarWrapper}>
-          <View style={styles.avatarBorder}>
-            <Image
-              source={require('../../../assets/kids/avatar-girl.png')}
-              style={styles.avatarImage}
-            />
+    <LinearGradient
+      colors={["#E2F3F3", "#E2FFFF"]}
+      style={{ width: "100%", flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.componentHeaderContainer}>
+          <Image
+            source={require("../../../assets/home-parent/calendar.png")}
+            style={{ width: 20, height: 20 }}
+          />
+          <Text style={styles.realTimeText}>Tasks</Text>
+        </View>
+        <View style={styles.kidCard}>
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarBorder}>
+              <Image
+                source={require("../../../assets/kids/avatar-girl.png")}
+                style={styles.avatarImage}
+              />
+            </View>
+          </View>
+          <View style={styles.kidInfoContainer}>
+            <Text style={styles.kidName}>
+              {kid.firstName} {kid.lastName}
+            </Text>
+            <Text style={styles.kidAge}>{calculateAge(kid.birthDate)}</Text>
           </View>
         </View>
-        <View style={styles.kidInfoContainer}>
-          <Text style={styles.kidName}>{kid.firstName} {kid.lastName}</Text>
-          <Text style={styles.kidAge}>8 Months</Text>
-        </View>
-        
-      </View>
-      <View style={{width: '100%', marginTop: 32}}>
-        <View style={{ display: 'flex', flexDirection: 'row', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-          <View style={{ gap: 8, display: 'flex', flexDirection: 'row' }}>
-            <Pressable 
-              style={[
-                selectedTab === 'today' ? styles.activeTabButton : styles.tabButton
-              ]} 
-            
-              onPress={() => selectTab('today')}>
-
-              <Text style={[
-                styles.buttonText,
-                selectedTab === 'today' ? {color: '#fff'} : { color: '#222128' },
-              ]}>Today</Text>
-            </Pressable>
-
-            <Pressable 
-              style={[
-                selectedTab === 'calendar' ? styles.activeTabButton : styles.tabButton
-              ]} 
-
-              onPress={() => selectTab('calendar')}>
-              <Text 
+        <View style={{ width: "100%", marginTop: 32 }}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              width: "100%",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <View style={{ gap: 8, display: "flex", flexDirection: "row" }}>
+              <Pressable
                 style={[
-                  styles.buttonText, selectedTab === 'calendar' ? { color: '#fff' } : { color: '#222128' }
-                ]}>Calendar</Text>
+                  selectedTab === "today"
+                    ? styles.activeTabButton
+                    : styles.tabButton,
+                ]}
+                onPress={() => selectTab("today")}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    selectedTab === "today"
+                      ? { color: "#fff" }
+                      : { color: "#222128" },
+                  ]}
+                >
+                  Today
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  selectedTab === "calendar"
+                    ? styles.activeTabButton
+                    : styles.tabButton,
+                ]}
+                onPress={() => selectTab("calendar")}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    selectedTab === "calendar"
+                      ? { color: "#fff" }
+                      : { color: "#222128" },
+                  ]}
+                >
+                  Calendar
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable
+              style={styles.addButton}
+              onPress={() => setModalVisible(true)}
+            >
+              <Image
+                source={require("../../../assets/home-parent/add.png")}
+                style={{ width: 14, height: 14 }}
+              />
             </Pressable>
           </View>
-          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
-            <Image
-              source={require('../../../assets/home-parent/add.png')}
-              style={{ width: 14, height: 14 }}
-            />
+        </View>
+
+        {selectedTab === "today" ? (
+          <TodayTab
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            kidId={kidId}
+          />
+        ) : (
+          <CalendarTab
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            kidId={kidId}
+          />
+        )}
+
+        <View style={{ position: "relative", width: "92%", marginTop: 50 }}>
+          <Pressable onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>Back</Text>
           </Pressable>
         </View>
-      </View>
-
-      { 
-        selectedTab === 'today' ? 
-        (<TodayTab 
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          kidId={kidId} 
-        /> ): 
-        (<CalendarTab 
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          kidId={kidId} 
-        /> )
-      }
-
-      <View style={{ position: 'relative', width: '92%', marginTop: 50 }}>
-              
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-      </View>
-     
-    </ScrollView>
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -122,19 +170,19 @@ export default function TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
-    alignItems: 'center',
-    width: '100%',
+    alignItems: "center",
+    width: "100%",
   },
   componentHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    gap: 4
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 4,
   },
   name: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
   },
   realTimeText: {
@@ -143,14 +191,14 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "Poppins-Medium",
     color: "#222128",
-    textAlign: "left"
+    textAlign: "left",
   },
   kidCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 16,
     padding: 8,
-    width: '100%',
+    width: "100%",
     elevation: 2,
     marginTop: 24,
   },
@@ -158,35 +206,35 @@ const styles = StyleSheet.create({
     width: 47,
     height: 47,
     borderRadius: 47,
-    backgroundColor: '#31CECE',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#31CECE",
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarBorder: {
     width: 38,
     height: 38,
     borderRadius: 38,
-    backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarImage: {
     width: 38,
     height: 38,
-    borderRadius: 38
+    borderRadius: 38,
   },
   kidInfoContainer: {
     marginLeft: 8,
-    flex: 1
+    flex: 1,
   },
   kidName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#222128'
+    fontWeight: "600",
+    color: "#222128",
   },
   kidAge: {
     fontSize: 14,
-    color: '#888'
+    color: "#888",
   },
   tabButton: {
     paddingHorizontal: 32,
@@ -197,7 +245,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   activeTabButton: {
-    backgroundColor: '#31cece',
+    backgroundColor: "#31cece",
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 32,
@@ -207,15 +255,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
     fontWeight: "500",
     fontFamily: "Roboto-Medium",
-    textAlign: "left"
+    textAlign: "left",
   },
   addButton: {
     padding: 12,
     borderRadius: 32,
     justifyContent: "center",
-    backgroundColor: "#31cece"
+    backgroundColor: "#31cece",
   },
-  
-  backText: { textAlign: 'center', marginTop: 10, color: '#999' },
-});
 
+  backText: { textAlign: "center", marginTop: 10, color: "#999" },
+});

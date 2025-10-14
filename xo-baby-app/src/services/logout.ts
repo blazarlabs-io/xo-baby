@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
-
 import { auth } from '@/config/firebase';
 import { useUserStore } from '@/store/userStore';
 import { useKidStore } from '@/store/kidStore';

@@ -1,20 +1,25 @@
 {
   "expo": {
     "name": "xo-baby-app",
-    "slug": "xo-baby-app",
+    "slug": "xo-baby",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "jsEngine": "jsc",
+    "scheme": "xo-baby-app",
+    "developmentClient": {
+      "silentLaunch": true
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.midnight.medicalrecords"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,21 +27,46 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.midnight.medicalrecords",
-      "versionCode": 1
+      "package": "com.xobaby.android",
+      "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "auth.expo.io"
+            },
+            {
+              "scheme": "xo-baby-app"
+            },
+            {
+              "scheme": "com.googleusercontent.apps.278376901127"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      "expo-dev-client"
     ],
     "extra": {
       "eas": {
-        "projectId": "a47c611b-cf5b-4381-9d12-013898ccdca9"
-      }
+        "projectId": "f929cd25-b511-4f2e-9eff-9c1aa29b3567"
+      },
+      "googleWebClientId": "278376901127-8mgjhm39opqjdpiqrs7imb64vuj1qqpc.apps.googleusercontent.com",
+      "apiUrl": "https://xo-baby.blazarlabs.io"
     },
-    "owner": "blazarlabs"
+    "owner": "daikifujii"
   }
 }

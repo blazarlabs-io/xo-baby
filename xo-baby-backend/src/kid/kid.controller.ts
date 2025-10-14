@@ -1,5 +1,5 @@
 // kid.controller.ts
-import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Headers, UnauthorizedException, Post, Body, Delete, Put } from '@nestjs/common';
 import { KidService } from './kid.service';
 import { UserService } from '../user/user.service';
 import { CreateKidDto } from './dto/create-kid.dto';
@@ -10,20 +10,62 @@ export class KidController {
   constructor(
     private readonly kidService: KidService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   @Post('create')
   async createKid(@Body() dto: CreateKidDto) {
-    return this.kidService.createKid(dto);
+    console.log('📋 Kid creation request received at:', new Date().toISOString());
+    console.log('📋 Request data:', JSON.stringify(dto, null, 2));
+    console.log('📋 Request headers present, processing...');
+    
+    try {
+      const result = await this.kidService.createKid(dto);
+      console.log('✅ Kid created successfully at:', new Date().toISOString());
+      console.log('✅ Response data:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error('❌ Kid creation failed at:', new Date().toISOString());
+      console.error('❌ Error details:', error);
+      throw error;
+    }
   }
 
   @Get('my-kids')
   async getKidsByUser(@Headers('authorization') authHeader: string) {
+    console.log('📋 Get my kids request received');
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing or invalid Authorization header');
     }
     const idToken = authHeader.replace('Bearer ', '');
-    return this.kidService.getKidsByUserToken(idToken);
+    
+    try {
+      const result = await this.kidService.getKidsByUserToken(idToken);
+      console.log(`✅ Found ${result?.length || 0} kids`);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to get kids:', error);
+      throw error;
+    }
+  }
+
+  @Post('clear-cache')
+  async clearBlockchainCache(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+    
+    // Only allow admin users to clear cache
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required');
+    }
+    
+    this.kidService.clearBlockchainCache();
+    return { message: 'Blockchain cache cleared successfully' };
   }
 
   @Get(':id/weight')
@@ -134,5 +176,66 @@ export class KidController {
     const user = await this.userService.verifyIdToken(token);
 
     return this.kidService.updateHeight(kidId, user.uid, dto.height, dto.date);
+  }
+
+  @Put(':id/assign-doctor')
+  async updateKidDoctorAssignment(
+    @Param('id') kidId: string,
+    @Headers('authorization') authHeader: string,
+    @Body() body: { doctorId: string | null }
+  ) {
+    console.log('👨‍⚕️ Update kid doctor assignment request received');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+
+    // Check if user has admin role
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required to update kid assignments');
+    }
+
+    try {
+      await this.kidService.updateKidDoctorAssignment(kidId, body.doctorId);
+      console.log(`✅ Kid ${kidId} doctor assignment updated successfully`);
+      return { message: 'Kid doctor assignment updated successfully', kidId, doctorId: body.doctorId };
+    } catch (error) {
+      console.error('❌ Failed to update kid doctor assignment:', error);
+      throw error;
+    }
+  }
+
+  @Delete(':id')
+  async deleteKid(
+    @Param('id') kidId: string,
+    @Headers('authorization') authHeader: string
+  ) {
+    console.log('🗑️ Delete kid request received');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Missing or invalid Authorization header');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const user = await this.userService.verifyIdToken(token);
+
+    // Check if user has admin role
+    const userProfile = await this.userService.getUserProfile(user.uid);
+    if (userProfile.role !== 'admin') {
+      throw new UnauthorizedException('Access denied: Admin role required to delete kids');
+    }
+
+    try {
+      await this.kidService.deleteKid(kidId);
+      console.log(`✅ Kid ${kidId} deleted successfully`);
+      return { message: 'Kid deleted successfully', kidId };
+    } catch (error) {
+      console.error('❌ Failed to delete kid:', error);
+      throw error;
+    }
   }
 }

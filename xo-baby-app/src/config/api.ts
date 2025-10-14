@@ -1,35 +1,42 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
-import { auth } from './firebase';
-import { useUserStore } from '../store/userStore';
+import axios from "axios";
+import { Platform } from "react-native";
+import { auth } from "./firebase";
+import { useUserStore } from "../store/userStore";
 
 const DEV_HOST = Platform.select({
-  android: '10.0.2.2',
-  ios: 'localhost',
-  default: 'localhost',
+  android: "64.227.35.231",
+  ios: "localhost",
+  default: "localhost",
 });
-const BASE_URL = __DEV__
-  ? `http://${DEV_HOST}:${process.env.API_PORT}`
-  : (process.env.EXPO_PUBLIC_API_URL as string);
+
+// Use the same server for both dev and production for now
+const BASE_URL = `https://xo-baby.blazarlabs.io`;
+// const BASE_URL = `http://64.227.35.231:3000`;
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
-  headers: { 'Content-Type': 'application/json' },
+  timeout: 900000, // 15 minutes timeout to match nginx
+  headers: { "Content-Type": "application/json" },
 });
 
 // attach token
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = useUserStore.getState().user?.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 let isRefreshing = false;
-let queue: { resolve: (t: string) => void; reject: (e: any) => void }[] = [];
+let queue: { resolve: (token: string) => void; reject: (error: any) => void }[] = [];
 
 function resolveQueue(err: any, token: string | null) {
-  queue.forEach(p => (err ? p.reject(err) : p.resolve(token as string)));
+  queue.forEach(({ resolve, reject }) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(token!);
+    }
+  });
   queue = [];
 }
 
@@ -53,14 +60,21 @@ api.interceptors.response.use(
 
       try {
         const user = auth.currentUser;
-        if (!user) throw new Error('Not authenticated');
+        if (!user) throw new Error("Not authenticated");
 
         // force-refresh the Firebase ID token
         const newToken = await user.getIdToken(true);
 
         // update store
         const store = useUserStore.getState();
-        store.setUser({ ...(store.user ?? { uid: user.uid, email: user.email ?? '' }), token: newToken });
+        store.setUser({
+          ...(store.user ?? {
+            uid: user.uid,
+            email: user.email ?? "",
+            role: "parent" as const,
+          }),
+          token: newToken,
+        });
 
         resolveQueue(null, newToken);
 

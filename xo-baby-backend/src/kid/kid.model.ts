@@ -1,6 +1,8 @@
 export interface Kid {
   id: string;
   parentId: string;
+  doctorId?: string;  // Medical personnel assigned to this kid
+  adminId?: string;   // Admin assigned to this kid
   firstName: string;
   lastName: string;
   birthDate: string;

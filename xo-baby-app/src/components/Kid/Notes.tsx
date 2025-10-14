@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../../types/navigation';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+  Image,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { AppStackParamList } from "../../types/navigation";
 
-import { useUserStore } from '@/store/userStore';
-import { getNotes, Note as NoteApi  } from '@/api/notesApi';
+import { useUserStore } from "@/store/userStore";
+import { getNotes, Note as NoteApi } from "@/api/notesApi";
 
 interface NotesProps {
   kidID: string;
@@ -13,72 +21,82 @@ interface NotesProps {
 
 const Notes: React.FC<NotesProps> = (props) => {
   const { kidID } = props;
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList, "KidProfile">>();
 
   // retrieve token from user store
-  const user = useUserStore((state) => state.user)
-  const token = user?.token
+  const user = useUserStore((state) => state.user);
+  const token = user?.token;
 
   // state
-  const [notes, setNotes] = useState<NoteApi[]>([])
-  const [loading, setLoading] = useState(false)
+  const [notes, setNotes] = useState<NoteApi[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Fetch notes on mount or when token/kidId changes
   useEffect(() => {
     const loadNotes = async () => {
-      if (!token) return
-      setLoading(true)
+      if (!token) return;
+      setLoading(true);
       try {
-        const kidId = kidID
-        const fetched = await getNotes(token, { kidId })
-        setNotes(fetched)
+        const kidId = kidID;
+        const fetched = await getNotes(token, { kidId });
+        setNotes(fetched);
       } catch (err) {
-        console.error('Error loading notes:', err)
+        console.error("Error loading notes:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    loadNotes()
-  }, [token, kidID])
+    };
+    loadNotes();
+  }, [token, kidID]);
 
   const goDetail = () => {
-    navigation.navigate('Notes', { kidId: kidID });
-  }
-  
+    navigation.navigate("Notes", { kidId: kidID });
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Notes</Text>
-        <Text style={styles.seeAll} onPress={goDetail}>See All</Text>
+        <Text style={styles.seeAll} onPress={goDetail}>
+          See All
+        </Text>
       </View>
-      { loading ? (
+      {loading ? (
         <ActivityIndicator />
-      ) : notes.length === 0 ? ( 
+      ) : notes.length === 0 ? (
         <View>
           <Text>No notes yet</Text>
         </View>
-       ) : (
-      <FlatList
-        data={notes}
-        horizontal
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={[styles.noteCard, { backgroundColor: '#FFC8F0' }]}>
-            {/* <Pressable style={styles.favoriteIcon}>
+      ) : (
+        <FlatList
+          data={notes}
+          horizontal
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={[styles.noteCard, { backgroundColor: "#FFC8F0" }]}>
+              {/* <Pressable style={styles.favoriteIcon}>
               {item.isFavorite && (
                 <MaterialCommunityIcons name="star" size={16} color="#FF8B00" />
               )}
             </Pressable> */}
-            <Text style={styles.noteText} numberOfLines={5}>{item.description}</Text>
-            <Text style={styles.noteDate}>{item.date}</Text>
-            <Pressable style={styles.editIcon}>
-              <Image source={require('../../../assets/home-parent/pencil.png')} alt=" pencil" width={10} height={10} />
-            </Pressable>
-          </View>
-        )}
-        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-        showsHorizontalScrollIndicator={false}
-      />
+              <Text style={styles.noteText} numberOfLines={5}>
+                {item.description}
+              </Text>
+              <Text style={styles.noteDate}>{item.date}</Text>
+              <Pressable style={styles.editIcon}>
+                <Image
+                  source={require("../../../assets/home-parent/pencil.png")}
+                  alt=" pencil"
+                  width={10}
+                  height={10}
+                />
+              </Pressable>
+            </View>
+          )}
+          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+          showsHorizontalScrollIndicator={false}
+        />
       )}
     </View>
   );
@@ -87,11 +105,11 @@ const Notes: React.FC<NotesProps> = (props) => {
 const styles = StyleSheet.create({
   container: {
     marginTop: 24,
-    width: '100%',
+    width: "100%",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 10,
   },
   headerText: {
@@ -101,7 +119,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "Poppins-Medium",
     color: "#222128",
-    textAlign: "left"
+    textAlign: "left",
   },
   seeAll: {
     fontSize: 16,
@@ -109,55 +127,55 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "Roboto-Medium",
     color: "#8d8d8d",
-    textAlign: "left"
+    textAlign: "left",
   },
   noteCard: {
     width: 117,
     height: 131,
     borderRadius: 16,
     padding: 20,
-    position: 'relative',
-    justifyContent: 'space-between',
+    position: "relative",
+    justifyContent: "space-between",
     marginTop: 12,
     borderStyle: "solid",
     borderColor: "#dce3e3",
     borderWidth: 1,
   },
   noteText: {
-    color: ' #222128',
-    fontFamily: 'Poppins-Regular',
+    color: " #222128",
+    fontFamily: "Poppins-Regular",
     fontSize: 12,
-    fontStyle: 'normal',
+    fontStyle: "normal",
   },
   noteDate: {
     width: "100%",
     fontSize: 10,
     fontFamily: "Poppins-Regular",
     color: "#8d8d8d",
-    textAlign: "left"
+    textAlign: "left",
   },
   favoriteIcon: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     borderRadius: 12,
     width: 24,
     height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   editIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 8,
     right: 8,
-    backgroundColor: '#222128',
+    backgroundColor: "#222128",
     borderRadius: 16,
     width: 24,
     height: 24,
     padding: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

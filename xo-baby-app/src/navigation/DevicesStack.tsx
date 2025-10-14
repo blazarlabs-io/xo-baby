@@ -1,15 +1,15 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // Screens
-import DevicesScreen from '@/screens/home/DevicesScreen';
-import DeviceItemScreen from '@/screens/home/DeviceItemScreen';
-import DeviceAddScreen from '@/screens/home/DeviceAdd';
+import DevicesScreen from "@/screens/home/DevicesScreen";
+import DeviceItemScreen from "@/screens/home/DeviceItemScreen";
+import DeviceAddScreen from "@/screens/home/DeviceAdd";
 
 export type DevicesStackParamList = {
-  Devices: { kidId: string }
-  DeviceItem: { kidId: string }
-  DeviceAdd: undefined
+  Devices: { kidId: string };
+  DeviceItem: { kidId: string };
+  DeviceAdd: undefined;
 };
 
 const Stack = createNativeStackNavigator<DevicesStackParamList>();

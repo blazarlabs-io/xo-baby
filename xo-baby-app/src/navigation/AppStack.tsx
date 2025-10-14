@@ -1,16 +1,19 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/home/HomeScreen';
-import AddKidNameScreen from '../screens/kids/AddKid/AddKidNameScreen'
-import AddKidLastNameScreen from '../screens/kids/AddKid/AddKidLastNameScreen';
-import AddKidGenderScreen from '../screens/kids/AddKid/AddKidGenderScreen';
-import AddKidBirthdayScreen from '../screens/kids/AddKid/AddKidBirthdayScreen';
-import AddKidBloodTypeScreen from '../screens/kids/AddKid/AddKidBloodType';
-import AddKidEthnicityScreen from '../screens/kids/AddKid/AddKidEthnicityScreen';
-import AddKidLocationScreen from '../screens/kids/AddKid/AddKidLocationScreen';
-import AddKidAnomaliesScreen from '../screens/kids/AddKid/AddKidAnomaliesScreen';
-import AddKidAvatarScreen from '../screens/kids/AddKid/AddKidAvatarScreen';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import HomeScreen from "../screens/home/HomeScreen";
+import AddKidNameScreen from "../screens/kids/AddKid/AddKidNameScreen";
+import AddKidLastNameScreen from "../screens/kids/AddKid/AddKidLastNameScreen";
+import AddKidGenderScreen from "../screens/kids/AddKid/AddKidGenderScreen";
+import AddKidBirthdayScreen from "../screens/kids/AddKid/AddKidBirthdayScreen";
+import AddKidBloodTypeScreen from "../screens/kids/AddKid/AddKidBloodType";
+import AddKidEthnicityScreen from "../screens/kids/AddKid/AddKidEthnicityScreen";
+import AddKidLocationScreen from "../screens/kids/AddKid/AddKidLocationScreen";
+import AddKidAnomaliesScreen from "../screens/kids/AddKid/AddKidAnomaliesScreen";
+import AddKidAvatarScreen from "../screens/kids/AddKid/AddKidAvatarScreen";
+import KidDetailsScreen from "../screens/home/KidDetailsScreen";
+import DoctorDetailsScreen from "../screens/home/DoctorDetailsScreen";
+import UnassignedKidsScreen from "../screens/home/UnassignedKidsScreen";
 
-import TabNavigator from './TabNavigator';
+import TabNavigator from "./TabNavigator";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +22,15 @@ export default function AppStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {/* Tab-based root navigator */}
       <Stack.Screen name="Tabs" component={TabNavigator} />
+
+      {/* Kid Details Screen */}
+      <Stack.Screen name="KidDetails" component={KidDetailsScreen} />
+
+      {/* Doctor Details Screen */}
+      <Stack.Screen name="DoctorDetails" component={DoctorDetailsScreen} />
+
+      {/* Unassigned Kids Screen */}
+      <Stack.Screen name="UnassignedKids" component={UnassignedKidsScreen} />
 
       {/* Add-Kid flow screens */}
       <Stack.Screen name="AddKid" component={AddKidNameScreen} />
@@ -31,7 +43,6 @@ export default function AppStack() {
       <Stack.Screen name="AddKidLocation" component={AddKidLocationScreen} />
       <Stack.Screen name="AddKidAnomalies" component={AddKidAnomaliesScreen} />
       <Stack.Screen name="AddKidAvatar" component={AddKidAvatarScreen} />
-
     </Stack.Navigator>
   );
 }

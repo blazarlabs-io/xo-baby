@@ -16,7 +16,7 @@ export default function LoginPasswordScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'LoginPassword'>>();
   const { email } = route.params;
 
-  const setUser = useUserStore((state) => state.setUser);
+  const { setUser, selectedRole, clearSelectedRole } = useUserStore();
 
   const handleLogin = async () => {
     if (email.trim()) {
@@ -24,13 +24,75 @@ export default function LoginPasswordScreen() {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        const token = await user.getIdToken();
 
-        setUser({
-          uid: user.uid,
-          email: user.email ?? '',
-          token: await user.getIdToken(),
-          role: 'parent', // Default role, can be updated later
-        });
+        // Fetch user profile to get role
+        try {
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/users/verify-token`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (response.ok) {
+            const userProfile = await response.json();
+            console.log("🔍 Login - User Profile from backend:", userProfile);
+            console.log("🔍 Login - Selected Role:", selectedRole);
+            
+            const finalRole = userProfile.role || selectedRole || 'parent';
+            console.log("🔍 Login - Final Role:", finalRole);
+            
+            const userData = {
+              uid: user.uid,
+              email: user.email ?? '',
+              token: token,
+              role: finalRole,
+            };
+            
+            console.log("🔍 Login - Setting user data:", userData);
+            setUser(userData);
+            
+            // Verify the user was set correctly
+            setTimeout(() => {
+              const currentUser = useUserStore.getState().user;
+              console.log("🔍 Login - User after setting:", currentUser);
+            }, 100);
+            
+          } else {
+            console.log("🔍 Login - Backend response not OK, using fallback role");
+            const fallbackRole = selectedRole || 'parent';
+            console.log("🔍 Login - Using fallback role:", fallbackRole);
+            
+            // Fallback to selected role or default
+            setUser({
+              uid: user.uid,
+              email: user.email ?? '',
+              token: token,
+              role: fallbackRole,
+            });
+          }
+          
+          // Clear the temporary selected role
+          clearSelectedRole();
+        } catch (profileError) {
+          console.warn('Failed to fetch user profile:', profileError);
+          console.log("🔍 Login - Profile fetch error, using fallback role");
+          const fallbackRole = selectedRole || 'parent';
+          console.log("🔍 Login - Using fallback role:", fallbackRole);
+          
+          // Fallback to selected role or default
+          setUser({
+            uid: user.uid,
+            email: user.email ?? '',
+            token: token,
+            role: fallbackRole,
+          });
+          
+          // Clear the temporary selected role
+          clearSelectedRole();
+        }
 
       } catch (error: any) {
         console.error('Login error:', error.message);

@@ -12,7 +12,7 @@ export class MeasurementsService {
     this.db = this.firebase.getFirestore();
   }
 
-  private async getCollection(
+  private getCollection(
     type: 'weight' | 'height' | 'headCircumference',
   ) {
     const map = {
@@ -27,16 +27,22 @@ export class MeasurementsService {
     kidId: string,
     type: 'weight' | 'height' | 'headCircumference',
   ): Promise<MeasurementRecordDto[]> {
-    const col = await this.getCollection(type);
-    const snap = await col
-      .where('kidId', '==', kidId)
-      .orderBy('date', 'asc')
-      .get();
+    try {
+      const col = this.getCollection(type);
+      const snap = await col
+        .where('kidId', '==', kidId)
+        // .orderBy('date', 'asc')
+        .get();
 
-    return snap.docs.map(doc => ({
-      id: doc.id,
-      ...(doc.data() as any),
-    }));
+      return snap.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as any),
+      }));
+    } catch (error) {
+      console.warn(`⚠️ Index missing for ${type}Records - returning empty array:`, error.message);
+      // Return empty array if index is missing
+      return [];
+    }
   }
 
   async createRecord(
@@ -44,7 +50,7 @@ export class MeasurementsService {
     dto: CreateMeasurementRecordDto,
     type: 'weight' | 'height' | 'headCircumference',
   ): Promise<MeasurementRecordDto> {
-    const col = await this.getCollection(type);
+    const col = this.getCollection(type);
     const data = { kidId, date: dto.date, value: dto.value };
     const ref = await col.add(data);
     const snap = await ref.get();

@@ -1,18 +1,10 @@
-import api from './axios';
+import api from "./axios";
 
-/**
- * Payload for creating a new measurement record
- */
 export interface CreateMeasurementRecordPayload {
-  /** ISO date string, e.g. '2025-07-15' */
   date: string;
-  /** Measurement value (e.g. weight in kg, height in cm) */
   value: number;
 }
 
-/**
- * Represents a measurement record returned from the API
- */
 export interface MeasurementRecord {
   id: string;
   kidId: string;
@@ -20,17 +12,11 @@ export interface MeasurementRecord {
   value: number;
 }
 
-/**
- * Helper to include the Authorization header
- */
 const buildAuthHeader = (token: string) => ({
   headers: { Authorization: `Bearer ${token}` },
 });
 
 // ----- Weight -----
-/**
- * Fetch all weight records for a given kid
- */
 export const getWeightRecords = async (
   token: string,
   kidId: string
@@ -42,9 +28,6 @@ export const getWeightRecords = async (
   return response.data;
 };
 
-/**
- * Create a new weight record for a given kid
- */
 export const createWeightRecord = async (
   token: string,
   kidId: string,
@@ -59,9 +42,6 @@ export const createWeightRecord = async (
 };
 
 // ----- Height -----
-/**
- * Fetch all height records for a given kid
- */
 export const getHeightRecords = async (
   token: string,
   kidId: string
@@ -73,9 +53,6 @@ export const getHeightRecords = async (
   return response.data;
 };
 
-/**
- * Create a new height record for a given kid
- */
 export const createHeightRecord = async (
   token: string,
   kidId: string,
@@ -90,9 +67,6 @@ export const createHeightRecord = async (
 };
 
 // ----- Head Circumference -----
-/**
- * Fetch all head circumference records for a given kid
- */
 export const getHeadCircumferenceRecords = async (
   token: string,
   kidId: string
@@ -104,9 +78,6 @@ export const getHeadCircumferenceRecords = async (
   return response.data;
 };
 
-/**
- * Create a new head circumference record for a given kid
- */
 export const createHeadCircumferenceRecord = async (
   token: string,
   kidId: string,

@@ -6,6 +6,10 @@ import { KidModule } from './kid/kid.module';
 import { UserModule } from './user/user.module';
 import { NotesModule } from './notes/notes.module';
 import { MeasurementsModule } from './measurements/measurements.module';
+import { DoctorDiagnosisModule } from './doctor-diagnosis/doctor-diagnosis.module';
+import { VaccinationModule } from './vaccination/vaccination.module';
+import { AppController } from './app.controller';
+import { FirebaseService } from './firebase/firebase.service';
 
 @Module({
   imports: [
@@ -14,7 +18,11 @@ import { MeasurementsModule } from './measurements/measurements.module';
     KidModule,
     UserModule,
     NotesModule,
-    MeasurementsModule
+    MeasurementsModule,
+    DoctorDiagnosisModule,
+    VaccinationModule
   ],
+  controllers: [AppController],
+  providers: [FirebaseService],
 })
 export class AppModule {}

@@ -1,31 +1,65 @@
 // system imports
-import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, View, StyleSheet, Pressable, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { FlatList } from 'react-native-gesture-handler'
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from "react";
+import {
+  ScrollView,
+  Text,
+  View,
+  StyleSheet,
+  Pressable,
+  Image,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { FlatList } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Navigation
-import { AppStackParamList } from '../../types/navigation';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppStackParamList } from "../../types/navigation";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 // Components imports
-import AvatarHeader from './AvatarHeader';
-import RealTimeDataWidget from './RealTimeDataWidget';
-import Development, { DevelopmentItem } from './Development';
-import UpcomingTasks from './UpcomingTasks';
-import Notes from './Notes';
+import AvatarHeader from "./AvatarHeader";
+import RealTimeDataWidget from "./RealTimeDataWidget";
+import Development, { DevelopmentItem } from "./Development";
+import UpcomingTasks from "./UpcomingTasks";
+import Notes from "./Notes";
+import DoctorDiagnosis from "./DoctorDiagnosis";
+import Vaccination from "./Vaccination";
 // API
-import { getWeightRecords, getHeightRecords, getHeadCircumferenceRecords } from '@/api/measurementsApi';
+import {
+  getWeightRecords,
+  getHeightRecords,
+  getHeadCircumferenceRecords,
+} from "@/api/measurementsApi";
 // Store
-import { useUserStore } from '@/store/userStore';
-import { useKidStore } from '../../store/kidStore';
+import { useUserStore } from "@/store/userStore";
+import { useKidStore } from "../../store/kidStore";
 
-export default function KidProfileCard({ kidId, height }: { kidId: string, height?: number }) {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'KidProfile'>>();
-  const user = useUserStore(state => state.user);
-  const token = user?.token || '';
-  const kid = useKidStore((state) =>
-    state.kids.find((k) => k.id === kidId)
+export default function KidProfileCard({
+  kidId,
+  height,
+}: {
+  kidId: string;
+  height?: number;
+}) {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AppStackParamList, "KidProfile">>();
+  const user = useUserStore((state) => state.user);
+  const token = user?.token || "";
+  const userRole = user?.role || 'parent';
+  const kid = useKidStore((state) => state.kids.find((k) => k.id === kidId));
+
+  console.log(
+    "🏪 KidProfileCard for kidId:",
+    kidId,
+    "found kid:",
+    kid ? `${kid.firstName} ${kid.lastName}` : "NOT FOUND"
+  );
+  console.log(
+    "🏪 All kids in store:",
+    useKidStore
+      .getState()
+      .kids.map((k) => ({ id: k.id, 
+        firstName: k.firstName,
+        avatarUrl: k.avatarUrl }))
   );
 
   const insets = useSafeAreaInsets();
@@ -34,7 +68,7 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
   const [weightData, setWeightData] = useState<number[]>([]);
   const [heightData, setHeightData] = useState<number[]>([]);
   const [headData, setHeadData] = useState<number[]>([]);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [lastUpdated, setLastUpdated] = useState<string>("");
 
   useEffect(() => {
     if (!token || !kidId) return;
@@ -51,61 +85,65 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
         setHeadData(heads.map((r) => r.value));
 
         // derive the most recent date across all three measurements
-        const allDates = [...weights, ...heights, ...heads]
-          .map((r) => new Date(r.date));
+        const allDates = [...weights, ...heights, ...heads].map(
+          (r) => new Date(r.date)
+        );
         const maxTs = Math.max(...allDates.map((d) => d.getTime()));
         const mostRecent = new Date(maxTs);
         // format: e.g. "June 30, 2025"
         setLastUpdated(
-          mostRecent.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
+          mostRecent.toLocaleDateString("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
           })
         );
       })
-      .catch(err => console.error('Error loading measurements:', err))
+      .catch((err) => console.error("Error loading measurements:", err))
       .finally(() => setLoading(false));
   }, [token, kidId]);
 
   if (!kid) return <Text>Kid not found</Text>;
 
   // derive latest values from fetched data
-  const latestWeight = weightData.length > 0 ? weightData[weightData.length - 1] : undefined;
-  const latestHeight = heightData.length > 0 ? heightData[heightData.length - 1] : undefined;
-  const latestHead = headData.length > 0 ? headData[headData.length - 1] : undefined;
+  const latestWeight =
+    weightData.length > 0 ? weightData[weightData.length - 1] : undefined;
+  const latestHeight =
+    heightData.length > 0 ? heightData[heightData.length - 1] : undefined;
+  const latestHead =
+    headData.length > 0 ? headData[headData.length - 1] : undefined;
 
   // Static UI details
   const developmentItems: DevelopmentItem[] = [
     {
-      id: 'weight',
-      label: 'Weight',
-      value: latestWeight || '--',
-      unit: 'Kg',
-      color: '#D0F8F8',
-      icon: require('../../../assets/home-parent/weight.png'),
+      id: "weight",
+      label: "Weight",
+      value: latestWeight || "--",
+      unit: "Kg",
+      color: "#D0F8F8",
+      icon: require("../../../assets/home-parent/weight.png"),
       chartData: weightData,
-      chartColor: '#00BFCB',
+      chartColor: "#00BFCB",
     },
     {
-      id: 'head',
-      label: 'Head Circ.',
-      value: latestHead || '--',
-      unit: 'cm',
-      color: '#FFE7F5',
-      icon: require('../../../assets/home-parent/head.png'),
+      id: "head",
+      label: "Head Circ.",
+      value: latestHead || "--",
+      unit: "cm",
+      color: "#FFE7F5",
+      icon: require("../../../assets/home-parent/head.png"),
       chartData: headData,
-      chartColor: '#E17BB9',
+      chartColor: "#E17BB9",
     },
     {
-      id: 'height',
-      label: 'Height',
-      value: latestHeight || '--',
-      unit: 'cm',
-      color: '#FFF1D5',
-      icon: require('../../../assets/home-parent/height.png'),
+      id: "height",
+      label: "Height",
+      value: latestHeight || "--",
+      unit: "cm",
+      color: "#FFF1D5",
+      icon: require("../../../assets/home-parent/height.png"),
       chartData: heightData,
-      chartColor: '#F1A93B',
+      chartColor: "#F1A93B",
     },
   ];
 
@@ -119,28 +157,43 @@ export default function KidProfileCard({ kidId, height }: { kidId: string, heigh
         data={developmentItems}
       />
       <UpcomingTasks kidID={kidId} />
-      <Notes kidID={kidId}/>
+      <DoctorDiagnosis kidID={kidId} />
+      <Vaccination kidID={kidId} />
+      <Notes kidID={kidId} />
 
-      <Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.buttonAdd}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-          <Text style={styles.addKidText}>Add Kid</Text>
-        </View>
-      </Pressable>
+      {userRole !== 'medical' && (
+        <Pressable
+          onPress={() => navigation.navigate("AddKidName")}
+          style={styles.buttonAdd}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Image
+              source={require("../../../assets/home-parent/baby.png")}
+              style={{ width: 24, height: 24 }}
+            />
+            <Text style={styles.addKidText}>Add Kid</Text>
+          </View>
+        </Pressable>
+      )}
     </>
   );
 
   return (
-    <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={{width: '100%', height}}>
+    <LinearGradient
+      colors={["#E2F3F3", "#E2FFFF"]}
+      style={{ width: "100%", height, flex: 1 }}
+    >
       <FlatList
-        data={[{ key: 'content' }]}
+        data={[{ key: "content" }]}
         renderItem={() => null}
         keyExtractor={(i) => i.key}
         ListHeaderComponent={Header}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         keyboardShouldPersistTaps="handled"
+        bounces={true}
+        scrollEnabled={true}
       />
     </LinearGradient>
   );
@@ -150,34 +203,34 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
     paddingVertical: 24,
-    width: '100%',
+    width: "100%",
   },
   name: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
   },
   label: {
     fontSize: 16,
-    color: '#444',
+    color: "#444",
     marginVertical: 4,
   },
   buttonAdd: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     marginTop: 28,
     marginBottom: 160,
     borderWidth: 1,
-    borderColor: '#31CECE',
-    borderRadius: 32, 
-    borderStyle: 'dashed',
-    width: '100%',
+    borderColor: "#31CECE",
+    borderRadius: 32,
+    borderStyle: "dashed",
+    width: "100%",
     height: 48,
     paddingHorizontal: 32,
     paddingVertical: 12,
-    justifyContent: 'center',
-    gap: 8
+    justifyContent: "center",
+    gap: 8,
   },
   addKidText: {
     fontSize: 16,
@@ -185,7 +238,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "Roboto-Medium",
     color: "#31cece",
-    textAlign: "left"
+    textAlign: "left",
   },
 });
-

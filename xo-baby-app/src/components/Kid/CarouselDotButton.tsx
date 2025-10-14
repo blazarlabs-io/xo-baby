@@ -6,9 +6,13 @@ interface Props {
   onDotPress?: (index: number) => void;
 }
 
-export default function CarouselDotButton({ activeCount, maxCount, onDotPress }: Props) {
+export default function CarouselDotButton({
+  activeCount,
+  maxCount,
+  onDotPress,
+}: Props) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+    <View style={{ flexDirection: "row", justifyContent: "center", gap: 8 }}>
       {Array.from({ length: maxCount }).map((_, index) => (
         <Pressable
           key={index}
@@ -17,7 +21,7 @@ export default function CarouselDotButton({ activeCount, maxCount, onDotPress }:
             width: 12,
             height: 12,
             borderRadius: 6,
-            backgroundColor: index === activeCount ? '#31CECE' : '#E0E0E0',
+            backgroundColor: index === activeCount ? "#31CECE" : "#E0E0E0",
           }}
         />
       ))}

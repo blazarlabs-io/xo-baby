@@ -1,67 +1,96 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
-import { styles } from './styles/HomeScreen.styles';
-import api from '../../api/axios'
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator, Pressable, Image } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type {  AppStackParamList } from '../../types/navigation'; 
+import type { HomeStackParamList } from '../../navigation/HomeStack';
+import type { AppStackParamList } from '../../types/navigation';
 import { useUserStore } from '../../store/userStore';
 import { useKidStore } from '../../store/kidStore';
-import NoKidsPlaceholder from './NoKidsPlaceholder'
 import KidSlider from '../../components/Kid/KidSlider';
-import { getMyKids } from '../../api/kidApi';
-import type { HomeStackParamList } from '@/navigation/HomeStack';
-import { useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
+import NoKidsPlaceholder from './NoKidsPlaceholder';
+import { styles } from './styles/HomeScreen.styles';
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'HomeScreen'>>();
-
+  const homeNavigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const appNavigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const route = useRoute<RouteProp<HomeStackParamList, 'Home'>>();
   const focusKidId = route.params?.focusKidId;
-
-
+  
+  const [isLoading, setIsLoading] = useState(false);
+  
   const kids = useKidStore((state) => state.kids);
-	const setKids = useKidStore.getState().addKid;
+  const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
+  const userRole = user?.role || 'parent';
 
-	useEffect(() => {
-  const fetchKids = async () => {
-    if (!user?.token) return;
-    try {
-      const kids = await getMyKids(user.token);
-      useKidStore.getState().addKids(kids);
-    } catch (error) {
-      console.error('Failed to fetch kids:', error);
+  useEffect(() => {
+    const fetchKids = async () => {
+      if (!user?.token) return;
+      
+      setIsLoading(true);
+      try {
+        await refreshKids(user.token);
+      } catch (error) {
+        console.error('❌ Error fetching kids:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchKids();
+  }, [user?.token]); // Only depend on token, not entire user object
+
+  const shouldShowLoading = isLoading && kids.length === 0;
+  
+  if (shouldShowLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#31CECE" />
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666', textAlign: 'center' }}>
+          Loading your kids data...{'\n'}
+          This may take a moment as we fetch from the blockchain
+        </Text>
+      </View>
+    );
+  }
+  
+  const handleRefresh = async () => {
+    if (user?.token && !isLoading) {
+      setIsLoading(true);
+      try {
+        await refreshKids(user.token);
+      } catch (error) {
+        console.error('❌ Manual refresh failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  fetchKids();
-}, [user]);
- 
+  const handleAddKid = () => {
+    // Navigate to AddKidName using the app navigation
+    appNavigation.navigate('AddKidName');
+  };
 
-  console.log('Kids:', kids);
-  console.log('User:', user);
-
-    return (
+  return (
     <View style={styles.container}>
-        {kids.length === 0 ? (
-				<>
-					<NoKidsPlaceholder onAdd={() => navigation.navigate('AddKidName')} />
-					<Pressable onPress={() => navigation.navigate('AddKidName')} style={styles.addNewKidButton}>
-						<View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-							<Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-							<Text style={styles.addKidText}>Add first Kid</Text>
-						</View>
-					</Pressable>
-				</>
-        ) : (
+      {kids.length === 0 ? (
         <>
-            <KidSlider kids={kids} initialKidId={focusKidId} />
-            
+          <NoKidsPlaceholder onAdd={handleAddKid} />
+          {userRole === 'parent' && (
+            <Pressable onPress={handleAddKid} style={styles.addNewKidButton}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
+                <Text style={styles.addKidText}>Add first Kid</Text>
+              </View>
+            </Pressable>
+          )}
         </>
-        )}
+      ) : (
+        <>
+          <KidSlider kids={kids} initialKidId={focusKidId} />
+        </>
+      )}
     </View>
-    );
-
+  );
 }

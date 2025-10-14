@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, Pressable, ScrollView } from 'react-native';
-// Styles
 import { styles } from './styles/DevicesScreen.styles'
-// Navigation
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../../types/navigation';
@@ -13,8 +11,6 @@ interface DeviceItemScreenProps {
 
 const DeviceItemScreen = ({ kidId } : DeviceItemScreenProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList, 'DeviceItem'>>();
-
-  // is connected device
   const isConnected = true;
   const isOnline = true
 
@@ -39,14 +35,11 @@ const DeviceItemScreen = ({ kidId } : DeviceItemScreenProps) => {
           </View>
           <Text style={styles.itemHeaderTitle}>XO-BABY</Text>
         </View>
-
         <View style={styles.imageContainer}>
           <Image
               source={require('../../../assets/home-parent/devices/device1.png')}
               style={{ width: 200, height: 307 }} />
         </View>
-        
-
         <Pressable onPress={() => navigation.navigate('Devices', { kidId: kidId })} >
           <View style={styles.itemBtnDisconnect}>
             <Text style={styles.itemBtnText}>Disconnect</Text>
@@ -57,8 +50,6 @@ const DeviceItemScreen = ({ kidId } : DeviceItemScreenProps) => {
     </View>
   );
 };
-
-
 
 export default DeviceItemScreen;
 

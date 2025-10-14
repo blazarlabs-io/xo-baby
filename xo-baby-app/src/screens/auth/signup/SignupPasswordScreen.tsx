@@ -18,7 +18,7 @@ export default function SignupPasswordScreen() {
 
   const handleNext = () => {
     
-    if (email.trim()) {
+    if (password.trim()) {
       Keyboard.dismiss();
       navigation.navigate('SignupConfirmPasswordScreen', { name, email, password });
     }

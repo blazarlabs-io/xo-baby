@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
+import { View, Text, Image, Pressable, Alert } from 'react-native';
 import { styles } from './WelcomeScreen.styles';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -8,20 +8,12 @@ import type { AuthStackParamList } from '../../types/navigation';
 import { useKidStore } from '../../store/kidStore';
 import { useUserStore } from '../../store/userStore';
 import type { UserRole } from '@/constants/roles';
-
-import * as WebBrowser from 'expo-web-browser';
-
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../config/firebase';
-
-
-WebBrowser.maybeCompleteAuthSession();
+import { signInWithGoogle } from '../../services/googleSignIn';
 
 export default function WelcomeScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList, 'Welcome'>>();
-
     const kids = useKidStore((state) => state.kids);
-    const setUser = useUserStore.getState().setUser;
+    const { setUser, selectedRole, clearSelectedRole } = useUserStore();
     const user = useUserStore((state) => state.user);
 
     // ---------------------------------------------------------------------------
@@ -88,32 +80,125 @@ export default function WelcomeScreen() {
 //     }, []);
 
 
-    //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-    const handleLogin = () => {
-        navigation.navigate('LoginEmail');
-    };
+   const handleLogin = () => {
+       navigation.navigate('LoginEmail');
+   };
 
-    const handleSignup = () => {
-        navigation.navigate('SignupNameScreen');  
-    }
+   const handleSignup = () => {
+       navigation.navigate('SignupNameScreen');  
+   }
 
-    const handleGoogleLogin = async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({
-          prompt: 'select_account',
-          login_hint: ''
-        });
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        console.log(' User logged in with Google:', user);
-
-      } catch (error) {
-        console.error(' Google Sign-In error:', error);
-      }
-    };
-    
+   const handleGoogleLogin = async () => {
+     try {
+       console.log('🔍 Starting Google Sign-In...');
+       
+       const result = await signInWithGoogle();
+       const { user: firebaseUser, userInfo } = result;
+       
+       console.log('🔍 Google Sign-In successful:', {
+         firebaseUser: firebaseUser.uid,
+         email: firebaseUser.email,
+         userInfo
+       });
+       
+       // Get the Firebase token
+       const token = await firebaseUser.getIdToken();
+       
+       // Check if user profile exists in backend
+       try {
+         const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/users/verify-token`, {
+           method: 'POST',
+           headers: {
+             'Authorization': `Bearer ${token}`,
+             'Content-Type': 'application/json',
+           },
+         });
+         
+         if (response.ok) {
+           // User exists in backend
+           const userProfile = await response.json();
+           console.log("🔍 Google Login - User Profile from backend:", userProfile);
+           
+           const finalRole = userProfile.role || selectedRole || 'parent';
+           console.log("🔍 Google Login - Final Role:", finalRole);
+           
+           setUser({
+             uid: firebaseUser.uid,
+             email: firebaseUser.email ?? '',
+             token: token,
+             role: finalRole,
+           });
+           
+           clearSelectedRole();
+         } else {
+           // User doesn't exist in backend, need to create account
+           console.log("🔍 Google Login - User not found in backend, creating new account");
+           
+           // For new Google users, use selected role or default to parent
+           const userRole = selectedRole || 'parent';
+           
+           // Create user profile in backend
+           const createResponse = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/users/create-google`, {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({
+               firstName: userInfo?.givenName || firebaseUser.displayName?.split(' ')[0] || 'User',
+               lastName: userInfo?.familyName || firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+               email: firebaseUser.email,
+               uid: firebaseUser.uid,
+               role: userRole,
+             }),
+           });
+           
+           if (createResponse.ok) {
+             setUser({
+               uid: firebaseUser.uid,
+               email: firebaseUser.email ?? '',
+               token: token,
+               role: userRole,
+             });
+             
+             clearSelectedRole();
+           } else {
+             // Fallback: just set user with default role
+             setUser({
+               uid: firebaseUser.uid,
+               email: firebaseUser.email ?? '',
+               token: token,
+               role: userRole,
+             });
+             
+             clearSelectedRole();
+           }
+         }
+       } catch (profileError) {
+         console.warn('Failed to fetch/create user profile:', profileError);
+         
+         // Fallback: set user with selected role or default
+         const fallbackRole = selectedRole || 'parent';
+         setUser({
+           uid: firebaseUser.uid,
+           email: firebaseUser.email ?? '',
+           token: token,
+           role: fallbackRole,
+         });
+         
+         clearSelectedRole();
+       }
+       
+     } catch (error: any) {
+       console.error('Google Sign-In error:', error);
+       Alert.alert(
+         'Google Sign-In Failed',
+         error.message || 'An error occurred during Google Sign-In. Please try again.',
+         [{ text: 'OK' }]
+       );
+     }
+   };
 
   return (
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.container}>
@@ -140,8 +225,6 @@ export default function WelcomeScreen() {
           <Text style={styles.socialText}>Sign In With Google</Text>
         </View>
       </Pressable>
-
-
 
       <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%' }} >
         <Text style={styles.signupText}> Don't have an account? </Text>

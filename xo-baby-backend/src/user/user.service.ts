@@ -1,5 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
@@ -13,16 +14,111 @@ export class UserService {
       password: dto.password,
     });
 
-    // Save user profile in Firestore
+    // Save user profile in Firestore with role
     await this.firebase.getFirestore().collection('users').doc(userRecord.uid).set({
       firstName: dto.firstName,
       lastName: dto.lastName,
       email: dto.email,
       uid: userRecord.uid,
+      role: dto.role,
       createdAt: new Date().toISOString(),
     });
 
-    return { uid: userRecord.uid, email: dto.email };
+    return { uid: userRecord.uid, email: dto.email, role: dto.role };
+  }
+
+  async createGoogleUser(data: {
+    uid: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  }) {
+    try {
+      // Check if user already exists in Firestore
+      const userDoc = await this.firebase.getFirestore().collection('users').doc(data.uid).get();
+      
+      if (userDoc.exists) {
+        throw new Error('User already exists');
+      }
+
+      // Save user profile in Firestore with role
+      await this.firebase.getFirestore().collection('users').doc(data.uid).set({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        uid: data.uid,
+        role: data.role,
+        createdAt: new Date().toISOString(),
+      });
+
+      return { uid: data.uid, email: data.email, role: data.role };
+    } catch (error) {
+      console.error('Error creating Google user:', error);
+      throw error;
+    }
+  }
+
+  async updateUserRole(uid: string, dto: UpdateRoleDto) {
+    try {
+      const userDoc = await this.firebase.getFirestore().collection('users').doc(uid).get();
+      
+      if (!userDoc.exists) {
+        throw new NotFoundException('User not found');
+      }
+
+      await this.firebase.getFirestore().collection('users').doc(uid).update({
+        role: dto.role,
+        updatedAt: new Date().toISOString(),
+      });
+
+      return { uid, role: dto.role, message: 'Role updated successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to update user role');
+    }
+  }
+
+  async getUserProfile(uid: string) {
+    try {
+      const userDoc = await this.firebase.getFirestore().collection('users').doc(uid).get();
+      
+      if (!userDoc.exists) {
+        throw new NotFoundException('User not found');
+      }
+
+      const userData = userDoc.data();
+      if (!userData) {
+        throw new NotFoundException('User data not found');
+      }
+
+      return {
+        uid: userData.uid,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role || 'parent', // Default to parent if no role
+        createdAt: userData.createdAt,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to get user profile');
+    }
+  }
+
+  async getAllMedicalPersonnel() {
+    try {
+      const medicalSnapshot = await this.firebase
+        .getFirestore()
+        .collection('users')
+        .where('role', '==', 'medical')
+        .get();
+
+      return medicalSnapshot.docs.map(doc => ({
+        uid: doc.id,
+        ...doc.data(),
+      }));
+    } catch (error) {
+      throw new UnauthorizedException('Failed to get medical personnel');
+    }
   }
 
   async loginUser(email: string, password: string) {
@@ -40,9 +136,53 @@ export class UserService {
   async verifyIdToken(idToken: string) {
     try {
       const decodedToken = await this.firebase.getAuth().verifyIdToken(idToken);
-      return { uid: decodedToken.uid };
+      
+      // Get user profile to include role information
+      const userProfile = await this.getUserProfile(decodedToken.uid);
+      
+      return userProfile;
     } catch (error) {
       throw new UnauthorizedException('Invalid ID token');
+    }
+  }
+
+  async disableUser(uid: string) {
+    try {
+      const userRef = this.firebase.getFirestore().collection('users').doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Update user to disabled status
+      await userRef.update({
+        disabled: true,
+        disabledAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      return { success: true, message: 'User account disabled successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to disable user account');
+    }
+  }
+
+  async deleteUser(uid: string) {
+    try {
+      const userRef = this.firebase.getFirestore().collection('users').doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      // Delete the user document from Firestore
+      await userRef.delete();
+
+      return { success: true, message: 'User account deleted successfully' };
+    } catch (error) {
+      throw new UnauthorizedException('Failed to delete user account');
     }
   }
   

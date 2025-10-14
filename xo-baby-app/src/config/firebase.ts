@@ -1,31 +1,18 @@
-import { initializeApp, getApp, getApps } from 'firebase/app';
-import {
-  getAuth,
-  initializeAuth,
-  getReactNativePersistence,
-  type Auth,
-} from 'firebase/auth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getAuth, initializeAuth, type Auth } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-import {
-  FIREBASE_WEB_API_KEY,
-  FIREBASE_WEB_AUTH_DOMAIN,
-  FIREBASE_WEB_PROJECT_ID,
-  FIREBASE_WEB_STORAGE_BUCKET,
-  FIREBASE_WEB_MESSAGING_SENDER_ID,
-  FIREBASE_WEB_APP_ID,
-  FIREBASE_WEB_MEASUREMENT_ID,
-} from '@env';
-
+// TODO: Replace with your actual Firebase configuration
+// You can find these values in your Firebase Console -> Project Settings -> General tab
 const firebaseConfig = {
-  apiKey: FIREBASE_WEB_API_KEY,
-  authDomain: FIREBASE_WEB_AUTH_DOMAIN,
-  projectId: FIREBASE_WEB_PROJECT_ID,
-  storageBucket: FIREBASE_WEB_STORAGE_BUCKET,
-  messagingSenderId: FIREBASE_WEB_MESSAGING_SENDER_ID,
-  appId: FIREBASE_WEB_APP_ID,
-  measurementId: FIREBASE_WEB_MEASUREMENT_ID,
+  apiKey: "AIzaSyDYfbxdqmUl9jc5LPQI031zmAMwX3cueqc",
+  authDomain: "xo-baby-blockchain.firebaseapp.com",
+  projectId: "xo-baby-blockchain",
+  storageBucket: "xo-baby-blockchain.firebasestorage.app",
+  messagingSenderId: "278376901127",
+  appId: "1:278376901127:web:9fea96c9f5587503d718a2",
+  measurementId: "G-BX9SSC0N6L",
 };
 
 // app singleton
@@ -33,16 +20,14 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // auth singleton: web -> getAuth; native -> initializeAuth (with AsyncStorage)
 let _auth: Auth;
-if (Platform.OS === 'web') {
+if (Platform.OS === "web") {
   _auth = getAuth(app);
 } else {
   try {
     // if it has already been created (e.g. after Fast Refresh)
     _auth = getAuth(app);
   } catch {
-    _auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
+    _auth = initializeAuth(app);
   }
 }
 export const auth = _auth;
