@@ -6,9 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "jsEngine": "jsc",
-    "scheme": "xo-baby-app",
+    "scheme": [
+      "xo-baby-app",
+      "com.googleusercontent.apps.278376901127-7q9p5vicj0sicgg8fg91a0kuv8s5n1vr"
+    ],
     "developmentClient": {
       "silentLaunch": true
     },
@@ -32,23 +35,18 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "autoVerify": true,
+          "autoVerify": false,
           "data": [
             {
-              "scheme": "https",
-              "host": "auth.expo.io"
+              "scheme": "xo-baby-app",
+              "path": "/oauth2redirect/google"
             },
             {
-              "scheme": "xo-baby-app"
-            },
-            {
-              "scheme": "com.googleusercontent.apps.278376901127"
+              "scheme": "com.googleusercontent.apps.278376901127-7q9p5vicj0sicgg8fg91a0kuv8s5n1vr",
+              "path": "/oauth2redirect/google"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -65,6 +63,7 @@
         "projectId": "f929cd25-b511-4f2e-9eff-9c1aa29b3567"
       },
       "googleWebClientId": "278376901127-8mgjhm39opqjdpiqrs7imb64vuj1qqpc.apps.googleusercontent.com",
+      "googleAndroidClientId": "278376901127-7q9p5vicj0sicgg8fg91a0kuv8s5n1vr.apps.googleusercontent.com",
       "apiUrl": "https://xo-baby.blazarlabs.io"
     },
     "owner": "daikifujii"
