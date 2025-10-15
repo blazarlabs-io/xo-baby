@@ -47,6 +47,7 @@ export default function KidProfileCard({
   const userRole = user?.role || 'parent';
   const kid = useKidStore((state) => state.kids.find((k) => k.id === kidId));
 
+
   console.log(
     "🏪 KidProfileCard for kidId:",
     kidId,
