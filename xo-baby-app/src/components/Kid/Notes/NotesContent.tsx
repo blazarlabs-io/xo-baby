@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Platform,
+  ScrollView,
+  StatusBar,
   ActivityIndicator,
 } from 'react-native'
 import { useUserStore } from '@/store/userStore'
@@ -20,6 +22,7 @@ import {
   CreateNotePayload,
 } from '@/api/notesApi'
 import { Picker } from '@react-native-picker/picker'
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface NotesContentProps {
   kidId: string
@@ -45,6 +48,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
       ? notes
       : notes.filter((note) => note.category === selectedCategory);
 
+  const insets = useSafeAreaInsets();
 
   // Fetch notes on mount or when token/kidId changes
   useEffect(() => {
@@ -117,6 +121,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
 
       <Modal
         transparent
+        statusBarTranslucent
         visible={modalVisible}
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
@@ -125,6 +130,10 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalContainer}
         >
+        <ScrollView
+              contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+              keyboardShouldPersistTaps="handled"
+            >
           <View style={styles.modalContent}>
             <Pressable
               style={styles.modalClose}
@@ -198,6 +207,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
               </Pressable>
             </View>
           </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     </View>

@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
     const { setUser, selectedRole, clearSelectedRole } = useUserStore();
     const user = useUserStore((state) => state.user);
 
-   console.log('Android redirect (expected):', AuthSession.makeRedirectUri({ scheme: 'xo-baby-app' }));
+
    const handleLogin = () => {
        navigation.navigate('LoginEmail');
    };
