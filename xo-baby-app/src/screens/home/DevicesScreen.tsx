@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, Pressable, Animated, Easing, ScrollView } from 'react-native';
+import { View, Text, Pressable, Animated, Easing, ScrollView, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
@@ -9,10 +9,10 @@ const DEVICE = { id: 'xo-AxS83Eg1', name: 'Mi Pulse Monitor S1 (A7:3C)' };
 
 export default function DevicesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
-  const isOnline = isConnected; // online/offline depinde de isConnected
+  const isOnline = isConnected;
   const onEdit = () => navigation.navigate('DeviceItem', { kidId: DEVICE.id });
   const onConnect = () => {
     if (isConnecting || isConnected) return;
@@ -34,6 +34,10 @@ export default function DevicesScreen() {
     if (isConnecting) return;
     setIsConnected(false);
   };
+
+  const addDevice = () => {
+    navigation.navigate('DeviceAdd');
+  }
 
   const widthInterpolate = progress.interpolate({
     inputRange: [0, 1],
@@ -94,6 +98,13 @@ export default function DevicesScreen() {
           )}
         </View>
       </View>
+
+      <Pressable onPress={addDevice} style={styles.buttonAdd}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image source={require('assets/common/plus.png')} style={{ width: 24, height: 24 }} />
+            <Text style={styles.addKidText}>Add New Device</Text>
+          </View>
+      </Pressable>
     </ScrollView>
   );
 }

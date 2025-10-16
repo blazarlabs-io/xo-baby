@@ -9,13 +9,6 @@ export default function RootNavigator() {
   const user = useUserStore((state) => state.user);
   const kids = useKidStore((s) => s.kids);
 
-  useEffect(() => {
-    console.log("USER changed:", user);
-  }, [user]);
-
-  useEffect(() => {
-    console.log("KIDS changed:", kids);
-  }, [kids]);
 
   return (
     <NavigationContainer>
