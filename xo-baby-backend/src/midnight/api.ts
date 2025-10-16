@@ -205,7 +205,7 @@ export const createChildId = async (
     gender,
   );
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   // Extract and display the child ID
@@ -243,7 +243,7 @@ export const generateNFTId = async (
     email,
   );
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   if (
@@ -282,7 +282,7 @@ export const generateRoleBasedNFT = async (
     validUntil,
   );
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   if (
@@ -308,7 +308,7 @@ export const getRoleFromNFT = async (
   logger.info('Getting role-based NFT...');
   const finalizedTxData = await babyHealthContract.callTx.getRoleFromNFT(nftId);
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   // Extract and display the role-based NFT
@@ -344,7 +344,7 @@ export const generateChildNFT = async (
     AESkey,
   );
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   logger.info('✅ Child NFT generated successfully!');
@@ -360,7 +360,7 @@ export const getDataFromChildNFT = async (
   const finalizedTxData =
     await babyHealthContract.callTx.getDataFromChildNFT(childId);
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   if (finalizedTxData.private?.output?.value) {
@@ -402,7 +402,7 @@ export const removeRoleNFT = async (
   logger.info('Removing role NFT...');
   const finalizedTxData = await babyHealthContract.callTx.removeRoleNFT(nftId);
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   logger.info('✅ Role NFT removed successfully!');
@@ -418,7 +418,7 @@ export const removeChildNFT = async (
   const finalizedTxData =
     await babyHealthContract.callTx.removeChildNFT(childId);
   logger.info(
-    `Transaction ${finalizedTxData.public.txId} added in block ${finalizedTxData.public.blockHeight}`,
+    `Transaction 0x${finalizedTxData.public.blockHash} added in block ${finalizedTxData.public.blockHeight}`,
   );
 
   logger.info('✅ Child NFT removed successfully!');

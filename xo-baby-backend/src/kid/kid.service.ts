@@ -389,7 +389,7 @@ export class KidService {
       };
       const ipfsHash = await this.pinataService.uploadJSON(jsonDataForPinata);
 
-      let nftTxHash = null;
+      let nftTxHash: string | null = null;
       try {
         const kidNFT = await generateChildNFT(
           config,
@@ -400,7 +400,7 @@ export class KidService {
           ipfsHash,
           aesKey,
         );
-        nftTxHash = kidNFT?.txId || null;
+        nftTxHash = kidNFT?.blockHash ? `0x${kidNFT.blockHash}` : null;
       } catch (nftError) {
         console.warn(
           '⚠️ NFT generation failed, but continuing with kid creation:',
