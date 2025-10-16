@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from './TaskTabs.styles';
-import { View, Text, Image, Pressable, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Image, Pressable, Modal, KeyboardAvoidingView, TextInput, Platform, ActivityIndicator, ScrollView } from 'react-native';
 import { useUserStore } from '@/store/userStore';
 import { createTask, getTasks, Task as ApiTask } from '@/api/taskApi';
 
@@ -98,17 +98,23 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContainer}>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+            keyboardShouldPersistTaps="handled"
+          >
           <View style={styles.modalContent}>
             <Pressable style={styles.modalClose} onPress={() => setModalVisible(false)}>
               <Image source={require('../../../../assets/common/x.png')} style={{ width: 24, height: 24 }} />
             </Pressable>
             <View style={{ gap: 8, flexDirection: 'row' }}>
               <Image source={require('../../../../assets/home-parent/calendar.png')} width={24} height={24} />
-              <Text>New Tasks</Text>
+              <Text style={{color: '#111'}}>New Tasks</Text>
             </View>
             <Text style={styles.modalTitle}>Date</Text>
             <TextInput
               placeholder="2025-06-25"
+              placeholderTextColor="#9AA4B2"
+              selectionColor="#31CECE"
               style={styles.modalInput}
               value={newDate}
               onChangeText={setNewDate}
@@ -117,6 +123,8 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="08:00"
+                placeholderTextColor="#9AA4B2"
+                selectionColor="#31CECE"
                 style={styles.modalInput}
                 value={newTime}
                 onChangeText={setNewTime}
@@ -127,6 +135,8 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Task name"
+                placeholderTextColor="#9AA4B2"
+                selectionColor="#31CECE"
                 style={styles.modalInput}
                 value={newName}
                 onChangeText={setNewName}
@@ -136,6 +146,8 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 placeholder="Description"
+                placeholderTextColor="#9AA4B2"
+                selectionColor="#31CECE"
                 style={styles.modalInput}
                 value={newDescription}
                 onChangeText={setNewDescription}
@@ -150,6 +162,7 @@ const TodayTab = ({ kidId, modalVisible, setModalVisible } : TodayTabProps) => {
               </Pressable>
             </View>
           </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     </View>

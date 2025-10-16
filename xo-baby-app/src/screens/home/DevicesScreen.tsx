@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
 import {styles} from './styles/DevicesScreen.styles';
 
-const DEVICE = { id: 'xo-AxS83Eg1', name: 'Mi Pulse Monitor S1 (A7:3C)' };
+const DEVICE = { id: 'xo-AxS83Eg1', name: 'Cardiac Sense System 3 (A7:3C)' };
 
 export default function DevicesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();

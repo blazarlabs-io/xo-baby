@@ -151,7 +151,7 @@ export default function KidProfileCard({
   const Header = (
     <>
       <AvatarHeader kidID={kidId} />
-      <RealTimeDataWidget kidID={kidId} deviceName="Mi Pulse Monitor S1" />
+      <RealTimeDataWidget kidID={kidId} deviceName="Cardiac Sense System 3" />
       <Development
         lastUpdated={lastUpdated}
         kidID={kidId}
