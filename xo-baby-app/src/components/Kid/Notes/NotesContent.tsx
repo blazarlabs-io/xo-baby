@@ -150,12 +150,14 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
                 source={require('../../../../assets/home-parent/calendar.png')}
                 style={{ width: 24, height: 24 }}
               />
-              <Text>New Note</Text>
+              <Text style={{color: '#111'}}>New Note</Text>
             </View>
 
             <Text style={styles.modalTitle}>Date</Text>
             <TextInput
               placeholder="2025-06-25"
+              placeholderTextColor="#9AA4B2"
+              selectionColor="#31CECE"
               style={styles.modalInput}
               value={newDate}
               onChangeText={setNewDate}
@@ -164,6 +166,8 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
             <Text style={styles.modalTitle}>Description</Text>
             <TextInput
               placeholder="Description"
+              placeholderTextColor="#9AA4B2"
+              selectionColor="#31CECE"
               style={styles.modalInput}
               value={newDescription}
               onChangeText={setNewDescription}
@@ -175,7 +179,7 @@ const NotesContent = ({ kidId, modalVisible, setModalVisible, selectedCategory }
               // On Android use a native dialog so it appears above the Modal
               mode={Platform.OS === 'android' ? 'dialog' : undefined}
               // Keep it a fixed height; avoid flex:1 here
-              style={{ height: 68, width: '100%' }}
+              style={{ height: 68, width: '100%', color: '#111' }}
               onValueChange={(value /*, index */) => setNewCategory(value)}
             >
               <Picker.Item label="Select category" value="" />

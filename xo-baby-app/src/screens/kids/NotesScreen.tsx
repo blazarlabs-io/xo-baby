@@ -180,10 +180,8 @@ const styles = StyleSheet.create({
   kidCard: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 16,
     padding: 8,
     width: "100%",
-    elevation: 2,
     marginTop: 24,
   },
   avatarWrapper: {

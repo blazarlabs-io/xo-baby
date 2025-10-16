@@ -141,7 +141,6 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 6,
-    elevation: 2,
     marginTop: 24,
   },
   avatarWrapper: {
