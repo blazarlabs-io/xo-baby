@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,12 +15,23 @@ import AvatarImage from "../../components/Kid/AvatarImage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+
+interface KidVitals {
+  heartRate: number;
+  temperature: number;
+  oximetry: number;
+}
+
 export default function KidsListScreen() {
   const navigation = useNavigation<any>();
   const [isLoading, setIsLoading] = useState(false);
   const kids = useKidStore((state) => state.kids);
   const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
+  const [kidVitals, setKidVitals] = useState<Record<string, KidVitals>>({});
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchKids = async () => {
@@ -38,6 +49,61 @@ export default function KidsListScreen() {
 
     fetchKids();
   }, [user?.token, refreshKids]);
+
+  // Initialize and update real-time vitals for all kids
+  useEffect(() => {
+    // Initialize vitals for each kid
+    const initialVitals: Record<string, KidVitals> = {};
+    kids.forEach((kid) => {
+      initialVitals[kid.id] = {
+        heartRate: kid.vitals?.heartRate || 93,
+        temperature: kid.vitals?.temperature || 36.5,
+        oximetry: kid.vitals?.oximetry || 98,
+      };
+    });
+    setKidVitals(initialVitals);
+
+    // Update vitals every 2 seconds
+    intervalRef.current = setInterval(() => {
+      setKidVitals((prev) => {
+        const updated: Record<string, KidVitals> = {};
+        kids.forEach((kid) => {
+          const current = prev[kid.id] || {
+            heartRate: 93,
+            temperature: 36.5,
+            oximetry: 98,
+          };
+
+          updated[kid.id] = {
+            // Heart rate: 85-105 BPM
+            heartRate: clamp(
+              current.heartRate + Math.round((Math.random() - 0.5) * 8),
+              85,
+              105
+            ),
+            // Temperature: 36.0-37.5°C
+            temperature: clamp(
+              Number((current.temperature + (Math.random() - 0.5) * 0.4).toFixed(1)),
+              36.0,
+              37.5
+            ),
+            // O2 Saturation: 95-100%
+            oximetry: clamp(
+              current.oximetry + Math.round((Math.random() - 0.5) * 2),
+              95,
+              100
+            ),
+          };
+        });
+        return updated;
+      });
+    }, 2000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+  }, [kids]);
 
   const handleKidPress = (kidId: string) => {
     navigation.navigate("KidDetails", { kidId });
@@ -66,10 +132,13 @@ export default function KidsListScreen() {
   };
 
   // Check if there are any warnings for the kid
-  const hasWarnings = (kid: any) => {
-    const heartRate = kid.vitals?.heartRate || 140;
-    const oximetry = kid.vitals?.oximetry || 93;
-    const temperature = kid.vitals?.temperature || 36.6;
+  const hasWarnings = (kidId: string) => {
+    const vitals = kidVitals[kidId];
+    if (!vitals) return false;
+    
+    const heartRate = vitals.heartRate;
+    const oximetry = vitals.oximetry;
+    const temperature = vitals.temperature;
     const battery = 90; // This would come from kid data in real implementation
     
     // Check for abnormal vitals
@@ -147,7 +216,7 @@ export default function KidsListScreen() {
                   onPress={() => handleKidPress(kid.id)}
                 >
                   {/* Warning Bell Icon */}
-                  {hasWarnings(kid) && (
+                  {hasWarnings(kid.id) && (
                     <View style={styles.warningBellContainer}>
                       <View style={styles.warningBellBackground}>
                         <MaterialCommunityIcons 
@@ -199,7 +268,7 @@ export default function KidsListScreen() {
                   <View style={styles.kidVitals}>
                     <View style={[
                       styles.vitalItem,
-                      isHeartRateAbnormal(kid.vitals?.heartRate || 140) && styles.vitalItemWarning
+                      isHeartRateAbnormal(kidVitals[kid.id]?.heartRate || 93) && styles.vitalItemWarning
                     ]}>
                       <View style={styles.heartIcon}>
                         <Image
@@ -208,12 +277,12 @@ export default function KidsListScreen() {
                         />
                       </View>
                       <Text style={styles.vitalValue}>
-                        {kid.vitals?.heartRate || 140}
+                        {kidVitals[kid.id]?.heartRate || 93}
                       </Text>
                     </View>
                     <View style={[
                       styles.vitalItem,
-                      isTemperatureAbnormal(kid.vitals?.temperature || 36.6) && styles.vitalItemWarning
+                      isTemperatureAbnormal(kidVitals[kid.id]?.temperature || 36.5) && styles.vitalItemWarning
                     ]}>
                       <View style={styles.tempIcon}>
                         <Image
@@ -222,12 +291,12 @@ export default function KidsListScreen() {
                         />
                       </View>
                       <Text style={styles.vitalValue}>
-                        {kid.vitals?.temperature || 36.6}
+                        {kidVitals[kid.id]?.temperature || 36.5}
                       </Text>
                     </View>
                     <View style={[
                       styles.vitalItem,
-                      isOximetryAbnormal(kid.vitals?.oximetry || 93) && styles.vitalItemWarning
+                      isOximetryAbnormal(kidVitals[kid.id]?.oximetry || 98) && styles.vitalItemWarning
                     ]}>
                       <View style={styles.oxygenIcon}>
                         <Image
@@ -236,7 +305,7 @@ export default function KidsListScreen() {
                         />
                       </View>
                       <Text style={styles.vitalValue}>
-                        {kid.vitals?.oximetry || 93}
+                        {kidVitals[kid.id]?.oximetry || 98}
                       </Text>
                     </View>
                     <View style={styles.vitalItem}>
@@ -246,7 +315,7 @@ export default function KidsListScreen() {
                           style={styles.healthIcon}
                         />
                       </View>
-                      <Text style={styles.vitalValue}>98%</Text>
+                      <Text style={styles.vitalValue}>{kidVitals[kid.id]?.oximetry || 98}%</Text>
                     </View>
                   </View>
                 </Pressable>

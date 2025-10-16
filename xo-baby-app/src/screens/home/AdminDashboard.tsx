@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,16 @@ import type { Kid } from "../../store/kidStore";
 import api from "../../api/axios";
 import AvatarImage from "../../components/Kid/AvatarImage";
 
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+
+interface KidVitals {
+  heartRate: number;
+  temperature: number;
+  respiration: number;
+  oximetry: number;
+}
+
 export default function AdminDashboard() {
   const navigation = useNavigation<any>();
   
@@ -31,6 +41,8 @@ export default function AdminDashboard() {
   const kids = useKidStore((state) => state.kids);
   const refreshKids = useKidStore((state) => state.refreshKids);
   const user = useUserStore((state) => state.user);
+  const [kidVitals, setKidVitals] = useState<Record<string, KidVitals>>({});
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,6 +76,69 @@ export default function AdminDashboard() {
 
     fetchData();
   }, [user?.token, refreshKids]);
+
+  // Initialize and update real-time vitals for all kids
+  useEffect(() => {
+    // Initialize vitals for each kid
+    const initialVitals: Record<string, KidVitals> = {};
+    kids.forEach((kid) => {
+      initialVitals[kid.id] = {
+        heartRate: kid.vitals?.heartRate || 93,
+        temperature: kid.vitals?.temperature || 36.5,
+        respiration: kid.vitals?.respiration || 18,
+        oximetry: kid.vitals?.oximetry || 98,
+      };
+    });
+    setKidVitals(initialVitals);
+
+    // Update vitals every 2 seconds
+    intervalRef.current = setInterval(() => {
+      setKidVitals((prev) => {
+        const updated: Record<string, KidVitals> = {};
+        kids.forEach((kid) => {
+          const current = prev[kid.id] || {
+            heartRate: 93,
+            temperature: 36.5,
+            respiration: 18,
+            oximetry: 98,
+          };
+
+          updated[kid.id] = {
+            // Heart rate: 85-105 BPM
+            heartRate: clamp(
+              current.heartRate + Math.round((Math.random() - 0.5) * 8),
+              85,
+              105
+            ),
+            // Temperature: 36.0-37.5°C
+            temperature: clamp(
+              Number((current.temperature + (Math.random() - 0.5) * 0.4).toFixed(1)),
+              36.0,
+              37.5
+            ),
+            // Respiration: 15-22 breaths per min
+            respiration: clamp(
+              current.respiration + Math.round((Math.random() - 0.5) * 4),
+              15,
+              22
+            ),
+            // O2 Saturation: 95-100%
+            oximetry: clamp(
+              current.oximetry + Math.round((Math.random() - 0.5) * 2),
+              95,
+              100
+            ),
+          };
+        });
+        return updated;
+      });
+    }, 2000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+  }, [kids]);
 
   const handleKidPress = (kidId: string) => {
     // Navigate to Kid Details screen
@@ -230,7 +305,7 @@ export default function AdminDashboard() {
                           />
                           {/* <Text style={styles.heartSymbol}>♥</Text> */}
                         </View>
-                        <Text style={styles.vitalValue}>140</Text>
+                        <Text style={styles.vitalValue}>{kidVitals[kid.id]?.heartRate || 93}</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.tempIcon}>
@@ -239,7 +314,7 @@ export default function AdminDashboard() {
                             style={styles.tempIcon}
                           />
                         </View>
-                        <Text style={styles.vitalValue}>36.2</Text>
+                        <Text style={styles.vitalValue}>{kidVitals[kid.id]?.temperature || 36.5}</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.oxygenIcon}>
@@ -248,7 +323,7 @@ export default function AdminDashboard() {
                             style={styles.oxygenIcon}
                           />
                         </View>
-                        <Text style={styles.vitalValue}>52</Text>
+                        <Text style={styles.vitalValue}>{kidVitals[kid.id]?.respiration || 18}</Text>
                       </View>
                       <View style={styles.vitalItem}>
                         <View style={styles.healthIcon}>
@@ -257,7 +332,7 @@ export default function AdminDashboard() {
                             style={styles.healthIcon}
                           />
                         </View>
-                        <Text style={styles.vitalValue}>98%</Text>
+                        <Text style={styles.vitalValue}>{kidVitals[kid.id]?.oximetry || 98}%</Text>
                       </View>
                     </View>
                   </Pressable>
