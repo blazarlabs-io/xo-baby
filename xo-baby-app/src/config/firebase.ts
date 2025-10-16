@@ -1,5 +1,5 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth, initializeAuth, type Auth } from "firebase/auth";
+import { getAuth, initializeAuth, getReactNativePersistence, type Auth } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
@@ -20,14 +20,27 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // auth singleton: web -> getAuth; native -> initializeAuth (with AsyncStorage)
 let _auth: Auth;
-if (Platform.OS === "web") {
-  _auth = getAuth(app);
-} else {
+
+function getOrInitializeAuth(): Auth {
+  if (Platform.OS === "web") {
+    return getAuth(app);
+  }
+  
+  // For React Native: ALWAYS try initializeAuth FIRST with AsyncStorage persistence
+  // This is the correct way to set up Firebase Auth in React Native
   try {
-    // if it has already been created (e.g. after Fast Refresh)
-    _auth = getAuth(app);
-  } catch {
-    _auth = initializeAuth(app);
+    // Try to initialize with persistence - this is the first/correct call
+    return initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch (error) {
+    // If initializeAuth throws (e.g., already initialized during Fast Refresh),
+    // then we can safely use getAuth
+    console.log("Auth already initialized, using existing instance");
+    return getAuth(app);
   }
 }
+
+_auth = getOrInitializeAuth();
+
 export const auth = _auth;

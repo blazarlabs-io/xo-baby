@@ -44,18 +44,43 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
 
   const formatValue = (value?: number | string) =>
     value !== undefined && value !== null && value !== "" ? value : "-";
-  const [hr, setHr] = useState<number>(heartRate ?? 110);
+  const [hr, setHr] = useState<number>(heartRate ?? 93);
+  const [temp, setTemp] = useState<number>(temperature ?? 36.5);
+  const [resp, setResp] = useState<number>(respiration ?? 18);
+  const [o2, setO2] = useState<number>(oxygen ?? 98);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isConnectedBl) return; // no simulation, keep whatever is in props/state
 
     setHr((prev) => (typeof heartRate === "number" ? heartRate : prev));
+    setTemp((prev) => (typeof temperature === "number" ? temperature : prev));
+    setResp((prev) => (typeof respiration === "number" ? respiration : prev));
+    setO2((prev) => (typeof oxygen === "number" ? oxygen : prev));
 
     intervalRef.current = setInterval(() => {
+      // Heart rate: 85-105 BPM
       setHr((prev) => {
         const jitter = Math.round((Math.random() - 0.5) * 8); // -4..+4
-        return clamp((prev || 80) + jitter, 90, 110);
+        return clamp((prev || 93) + jitter, 85, 105);
+      });
+
+      // Temperature: 36.0-37.5°C
+      setTemp((prev) => {
+        const jitter = (Math.random() - 0.5) * 0.4; // -0.2..+0.2
+        return clamp(Number(((prev || 36.5) + jitter).toFixed(1)), 36.0, 37.5);
+      });
+
+      // Respiration: 15-22 breaths per min
+      setResp((prev) => {
+        const jitter = Math.round((Math.random() - 0.5) * 4); // -2..+2
+        return clamp((prev || 18) + jitter, 15, 22);
+      });
+
+      // O2 Saturation: 95-100%
+      setO2((prev) => {
+        const jitter = Math.round((Math.random() - 0.5) * 2); // -1..+1
+        return clamp((prev || 98) + jitter, 95, 100);
       });
     }, 2000);
 
@@ -63,9 +88,12 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = null;
     };
-  }, [isConnectedBl]);
+  }, [isConnectedBl, heartRate, temperature, respiration, oxygen]);
 
   const displayHeartRate = isConnectedBl ? hr : heartRate;
+  const displayTemperature = isConnectedBl ? temp : temperature;
+  const displayRespiration = isConnectedBl ? resp : respiration;
+  const displayO2 = isConnectedBl ? o2 : oxygen;
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -137,7 +165,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
             width={16}
             height={16}
           />
-          <Text style={styles.dataText}>{formatValue(temperature)}</Text>
+          <Text style={styles.dataText}>{formatValue(displayTemperature)}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.dataItem}>
@@ -146,7 +174,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
             width={16}
             height={16}
           />
-          <Text style={styles.dataText}>{formatValue(respiration)}</Text>
+          <Text style={styles.dataText}>{formatValue(displayRespiration)}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.dataItem}>
@@ -156,7 +184,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
             height={27}
           />
           <Text style={styles.dataText}>
-            {oxygen !== undefined ? `${oxygen}%` : "-"}
+            {displayO2 !== undefined ? `${displayO2}%` : "-"}
           </Text>
         </View>
       </View>
@@ -217,6 +245,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 6,
+  },
+  iconWrap: {
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  icon: {
+    width: 20,
+    height: 20,
   },
   dataText: {
     fontSize: 16,

@@ -1,11 +1,42 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Svg, Circle } from 'react-native-svg';
 
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+
 export default function VitalStatsDisplay() {
-  const o2Saturation = 90;
-  const breaths = 0;
-  const movement = 0;
+  const [o2Saturation, setO2Saturation] = useState<number>(98);
+  const [breaths, setBreaths] = useState<number>(18);
+  const [movement, setMovement] = useState<number>(12);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      // O2 Saturation: 95-100%
+      setO2Saturation((prev) => {
+        const jitter = Math.round((Math.random() - 0.5) * 2); // -1..+1
+        return clamp((prev || 98) + jitter, 95, 100);
+      });
+
+      // Breaths: 15-22 breaths per min
+      setBreaths((prev) => {
+        const jitter = Math.round((Math.random() - 0.5) * 4); // -2..+2
+        return clamp((prev || 18) + jitter, 15, 22);
+      });
+
+      // Movement: 8-16 movement rate
+      setMovement((prev) => {
+        const jitter = Math.round((Math.random() - 0.5) * 4); // -2..+2
+        return clamp((prev || 12) + jitter, 8, 16);
+      });
+    }, 2000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    };
+  }, []);
   const circleRadius = 68;
   const strokeWidth = 16;
   const center = 82;
