@@ -180,7 +180,7 @@ export default function KidsListScreen() {
       >
         <ActivityIndicator size="large" color="#4ECDC4" />
         <Text style={{ marginTop: 16, fontSize: 16, color: "#666" }}>
-          Loading kids...
+          Loading children...
         </Text>
       </View>
     );
@@ -198,14 +198,14 @@ export default function KidsListScreen() {
             source={require("../../../assets/home-parent/tabs/kid-active.png")}
             style={styles.headerIcon}
           />
-          <Text style={styles.headerTitle}>My Kids</Text>
+          <Text style={styles.headerTitle}>My Children</Text>
         </View>
 
         {/* Kids List */}
         <View style={styles.content}>
           {kids.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No kids registered</Text>
+              <Text style={styles.emptyStateText}>No children registered</Text>
             </View>
           ) : (
             <>

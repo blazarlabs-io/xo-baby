@@ -69,7 +69,7 @@ export default function PersonnelScreen() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#4ECDC4" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading personnel...</Text>
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading children...</Text>
       </View>
     );
   }
@@ -161,7 +161,7 @@ export default function PersonnelScreen() {
                       <View style={styles.assignButtonIcon}>
                         <Image source={require('../../../assets/home-parent/tabs/kid-active.png')} style={styles.assignButtonIconImage} />
                       </View>
-                      <Text style={styles.assignButtonText}>Assign Kids</Text>
+                      <Text style={styles.assignButtonText}>Assign children</Text>
                     </Pressable>
                   </Pressable>
                 );

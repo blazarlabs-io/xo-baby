@@ -45,7 +45,7 @@ export default function AddKidGenderScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -75,7 +75,7 @@ export default function AddKidGenderScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s gender</Text>
+        <Text style={styles.title}>Child's gender</Text>
       </View>
       <Picker
         selectedValue={gender}

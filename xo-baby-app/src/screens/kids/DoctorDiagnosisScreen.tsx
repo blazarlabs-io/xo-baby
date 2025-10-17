@@ -96,7 +96,7 @@ export default function DoctorDiagnosisScreen() {
     }
   };
 
-  if (!kid) return <Text>Kid not found</Text>;
+  if (!kid) return <Text>Child not found</Text>;
 
   const calculateAge = (birthDate: string) => {
     if (!birthDate) return "Unknown age";

@@ -32,8 +32,8 @@ export default function UnassignedKidsScreen() {
 
   const handleKidPress = (kidId: string) => {
     Alert.alert(
-      "Assign Kid",
-      "Are you sure you want to assign this kid to the doctor?",
+      "Assign Child",
+      "Are you sure you want to assign this child to the doctor?",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -49,13 +49,13 @@ export default function UnassignedKidsScreen() {
               if (user?.token) {
                 await refreshKids(user.token);
               }
-              Alert.alert("Success", "Kid has been assigned to the doctor");
+              Alert.alert("Success", "Child has been assigned to the doctor");
               navigation.goBack();
             } catch (error: any) {
               console.error("Error assigning kid:", error);
               console.error("Error response:", error.response?.data);
               console.error("Error status:", error.response?.status);
-              Alert.alert("Error", "Failed to assign kid to doctor");
+              Alert.alert("Error", "Failed to assign child to doctor");
             } finally {
               setIsLoading(false);
             }
@@ -97,7 +97,7 @@ export default function UnassignedKidsScreen() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#4ECDC4" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Assigning kid...</Text>
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Assigning child...</Text>
       </View>
     );
   }
@@ -116,7 +116,7 @@ export default function UnassignedKidsScreen() {
           >
             <Feather name="chevron-left" size={24} color="#222128" />
           </Pressable>
-          <Text style={styles.headerTitle}>Assign Kids</Text>
+          <Text style={styles.headerTitle}>Assign Children</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -124,14 +124,14 @@ export default function UnassignedKidsScreen() {
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              Unassigned Kids ({unassignedKids.length})
+              Unassigned Children ({unassignedKids.length})
             </Text>
           </View>
 
           {unassignedKids.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                No unassigned kids available
+                No unassigned children available
               </Text>
             </View>
           ) : (

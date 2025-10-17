@@ -60,7 +60,7 @@ export default function AddKidLocationScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -90,7 +90,7 @@ export default function AddKidLocationScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s location</Text>
+        <Text style={styles.title}>Child's location</Text>
       </View>
       <Picker
         selectedValue={location}

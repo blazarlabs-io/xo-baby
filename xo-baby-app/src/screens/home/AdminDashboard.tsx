@@ -237,10 +237,10 @@ export default function AdminDashboard() {
           </View>
         </View>
 
-        {/* My Kids Section */}
+        {/* My Children Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Kids</Text>
+            <Text style={styles.sectionTitle}>My Children</Text>
             <Pressable onPress={() => navigateToTab('Kids')}>
               <Text style={styles.seeAllButton}>See All</Text>
             </Pressable>
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
           <View style={styles.sectionContent}>
             {kids.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>No kids registered</Text>
+                <Text style={styles.emptyStateText}>No children registered</Text>
               </View>
             ) : (
               <>

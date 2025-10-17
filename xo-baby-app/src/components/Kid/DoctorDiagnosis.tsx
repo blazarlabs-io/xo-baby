@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../types/navigation";
 import { getDoctorDiagnoses, DoctorDiagnosis as ApiDoctorDiagnosis } from "@/api/doctorDiagnosisApi";
@@ -29,21 +29,25 @@ const DoctorDiagnosis: React.FC<DoctorDiagnosisProps> = ({ kidID }) => {
   const [loading, setLoading] = useState(false);
   const [diagnoses, setDiagnoses] = useState<ApiDoctorDiagnosis[]>([]);
 
-  useEffect(() => {
-    const loadDiagnoses = async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const fetched = await getDoctorDiagnoses(token, kidID, 2);
-        setDiagnoses(fetched);
-      } catch (err) {
-        console.error("Error loading doctor diagnoses:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDiagnoses();
+  const loadDiagnoses = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const fetched = await getDoctorDiagnoses(token, kidID, 2);
+      setDiagnoses(fetched);
+    } catch (err) {
+      console.error("Error loading doctor diagnoses:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [token, kidID]);
+
+  // Refetch data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadDiagnoses();
+    }, [loadDiagnoses])
+  );
 
   const goDetail = () => {
     navigation.navigate("DoctorDiagnosis", { kidId: kidID });

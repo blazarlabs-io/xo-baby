@@ -204,7 +204,7 @@ export default function MedicalDashboard() {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#4ECDC4" />
-        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading kids...</Text>
+        <Text style={{ marginTop: 16, fontSize: 16, color: '#666' }}>Loading children...</Text>
       </View>
     );
   }
@@ -217,7 +217,7 @@ export default function MedicalDashboard() {
           source={require('../../../assets/home-parent/baby.png')} 
           style={styles.headerIcon}
         />
-        <Text style={styles.headerTitle}>My Kids</Text>
+        <Text style={styles.headerTitle}>My Children</Text>
       </View>
 
       <ScrollView 
@@ -228,7 +228,7 @@ export default function MedicalDashboard() {
       >
         {kids.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyStateTitle}>No Patients Assigned</Text>
+            <Text style={styles.emptyStateTitle}>No Children Assigned</Text>
             <Text style={styles.emptyStateSubtitle}>
               You don't have any patients assigned to you yet.
             </Text>

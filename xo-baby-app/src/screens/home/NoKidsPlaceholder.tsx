@@ -6,17 +6,17 @@ export default function NoKidsPlaceholder({ onAdd }: { onAdd: () => void }) {
     <LinearGradient colors={['#E2F3F3', '#E2FFFF']} style={styles.centered}>
       <View style={styles.firsLineContainer}>
         <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-        <Text>My kids</Text>
+        <Text>My Children</Text>
        </View>
 
       <Image source={require('../../../assets/home-parent/kid1.png')} style={styles.image} />
       <Text style={styles.title}>Keep your first child safe with Womby</Text>
-      <Text style={styles.subTitle}>Please add your first kid</Text>
+      <Text style={styles.subTitle}>Please add your first child</Text>
 
       <Pressable onPress={onAdd} style={styles.button}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-          <Text style={styles.addKidText}>Add first Kid</Text>
+          <Text style={styles.addKidText}>Add first Child</Text>
         </View>
       </Pressable>
     </LinearGradient>

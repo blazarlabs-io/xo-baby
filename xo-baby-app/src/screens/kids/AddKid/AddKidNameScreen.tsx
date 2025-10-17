@@ -44,7 +44,7 @@ export default function AddKidNameScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -74,7 +74,7 @@ export default function AddKidNameScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s first name</Text>
+        <Text style={styles.title}>Child's first name</Text>
       </View>
       <TextInput
         style={[

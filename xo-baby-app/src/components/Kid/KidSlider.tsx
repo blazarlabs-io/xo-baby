@@ -62,7 +62,7 @@ export default function KidSlider({ kids, initialKidId }: Props) {
           style={{ width: 24, height: 24 }}
         />
         <View>
-          <Text>My Kids</Text>
+          <Text>My Children</Text>
         </View>
       </View>
       <View style={styles.dotsWrap}>

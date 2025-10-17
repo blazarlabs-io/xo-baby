@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../types/navigation";
 
@@ -32,23 +32,26 @@ const Notes: React.FC<NotesProps> = (props) => {
   const [notes, setNotes] = useState<NoteApi[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch notes on mount or when token/kidId changes
-  useEffect(() => {
-    const loadNotes = async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const kidId = kidID;
-        const fetched = await getNotes(token, { kidId });
-        setNotes(fetched);
-      } catch (err) {
-        console.error("Error loading notes:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadNotes();
+  const loadNotes = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const kidId = kidID;
+      const fetched = await getNotes(token, { kidId });
+      setNotes(fetched);
+    } catch (err) {
+      console.error("Error loading notes:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [token, kidID]);
+
+  // Refetch data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadNotes();
+    }, [loadNotes])
+  );
 
   const goDetail = () => {
     navigation.navigate("Notes", { kidId: kidID });

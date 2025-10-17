@@ -62,7 +62,7 @@ export default function AddKidBloodTypeScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -92,7 +92,7 @@ export default function AddKidBloodTypeScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s blood type</Text>
+        <Text style={styles.title}>Child's blood type</Text>
       </View>
       <Picker
         selectedValue={bloodtype}

@@ -63,7 +63,7 @@ export default function AddKidEthnicityScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -93,7 +93,7 @@ export default function AddKidEthnicityScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s ethnicity</Text>
+        <Text style={styles.title}>Child's ethnicity</Text>
       </View>
       <Picker
         selectedValue={ethnicity}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../types/navigation";
 import { getVaccinations, Vaccination as ApiVaccination } from "@/api/vaccinationApi";
@@ -29,21 +29,25 @@ const Vaccination: React.FC<VaccinationProps> = ({ kidID }) => {
   const [loading, setLoading] = useState(false);
   const [vaccinations, setVaccinations] = useState<ApiVaccination[]>([]);
 
-  useEffect(() => {
-    const loadVaccinations = async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const fetched = await getVaccinations(token, kidID, 2);
-        setVaccinations(fetched);
-      } catch (err) {
-        console.error("Error loading vaccinations:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadVaccinations();
+  const loadVaccinations = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const fetched = await getVaccinations(token, kidID, 2);
+      setVaccinations(fetched);
+    } catch (err) {
+      console.error("Error loading vaccinations:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [token, kidID]);
+
+  // Refetch data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadVaccinations();
+    }, [loadVaccinations])
+  );
 
   const goDetail = () => {
     navigation.navigate("Vaccination", { kidId: kidID });

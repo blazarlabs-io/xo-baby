@@ -47,7 +47,7 @@ export default function HomeScreen() {
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#31CECE" />
         <Text style={{ marginTop: 16, fontSize: 16, color: '#666', textAlign: 'center' }}>
-          Loading your kids data...{'\n'}
+          Loading your children data...{'\n'}
           This may take a moment as we fetch from the blockchain
         </Text>
       </View>
@@ -81,7 +81,7 @@ export default function HomeScreen() {
             <Pressable onPress={handleAddKid} style={styles.addNewKidButton}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Image source={require('../../../assets/home-parent/baby.png')} style={{ width: 24, height: 24 }} />
-                <Text style={styles.addKidText}>Add first Kid</Text>
+                <Text style={styles.addKidText}>Add first Child</Text>
               </View>
             </Pressable>
           )}

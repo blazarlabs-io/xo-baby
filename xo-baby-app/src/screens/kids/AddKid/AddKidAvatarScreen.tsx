@@ -337,7 +337,7 @@ export default function AddKidAvatarScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -367,7 +367,7 @@ export default function AddKidAvatarScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 266 }}>
-        <Text style={styles.title}>Kid's avatar</Text>
+        <Text style={styles.title}>Child's avatar</Text>
       </View>
       <View style={styles.content}>
         <Text style={styles.contentTitle}>Choose Avatar</Text>
@@ -459,7 +459,7 @@ export default function AddKidAvatarScreen() {
           onPress={handleCreateKid}
           disabled={isCreating}
         >
-          <Text style={styles.buttonText}>Create Kid</Text>
+          <Text style={styles.buttonText}>Create Child</Text>
         </Pressable>
         {!isCreating && (
           <Pressable onPress={() => navigation.goBack()}>

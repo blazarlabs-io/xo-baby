@@ -1,5 +1,5 @@
 // system imports
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ScrollView,
   Text,
@@ -13,7 +13,7 @@ import { FlatList } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Navigation
 import { AppStackParamList } from "../../types/navigation";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 // Components imports
 import AvatarHeader from "./AvatarHeader";
@@ -71,40 +71,50 @@ export default function KidProfileCard({
   const [headData, setHeadData] = useState<number[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
-  useEffect(() => {
+  const loadMeasurements = useCallback(async () => {
     if (!token || !kidId) return;
     setLoading(true);
-    Promise.all([
-      getWeightRecords(token, kidId),
-      getHeightRecords(token, kidId),
-      getHeadCircumferenceRecords(token, kidId),
-    ])
-      .then(([weights, heights, heads]) => {
-        // fill chart data
-        setWeightData(weights.map((r) => r.value));
-        setHeightData(heights.map((r) => r.value));
-        setHeadData(heads.map((r) => r.value));
+    try {
+      const [weights, heights, heads] = await Promise.all([
+        getWeightRecords(token, kidId),
+        getHeightRecords(token, kidId),
+        getHeadCircumferenceRecords(token, kidId),
+      ]);
 
-        // derive the most recent date across all three measurements
-        const allDates = [...weights, ...heights, ...heads].map(
-          (r) => new Date(r.date)
-        );
-        const maxTs = Math.max(...allDates.map((d) => d.getTime()));
-        const mostRecent = new Date(maxTs);
-        // format: e.g. "June 30, 2025"
-        setLastUpdated(
-          mostRecent.toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })
-        );
-      })
-      .catch((err) => console.error("Error loading measurements:", err))
-      .finally(() => setLoading(false));
+      // fill chart data
+      setWeightData(weights.map((r) => r.value));
+      setHeightData(heights.map((r) => r.value));
+      setHeadData(heads.map((r) => r.value));
+
+      // derive the most recent date across all three measurements
+      const allDates = [...weights, ...heights, ...heads].map(
+        (r) => new Date(r.date)
+      );
+      const maxTs = Math.max(...allDates.map((d) => d.getTime()));
+      const mostRecent = new Date(maxTs);
+      // format: e.g. "June 30, 2025"
+      setLastUpdated(
+        mostRecent.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      );
+    } catch (err) {
+      console.error("Error loading measurements:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [token, kidId]);
 
-  if (!kid) return <Text>Kid not found</Text>;
+  // Refetch data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadMeasurements();
+    }, [loadMeasurements])
+  );
+
+  if (!kid) return <Text>Child not found</Text>;
 
   // derive latest values from fetched data
   const latestWeight =
@@ -172,7 +182,7 @@ export default function KidProfileCard({
               source={require("../../../assets/home-parent/baby.png")}
               style={{ width: 24, height: 24 }}
             />
-            <Text style={styles.addKidText}>Add Kid</Text>
+            <Text style={styles.addKidText}>Add Child</Text>
           </View>
         </Pressable>
       )}

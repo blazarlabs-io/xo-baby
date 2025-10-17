@@ -87,8 +87,8 @@ export default function CustomTabBar({
             typeof route.name === "string"
               ? {
                   MyFacility: "My Facility",
-                  MyKids: "My Kids",
-                  Kids: "Kids",
+                  MyKids: "My Children",
+                  Kids: "Children",
                   Personnel: "Personnel",
                   Devices: "Devices",
                   Settings: "Settings",

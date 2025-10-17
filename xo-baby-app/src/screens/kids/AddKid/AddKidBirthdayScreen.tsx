@@ -50,7 +50,7 @@ export default function AddKidBirthdayScreen() {
           />
         </Pressable>
         <View style={styles.headerText}>
-          <Text>Add Kid</Text>
+          <Text>Add Child</Text>
         </View>
       </View>
       <View
@@ -80,7 +80,7 @@ export default function AddKidBirthdayScreen() {
         </View>
       </View>
       <View style={{ marginTop: 24, maxWidth: 172 }}>
-        <Text style={styles.title}>Kid’s birth date</Text>
+        <Text style={styles.title}>Child's birth date</Text>
       </View>
       <View style={{ marginTop: 24 }}>
         <Calendar

@@ -66,7 +66,7 @@ export default function KidDetailsScreen() {
       
       // Close modal and navigate back
       setShowDeleteModal(false);
-      Alert.alert("Success", "Kid account deleted successfully", [
+      Alert.alert("Success", "Child account deleted successfully", [
         {
           text: "OK",
           onPress: () => navigation.goBack(),
@@ -76,7 +76,7 @@ export default function KidDetailsScreen() {
       console.error("Error deleting kid:", error);
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Failed to delete kid account"
+        error.response?.data?.message || "Failed to delete child account"
       );
     } finally {
       setIsDeleting(false);
@@ -112,7 +112,7 @@ export default function KidDetailsScreen() {
             <Feather name="chevron-left" size={24} color="#222128" />
             {/* </Text> */}
           </Pressable>
-          <Text style={styles.headerTitle}>Kid Details</Text>
+          <Text style={styles.headerTitle}>Child Details</Text>
           <View style={{ width: 40 }} />
         </View>
 

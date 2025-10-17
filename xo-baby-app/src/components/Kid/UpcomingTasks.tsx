@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../types/navigation";
 import { getTasks, Task as ApiTask } from "@/api/taskApi";
@@ -38,21 +38,25 @@ const UpcomingTasks: React.FC<UpcomingTasksProps> = ({ kidID }) => {
   const [loading, setLoading] = useState(false);
   const [tasks, setTasks] = useState<ApiTask[]>([]);
 
-  useEffect(() => {
-    const loadTasks = async () => {
-      if (!token) return;
-      setLoading(true);
-      try {
-        const fetched = await getTasks(token, kidID, 2);
-        setTasks(fetched);
-      } catch (err) {
-        console.error("Error loading tasks:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadTasks();
+  const loadTasks = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const fetched = await getTasks(token, kidID, 2);
+      setTasks(fetched);
+    } catch (err) {
+      console.error("Error loading tasks:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [token, kidID]);
+
+  // Refetch data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadTasks();
+    }, [loadTasks])
+  );
 
   const goDetail = () => {
     navigation.navigate("Tasks", { kidId: kidID });
