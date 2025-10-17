@@ -32,6 +32,7 @@ import {
 // Store
 import { useUserStore } from "@/store/userStore";
 import { useKidStore } from "../../store/kidStore";
+import { useSystemStore } from '../../store/systemStore';
 
 export default function KidProfileCard({
   kidId,
@@ -46,6 +47,7 @@ export default function KidProfileCard({
   const token = user?.token || "";
   const userRole = user?.role || 'parent';
   const kid = useKidStore((state) => state.kids.find((k) => k.id === kidId));
+  const { isConnectedDevice } = useSystemStore();
 
 
   console.log(
@@ -106,6 +108,7 @@ export default function KidProfileCard({
       setLoading(false);
     }
   }, [token, kidId]);
+console.log("aaaaaaaaaa" + isConnectedDevice)
 
   // Refetch data when screen comes into focus
   useFocusEffect(
@@ -161,7 +164,11 @@ export default function KidProfileCard({
   const Header = (
     <>
       <AvatarHeader kidID={kidId} />
-      <RealTimeDataWidget kidID={kidId} deviceName="Cardiac Sense System 3" />
+      <RealTimeDataWidget
+        kidID={kidId}
+        deviceName="Cardiac Sense System 3"
+        isConnectedBl={isConnectedDevice}
+       />
       <Development
         lastUpdated={lastUpdated}
         kidID={kidId}
