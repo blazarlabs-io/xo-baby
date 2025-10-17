@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { AppStackParamList } from "../../types/navigation";
 import { useKidStore } from "../../store/kidStore";
+import { useSystemStore } from "../../store/systemStore";
 
 interface RealTimeDataProps {
   heartRate?: number;
@@ -33,7 +34,7 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   oxygen,
   deviceName,
   kidID,
-  isConnectedBl = true,
+  isConnectedBl
 }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<AppStackParamList, "KidProfile">>();
@@ -49,6 +50,8 @@ const RealTimeDataWidget: React.FC<RealTimeDataProps> = ({
   const [resp, setResp] = useState<number>(respiration ?? 18);
   const [o2, setO2] = useState<number>(oxygen ?? 98);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { isConnected } = useSystemStore();
 
   useEffect(() => {
     if (!isConnectedBl) return; // no simulation, keep whatever is in props/state

@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../types/navigation';
 import {styles} from './styles/DevicesScreen.styles';
+import { useSystemStore } from '../../store/systemStore';
 
 const DEVICE = { id: 'xo-AxS83Eg1', name: 'Cardiac Sense System 3 (A7:3C)' };
 
@@ -12,6 +13,7 @@ export default function DevicesScreen() {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const progress = useRef(new Animated.Value(0)).current;
+  const { isConnectedDevice, setIsConnectedDevice} = useSystemStore();
   const isOnline = isConnected;
   const onEdit = () => navigation.navigate('DeviceItem', { kidId: DEVICE.id });
   const onConnect = () => {
@@ -25,6 +27,7 @@ export default function DevicesScreen() {
       useNativeDriver: false,
     }).start(() => {
       setIsConnecting(false);
+      setIsConnectedDevice(true)
       setIsConnected(true);
       progress.setValue(0);
     });
@@ -33,6 +36,7 @@ export default function DevicesScreen() {
   const onDisconnect = () => {
     if (isConnecting) return;
     setIsConnected(false);
+    setIsConnectedDevice(false)
   };
 
   const addDevice = () => {

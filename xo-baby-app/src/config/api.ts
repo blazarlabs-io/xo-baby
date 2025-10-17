@@ -9,9 +9,10 @@ const DEV_HOST = Platform.select({
   default: "localhost",
 });
 
-// Use the same server for both dev and production for now
-const BASE_URL = `https://xo-baby.blazarlabs.io`;
-// const BASE_URL = `http://64.227.35.231:3000`;
+//Use the same server for both dev and production for now
+  const BASE_URL = `https://xo-baby.blazarlabs.io`;
+//const BASE_URL = `http://64.227.35.231:3000`;
+//const BASE_URL = `https://b0a875db367f.ngrok-free.app`;
 
 export const api = axios.create({
   baseURL: BASE_URL,
